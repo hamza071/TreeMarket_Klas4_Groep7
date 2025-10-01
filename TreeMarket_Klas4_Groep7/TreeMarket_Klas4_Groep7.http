@@ -3,7 +3,7 @@
 GET {{TreeMarket_Klas4_Groep7_HostAddress}}/weatherforecast/
 Accept: application/json
 
-###
+
 .vs/
 ````````
 
