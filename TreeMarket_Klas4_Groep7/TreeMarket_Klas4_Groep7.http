@@ -1,0 +1,6 @@
+@TreeMarket_Klas4_Groep7_HostAddress = http://localhost:5036
+
+GET {{TreeMarket_Klas4_Groep7_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
