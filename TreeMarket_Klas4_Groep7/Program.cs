@@ -1,4 +1,5 @@
 using Microsoft.OpenApi.Models;
+using Microsoft.Data.SqlClient;      // <-- move this up here
 using TreeMarket_Klas4_Groep7;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -53,3 +54,5 @@ app.MapGet("/weatherforecast", (HttpContext httpContext) =>
 app.MapControllers();
 
 app.Run();
+
+// jo dit is hamza
