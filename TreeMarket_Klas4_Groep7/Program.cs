@@ -1,4 +1,5 @@
 using Microsoft.OpenApi.Models;
+using Microsoft.Data.SqlClient;      // <-- move this up here
 using TreeMarket_Klas4_Groep7;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -52,8 +53,15 @@ app.MapGet("/weatherforecast", (HttpContext httpContext) =>
 
 app.MapControllers();
 
-app.Run();
+// Add db-ping endpoint
+app.MapGet("/db-ping", async () =>
+{
+    var cs = app.Configuration.GetConnectionString("Sql");
+    await using var c = new SqlConnection(cs);
+    await c.OpenAsync();
+    await using var cmd = new SqlCommand("SELECT DB_NAME()", c);
+    var db = (string)await cmd.ExecuteScalarAsync();
+    return Results.Ok(new { connected = true, database = db });
+});
 
-// jo dit is hamza
-//dit is adam
-// xin chao, ban la Danny
+app.Run();
