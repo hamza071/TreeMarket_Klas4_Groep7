@@ -1,6 +1,8 @@
-using Microsoft.OpenApi.Models;
 using Microsoft.Data.SqlClient;      // <-- move this up here
-using TreeMarket_Klas4_Groep7;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi.Models;
+using Microsoft.EntityFrameworkCore;
+using TreeMarket_Klas4_Groep7; // <- dit is jullie namespace
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,6 +17,10 @@ builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "API", Version = "v1" });
 });
+
+// Voeg EF Core databasecontext toe
+builder.Services.AddDbContext<BloggingContext>(options =>
+    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 var app = builder.Build();
 
@@ -54,5 +60,3 @@ app.MapGet("/weatherforecast", (HttpContext httpContext) =>
 app.MapControllers();
 
 app.Run();
-
-// jo dit is hamza
