@@ -1,7 +1,8 @@
-using Microsoft.OpenApi.Models;
-using Microsoft.Data.SqlClient;
+using Microsoft.Data.SqlClient;      // <-- move this up here
 using Microsoft.EntityFrameworkCore;
-using TreeMarket_Klas4_Groep7;
+using Microsoft.OpenApi.Models;
+using Microsoft.EntityFrameworkCore;
+using TreeMarket_Klas4_Groep7; // <- dit is jullie namespace
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,16 +11,16 @@ builder.Services.AddControllers();
 builder.Services.AddRouting();
 builder.Services.AddAuthorization();
 
-// === add this line to register your DbContext for SQL Server ===
-builder.Services.AddDbContext<AppDb>(o =>
-    o.UseSqlServer(builder.Configuration.GetConnectionString("Sql")));
-
 // Add Swagger services
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "API", Version = "v1" });
 });
+
+// Voeg EF Core databasecontext toe
+builder.Services.AddDbContext<BloggingContext>(options =>
+    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 var app = builder.Build();
 
@@ -57,16 +58,5 @@ app.MapGet("/weatherforecast", (HttpContext httpContext) =>
     .WithName("GetWeatherForecast");
 
 app.MapControllers();
-
-// Add db-ping endpoint
-app.MapGet("/db-ping", async () =>
-{
-    var cs = app.Configuration.GetConnectionString("Sql");
-    await using var c = new SqlConnection(cs);
-    await c.OpenAsync();
-    await using var cmd = new SqlCommand("SELECT DB_NAME()", c);
-    var db = (string)await cmd.ExecuteScalarAsync();
-    return Results.Ok(new { connected = true, database = db });
-});
 
 app.Run();
