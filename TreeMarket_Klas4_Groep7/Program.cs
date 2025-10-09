@@ -1,5 +1,6 @@
 using Microsoft.OpenApi.Models;
-using Microsoft.Data.SqlClient;      // <-- move this up here
+using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
 using TreeMarket_Klas4_Groep7;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -8,6 +9,10 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddRouting();
 builder.Services.AddAuthorization();
+
+// === add this line to register your DbContext for SQL Server ===
+builder.Services.AddDbContext<AppDb>(o =>
+    o.UseSqlServer(builder.Configuration.GetConnectionString("Sql")));
 
 // Add Swagger services
 builder.Services.AddEndpointsApiExplorer();
