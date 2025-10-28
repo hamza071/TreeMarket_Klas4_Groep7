@@ -8,7 +8,12 @@
 
     <ItemGroup>
       <Content Remove="Front-End\home\index.cshtml" />
+      <Content Remove="Front-End\home\Test1 - Copy.cshtml" />
       <Content Remove="Front-End\home\Test1.cshtml" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Compile Include="WarmingUp\img\css\shop.css" />
     </ItemGroup>
 
     <ItemGroup>
@@ -33,6 +38,7 @@
 
     <ItemGroup>
       <None Include="Front-End\home\index.cshtml" />
+      <None Include="Front-End\home\Test1 - Copy.cshtml" />
       <None Include="Front-End\home\Test1.cshtml" />
     </ItemGroup>
 
