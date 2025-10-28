@@ -29,7 +29,6 @@
 
     <ItemGroup>
       <Folder Include="Front-End\shared\" />
-      <Folder Include="wwwroot\js\" />
     </ItemGroup>
 
     <ItemGroup>
