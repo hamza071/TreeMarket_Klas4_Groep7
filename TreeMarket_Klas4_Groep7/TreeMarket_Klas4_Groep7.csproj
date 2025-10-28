@@ -13,10 +13,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Compile Include="WarmingUp\css\shop.css" />
-    </ItemGroup>
-
-    <ItemGroup>
         <PackageReference Include="Microsoft.AspNetCore.Mvc" Version="2.3.0" />
         <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.9" />
         <PackageReference Include="Microsoft.Data.SqlClient" Version="6.1.2" />
