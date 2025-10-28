@@ -1,15 +1,25 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using TreeMarket_Klas4_Groep7.Data;
+using Microsoft.AspNetCore.Mvc.Razor;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Voeg services toe
-builder.Services.AddControllers();
+// Register MVC with views (required for Controller.View, TempData, Razor)
+builder.Services.AddControllersWithViews();
+
+// If you want Razor to search the Front-End folder for views:
+builder.Services.Configure<RazorViewEngineOptions>(options =>
+{
+    // {1} = controller name, {0} = view name
+    options.ViewLocationFormats.Add("/Front-End/{1}/{0}.cshtml");
+    options.ViewLocationFormats.Add("/Front-End/{0}.cshtml");
+});
+
 builder.Services.AddRouting();
 builder.Services.AddAuthorization();
 
-// Voeg Swagger toe
+// Swagger
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -20,13 +30,12 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-// Voeg EF Core databasecontext toe (SQL Server Express)
+// EF Core
 builder.Services.AddDbContext<BloggingContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("LocalExpress")));
 
 var app = builder.Build();
 
-// Configureer HTTP pipeline
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -37,12 +46,15 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseStaticFiles();
 app.UseRouting();
 app.UseAuthorization();
 
-// Controllers endpoints
-app.MapControllers();
+app.MapControllerRoute(
+    name: "default",
+    pattern: "{controller=Home}/{action=Index}/{id?}");
 
+app.MapControllers();
 app.Run();
 
 
