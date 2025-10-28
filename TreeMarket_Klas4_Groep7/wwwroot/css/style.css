@@ -39,3 +39,7 @@ p {
 .button_positioning {
     margin-left: 50px;
 }
+
+.btn btn-primary bgreen {
+    background-color: #5BBA6F;
+}
