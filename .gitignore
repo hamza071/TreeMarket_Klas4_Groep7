@@ -1,10 +1,17 @@
+# .NET build
 bin/
 obj/
-/packages/
+packages/
+
+# IDE
+.idea/
+.vs/
 riderModule.iml
-/_ReSharper.Caches/".vs/" 
-.vs/
-.vs/
-.vs/
-.vs/
-.vs/
+_ReSharper.Caches/
+
+# React
+ClientApp/node_modules/
+ClientApp/dist/
+
+# Logs
+*.log
