@@ -7,12 +7,6 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <Content Remove="Front-End\home\index.cshtml" />
-      <Content Remove="Front-End\home\Test1 - Copy.cshtml" />
-      <Content Remove="Front-End\home\Test1.cshtml" />
-    </ItemGroup>
-
-    <ItemGroup>
         <PackageReference Include="Microsoft.AspNetCore.Mvc" Version="2.3.0" />
         <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.9" />
         <PackageReference Include="Microsoft.Data.SqlClient" Version="6.1.2" />
@@ -25,16 +19,6 @@
         </PackageReference>
         <PackageReference Include="Microsoft.SqlServer.Server" Version="1.0.0" />
         <PackageReference Include="Swashbuckle.AspNetCore" Version="9.0.6" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <Folder Include="Front-End\shared\" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <None Include="Front-End\home\index.cshtml" />
-      <None Include="Front-End\home\Test1 - Copy.cshtml" />
-      <None Include="Front-End\home\Test1.cshtml" />
     </ItemGroup>
 
 </Project>

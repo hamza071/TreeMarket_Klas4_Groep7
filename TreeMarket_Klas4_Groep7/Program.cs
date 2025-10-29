@@ -7,6 +7,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Register MVC with views (required for Controller.View, TempData, Razor)
 builder.Services.AddControllersWithViews();
+//builder.Services.AddDbContext<ApiContext>
+//    (opt => opt.UseSqlServer(""));
 
 // If you want Razor to search the Front-End folder for views:
 builder.Services.Configure<RazorViewEngineOptions>(options =>

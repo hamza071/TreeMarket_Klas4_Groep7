@@ -2,8 +2,13 @@
 {
     public class Product
     {
-        public int Id { get; set; }
-        public string Name { get; set; } = "";
-        public decimal Price { get; set; }
+        public int ProductId { get; set; }
+        public string Foto { get; set; }
+        public string Artikelkenmerken { get; set; }
+        public int Hoeveelheid { get; set; }
+        public decimal MinimumPrijs { get; set; }
+        public DateTime Dagdatum { get; set; }
+        //Een op meer relatie
+        public decimal LeverancierID { get; set; }
     }
 }

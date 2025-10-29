@@ -7,5 +7,6 @@ namespace TreeMarket_Klas4_Groep7.Controllers
     [ApiController]
     public class GebruikerController : ControllerBase
     {
+        //Mogelijk voor sub klasses, of het moet apart😝
     }
 }
