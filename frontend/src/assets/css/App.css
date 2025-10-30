@@ -1,3 +1,4 @@
+/*De styling voor de applicatie zelf*/
 .app-shell {
     min-height: 100vh;
     display: flex;
@@ -506,6 +507,7 @@
     flex-direction: column;
     gap: 0.5rem;
 }
+
 
 @media (max-width: 900px) {
     .app-header {

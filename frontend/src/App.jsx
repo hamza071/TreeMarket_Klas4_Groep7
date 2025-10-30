@@ -1,24 +1,31 @@
 import { useMemo, useState } from 'react'
-import './App.css'
+//Importeerd de styling voor die bestanden
+import './assets/css/App.css'
+//Importeerd de React pages binnen de map
 import DashboardPage from './pages/DashboardPage'
 import AuctionPage from './pages/AuctionPage'
 import UploadAuctionPage from './pages/UploadAuctionPage'
 import ReportsPage from './pages/ReportsPage'
 import AuthPage from './pages/AuthPage'
-import Navbar from './pages/Navbar'
+import HomePage from './pages/HomePage'
+import ShopPage from './pages/ShopPage'
 
+
+//De lijst waar je de navigatie wilt meegeven.
 const NAVIGATION_ITEMS = [
     { id: 'dashboard', label: 'Dashboard' },
     { id: 'auction', label: 'Veiling' },
     { id: 'upload', label: 'Upload Veiling' },
     { id: 'reports', label: 'Rapporten' },
-    { id: 'navbar', label: 'Navbar' },
-    { id: 'home', label: 'Home'}
+    { id: 'home', label: 'Home' },
+    { id: 'shop', label: 'Shop' },
 ]
 
 function App() {
     const [activeView, setActiveView] = useState('dashboard')
 
+    //Deze switch is een navbar waar je kunt navigeren.
+    //Probeer het eens uit als je het runned :)
     const ActivePage = useMemo(() => {
         switch (activeView) {
             case 'dashboard':
@@ -29,8 +36,13 @@ function App() {
                 return <UploadAuctionPage />
             case 'reports':
                 return <ReportsPage />
+            case 'home':
+                return <HomePage />
+            case 'shop':
+                return <ShopPage />
             case 'auth':
                 return <AuthPage />
+            
             default:
                 return <DashboardPage />
         }

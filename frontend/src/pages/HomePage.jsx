@@ -1,11 +1,10 @@
-function HomePage(){
+//import from './assets/MLG Toad.jpg'
+
+function HomePage() {
     return (
          <main>
             <header>
-                <!--Navbar moet later gelinkt worden-->
-                   
-
-                <!--Einde van de tijdelijke navbar-->
+        
             </header>
             <article>
                 <section>
@@ -57,7 +56,6 @@ function HomePage(){
                             <h3>Test</h3>
                             <p>Body text for whatever you’d like to add more to the subheading. </p>
                         </div>
-                        <!-- Button styling and positioning -->
                         <div class="button_positioning">
                             <a href="login.html">
                                 <button type="button" class="btn btn-success">
@@ -113,3 +111,6 @@ function HomePage(){
 
     );
 }
+
+export default HomePage
+
