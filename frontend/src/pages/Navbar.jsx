@@ -26,6 +26,7 @@ export default function Navbar() {
                             <a class="dropdown-item" href="register.html">Registrerenn</a>
                         </div>
                     </li>
+                </ul>
             </div>
         </nav>
     );
