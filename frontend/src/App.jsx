@@ -5,12 +5,15 @@ import AuctionPage from './pages/AuctionPage'
 import UploadAuctionPage from './pages/UploadAuctionPage'
 import ReportsPage from './pages/ReportsPage'
 import AuthPage from './pages/AuthPage'
+import Navbar from './pages/Navbar'
 
 const NAVIGATION_ITEMS = [
     { id: 'dashboard', label: 'Dashboard' },
     { id: 'auction', label: 'Veiling' },
     { id: 'upload', label: 'Upload Veiling' },
     { id: 'reports', label: 'Rapporten' },
+    { id: 'navbar', label: 'Navbar' },
+    { id: 'home', label: 'Home'}
 ]
 
 function App() {
