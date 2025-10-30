@@ -42,7 +42,6 @@ function App() {
                 return <ShopPage />
             case 'auth':
                 return <AuthPage />
-            
             default:
                 return <DashboardPage />
         }
