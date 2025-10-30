@@ -7,7 +7,8 @@ import AuctionPage from './pages/AuctionPage'
 import UploadAuctionPage from './pages/UploadAuctionPage'
 import ReportsPage from './pages/ReportsPage'
 import AuthPage from './pages/AuthPage'
-import Navbar from './pages/Navbar'
+import AboutUsPage from './pages/AboutUsPage'
+import HomePage from './pages/HomePage'
 
 
 //De lijst waar je de navigatie wilt meegeven.
@@ -16,8 +17,8 @@ const NAVIGATION_ITEMS = [
     { id: 'auction', label: 'Veiling' },
     { id: 'upload', label: 'Upload Veiling' },
     { id: 'reports', label: 'Rapporten' },
-    { id: 'navbar', label: 'Navbar' },
-    { id: 'home', label: 'Home'}
+    { id: 'home', label: 'Home' },
+    { id: 'about', label: 'About' },
 ]
 
 function App() {

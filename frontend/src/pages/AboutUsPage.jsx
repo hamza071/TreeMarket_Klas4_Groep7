@@ -1,8 +1,7 @@
 import React from 'react';
-import heroImage from '../assets/hero-blossoms.jpg';
+import heroImage from '../assets/img/hero-blossoms.jpg';
 
 export default function AboutPage() {
-
     return (
         <div className="about-page-wrapper" style={{ width: '100%' }}>
             <header className="site-header">

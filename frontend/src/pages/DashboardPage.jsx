@@ -1,4 +1,4 @@
-import tulpenveld from '../assets/tulpenveld.jpg';
+import tulpenveld from '../assets/img/tulpenveld.jpg';
 
 const featuredLot = {
     id: 'A12345',

@@ -1,4 +1,4 @@
-import toadImage from '../assets/MLG Toad.jpg'
+import toadImage from '../assets/img/MLG Toad.jpg'
 
 
 function HomePage() {
