@@ -1,3 +1,9 @@
+//Deze navbar wordt gebruikt voor het volgende:
+//1. Bezoeker (niet ingelogt)
+//2. Klant
+//3. Veilingsmeester
+//4. Leverancier
+
 import { useMemo, useState } from 'react'
 //Importeerd de styling voor die bestanden
 import './assets/css/App.css'
