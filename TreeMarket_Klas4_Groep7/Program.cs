@@ -6,32 +6,37 @@ using Microsoft.AspNetCore.Mvc.Razor;
 var builder = WebApplication.CreateBuilder(args);
 
 // Register MVC with views (required for Controller.View, TempData, Razor)
-builder.Services.AddControllersWithViews();
+builder.Services.AddDbContext<ApiContext>();
+
+//Voor nu controllers zonder views. Later kunnen we met views gebruiken zodien dat nodig is.
+builder.Services.AddControllers();
+//builder.Services.AddControllersWithViews();
+
 
 // If you want Razor to search the Front-End folder for views:
-builder.Services.Configure<RazorViewEngineOptions>(options =>
-{
-    // {1} = controller name, {0} = view name
-    options.ViewLocationFormats.Add("/Front-End/{1}/{0}.cshtml");
-    options.ViewLocationFormats.Add("/Front-End/{0}.cshtml");
-});
+//builder.Services.Configure<RazorViewEngineOptions>(options =>
+//{
+//    // {1} = controller name, {0} = view name
+//    options.ViewLocationFormats.Add("/Front-End/{1}/{0}.cshtml");
+//    options.ViewLocationFormats.Add("/Front-End/{0}.cshtml");
+//});
 
 builder.Services.AddRouting();
-builder.Services.AddAuthorization();
 
 // Swagger
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(c =>
-{
-    c.SwaggerDoc("v1", new OpenApiInfo
-    {
-        Title = "TreeMarket API",
-        Version = "v1"
-    });
-});
+builder.Services.AddSwaggerGen();
+//builder.Services.AddSwaggerGen(c =>
+//{
+//    c.SwaggerDoc("v1", new OpenApiInfo
+//    {
+//        Title = "TreeMarket API",
+//        Version = "v1"
+//    });
+//});
 
 // EF Core
-builder.Services.AddDbContext<BloggingContext>(options =>
+builder.Services.AddDbContext<ApiContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("LocalExpress")));
 
 var app = builder.Build();
@@ -39,10 +44,11 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "TreeMarket API v1");
-    });
+    app.UseSwaggerUI();
+    //app.UseSwaggerUI(c =>
+    //{
+    //    c.SwaggerEndpoint("/swagger/v1/swagger.json", "TreeMarket API v1");
+    //});
 }
 
 app.UseHttpsRedirection();
@@ -55,8 +61,9 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.MapControllers();
-app.Run();
 
+//De app runt
+app.Run();
 
 
 
