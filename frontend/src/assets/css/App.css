@@ -1,3 +1,4 @@
+/*De styling voor de applicatie zelf*/
 .app-shell {
     min-height: 100vh;
     display: flex;
@@ -507,6 +508,7 @@
     gap: 0.5rem;
 }
 
+
 @media (max-width: 900px) {
     .app-header {
         flex-wrap: wrap;
@@ -530,3 +532,64 @@
         display: none;
     }
 }
+
+* {
+    margin-left: 25px;
+}
+
+section {
+    margin-bottom: 50px;
+}
+
+body {
+    background-color: rgb(255, 253, 249);
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: "Inter", sans-serif;
+    font-optical-sizing: auto;
+    font-weight: 900;
+    font-style: normal;
+}
+
+p {
+    font-family: "Source Sans 3", sans-serif;
+    font-optical-sizing: auto;
+    font-weight: 100;
+    font-style: normal;
+}
+
+.container_column {
+    display: grid;
+    grid-template-columns: auto auto auto;
+    margin-left: -25px;
+}
+
+.container_row {
+    display: grid;
+    grid-template-rows: auto auto auto;
+    margin-left: -25px;
+}
+
+/*For 2 tiles instead of three*/
+.container_column_2_tiles {
+    display: grid;
+    grid-template-columns: auto auto;
+    margin-left: -25px;
+}
+
+.container_row_2_tiles {
+    display: grid;
+    grid-template-rows: auto auto;
+    margin-left: -25px;
+}
+
+.button_positioning {
+    margin-left: 50px;
+}
+
+/*Button is not working yet*/
+.btn btn-primary bgreen {
+    background-color: #5BBA6F;
+}
+
