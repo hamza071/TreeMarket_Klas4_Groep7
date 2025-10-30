@@ -3,7 +3,7 @@ import tulpenveld from '../assets/tulpenveld.jpg';
 const featuredLot = {
     id: 'A12345',
     title: "Tulpen Mix 'Lente'",
-    price: '€24,50',
+    price: 'ï¿½24,50',
     quantity: '100 stuks per bos',
     timeLeft: '10s',
 }
@@ -40,7 +40,7 @@ function DashboardPage() {
                     <span className="eyebrow">TREE MARKET</span>
                     <h1>De toekomst van bloemen en planten veilingen</h1>
                     <p>
-                        Digitale Veilingklok 2025 brengt kopers en kwekers samen in een moderne, efficiënte online
+                        Digitale Veilingklok 2025 brengt kopers en kwekers samen in een moderne, efficiï¿½nte online
                         veilingomgeving.
                     </p>
                     <button type="button" className="primary-action">
@@ -99,5 +99,5 @@ function DashboardPage() {
         </div>
     )
 }
-
+///
 export default DashboardPage
