@@ -11,19 +11,29 @@ namespace TreeMarket_Klas4_Groep7.Data
         //Roept van bestaande klasses
         public DbSet<Product> Product { get; set; }
         public DbSet<Gebruiker> Gebruiker { get; set; }
-        //klant, leverancier en veilingsmeester is de subklasse van de gebruiker
-        public DbSet<Klant> Klant { get; set; }
-        public DbSet<Veilingsmeester> Veilingsmeester { get; set; }
-        public DbSet<Leverancier> Leverancier { get; set; }
         public DbSet<Veiling> Veiling { get; set; }
         public DbSet<Dashboard> Dashboard { get; set; }
         public DbSet<Claim> Claim { get; set; }
 
-
+        
         public ApiContext(DbContextOptions<ApiContext> options)
             : base(options)
         {
 
+        }
+
+        //Deze methode is voor de child klasse van de Gebruiker klasse.
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            //De base.OnModelCreating zorgt ervoor dat de data niet overgeschreven worden wat het ook veiliger maakt.
+            base.OnModelCreating(modelBuilder);
+
+            //Modelbuilder configureert de structuur van de database.
+            //klant, leverancier en veilingsmeester is de subklasse van de gebruiker
+            //De modelbuilder wordt gebruikt als andere tabel een FK zit van andere tabellen.
+            modelBuilder.Entity<Klant>().HasBaseType<Gebruiker>();
+            modelBuilder.Entity<Leverancier>().HasBaseType<Gebruiker>();
+            modelBuilder.Entity<Veilingsmeester>().HasBaseType<Gebruiker>();
         }
 
     }

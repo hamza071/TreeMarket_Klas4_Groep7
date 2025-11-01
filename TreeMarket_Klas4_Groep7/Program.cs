@@ -5,9 +5,11 @@ using Microsoft.AspNetCore.Mvc.Razor;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Register MVC with views (required for Controller.View, TempData, Razor)
-builder.Services.AddDbContext<ApiContext>();
+// EF Core
+builder.Services.AddDbContext<ApiContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("LocalExpress")));
 
+// REST API Controllers
 //Voor nu controllers zonder views. Later kunnen we met views gebruiken zodien dat nodig is.
 builder.Services.AddControllers();
 //builder.Services.AddControllersWithViews();
@@ -21,7 +23,8 @@ builder.Services.AddControllers();
 //    options.ViewLocationFormats.Add("/Front-End/{0}.cshtml");
 //});
 
-builder.Services.AddRouting();
+////Deze regel doet nu niks
+//builder.Services.AddRouting();
 
 // Swagger
 builder.Services.AddEndpointsApiExplorer();
@@ -34,10 +37,6 @@ builder.Services.AddSwaggerGen();
 //        Version = "v1"
 //    });
 //});
-
-// EF Core
-builder.Services.AddDbContext<ApiContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("LocalExpress")));
 
 var app = builder.Build();
 
@@ -52,17 +51,13 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-app.UseStaticFiles();
-app.UseRouting();
+//app.UseStaticFiles();
+//app.UseRouting();
 app.UseAuthorization();
-
-app.MapControllerRoute(
-    name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.MapControllers();
 
-//De app runt
+//De app runt via een localhost
 app.Run();
 
 
