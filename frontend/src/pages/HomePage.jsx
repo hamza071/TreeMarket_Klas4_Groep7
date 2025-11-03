@@ -18,17 +18,17 @@ function HomePage() {
                         <div class="grid">
                             <img src={toadImage} alt="MLG Toad" height="150px" max-width="auto" />
                             <h3>Test</h3>
-                            <p>Body text for whatever you’d like to add more to the subheading. </p>
+                            <p>Body text for whatever youï¿½d like to add more to the subheading. </p>
                         </div>
                         <div class="grid">
                             <img src={toadImage} alt="MLG Toad" height="150px" max-width="auto" />
                             <h3>Test</h3>
-                            <p>Body text for whatever you’d like to add more to the subheading. </p>
+                            <p>Body text for whatever youï¿½d like to add more to the subheading. </p>
                         </div>
                         <div class="grid">
                             <img src={toadImage} alt="MLG Toad" height="150px" max-width="auto" />
                             <h3>Test</h3>
-                            <p>Body text for whatever you’d like to add more to the subheading. </p>
+                            <p>Body text for whatever youï¿½d like to add more to the subheading. </p>
                         </div>
                     </div>
                 </section>
@@ -42,17 +42,17 @@ function HomePage() {
                         <div class="grid">
                             <img src={toadImage} alt="MLG Toad" height="150px" max-width="auto" />
                             <h3>Test</h3>
-                            <p>Body text for whatever you’d like to add more to the subheading. </p>
+                            <p>Body text for whatever youï¿½d like to add more to the subheading. </p>
                         </div>
                         <div class="grid">
                             <img src={toadImage} alt="MLG Toad" height="150px" max-width="auto" />
                             <h3>Test</h3>
-                            <p>Body text for whatever you’d like to add more to the subheading. </p>
+                            <p>Body text for whatever youï¿½d like to add more to the subheading. </p>
                         </div>
                         <div class="grid">
                             <img src={toadImage} alt="MLG Toad" height="150px" max-width="auto" />
                             <h3>Test</h3>
-                            <p>Body text for whatever you’d like to add more to the subheading. </p>
+                            <p>Body text for whatever youï¿½d like to add more to the subheading. </p>
                         </div>
                         <div class="button_positioning">
                             <a href="login.html">
@@ -76,7 +76,7 @@ function HomePage() {
                         <div class="grid">
                             <img src={toadImage} alt="MLG Toad" height="150px" max-width="auto" />
                             <h3>Subheading</h3>
-                            <p>Body text for whatever you’d like to expand on the main point.</p>
+                            <p>Body text for whatever youï¿½d like to expand on the main point.</p>
                         </div>
                     </div>
                 </section>
@@ -92,12 +92,12 @@ function HomePage() {
                         <div class="grid">
                             <img src={toadImage} alt="MLG Toad" height="150px" max-width="auto" />
                             <h3>Subheading</h3>
-                            <p>Body text for whatever you’d like to expand on the main point.</p>
+                            <p>Body text for whatever youï¿½d like to expand on the main point.</p>
                         </div>
                         <div class="grid">
                             <img src={toadImage} alt="MLG Toad" height="150px" max-width="auto" />
                             <h3>Subheading</h3>
-                            <p>Body text for whatever you’d like to expand on the main point.</p>
+                            <p>Body text for whatever youï¿½d like to expand on the main point.</p>
                         </div>
                     </div>
                 </section>

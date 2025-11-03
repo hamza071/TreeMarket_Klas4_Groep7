@@ -4,26 +4,21 @@ import heroImage from '../assets/img/hero-blossoms.jpg';
 export default function AboutPage() {
     return (
         <div className="about-page-wrapper" style={{ width: '100%' }}>
-            <header className="site-header">
-                <div className="container" style={{ maxWidth: '960px', margin: '0 auto', padding: '1rem' }}>
-                    <div className="logo-nav">
-                        <span>Article</span> &gt; <span>Tree Market</span>
-                    </div>
-                    <div className="search-bar">
-                        <input type="search" placeholder="" />
-                    </div>
-                </div>
-            </header>
 
             <main className="container" style={{ maxWidth: '960px', margin: '0 auto', padding: '1rem' }}>
                 <article className="main-article">
                     <h1>About Tree Market</h1>
                     <p className="subheading">
-                        
+
                     </p>
 
-                    <figure className="hero-image">
-                        <img src={heroImage} alt="Pink cherry blossoms in bloom" />
+                    <figure className="hero-image" style={{ textAlign: 'center' }}>
+                        {/* HIER IS DE WIJZIGING VOOR RESPONSIVENESS: */}
+                        <img
+                            src={heroImage}
+                            alt="Pink cherry blossoms in bloom"
+                            style={{ width: '100%', height: 'auto' }}
+                        />
                     </figure>
 
                     <div className="article-text">
