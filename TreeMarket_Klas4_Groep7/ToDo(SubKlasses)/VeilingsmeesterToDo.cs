@@ -1,4 +1,4 @@
-﻿namespace TreeMarket_Klas4_Groep7.ToDo_SubKlasses_
+﻿namespace TreeMarket_Klas4_Groep7.ToDo
 {
     public class VeilingsmeesterToDo
     {

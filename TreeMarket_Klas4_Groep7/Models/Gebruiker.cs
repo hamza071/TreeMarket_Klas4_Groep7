@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Identity;
 
-namespace TreeMarket_Klas4_Groep7.Views
+namespace TreeMarket_Klas4_Groep7.Models
 {
     public class Gebruiker
     {

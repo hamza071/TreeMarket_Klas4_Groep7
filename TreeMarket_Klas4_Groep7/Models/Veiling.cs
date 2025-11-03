@@ -2,7 +2,7 @@
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Runtime.CompilerServices;
 
-namespace TreeMarket_Klas4_Groep7.Views
+namespace TreeMarket_Klas4_Groep7.Models
 {
     public class Veiling
     {

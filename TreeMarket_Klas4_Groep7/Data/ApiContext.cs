@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using TreeMarket_Klas4_Groep7.Views;
+using TreeMarket_Klas4_Groep7.Models;
 
 namespace TreeMarket_Klas4_Groep7.Data
 {
