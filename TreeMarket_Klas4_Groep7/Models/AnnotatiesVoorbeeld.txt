@@ -32,3 +32,6 @@ ________//2. Een annotatie maken om gewoon een waarde te geven
 
     }
 }
+
+
+

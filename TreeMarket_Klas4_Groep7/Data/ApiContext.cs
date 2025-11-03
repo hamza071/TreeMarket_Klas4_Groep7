@@ -22,6 +22,16 @@ namespace TreeMarket_Klas4_Groep7.Data
 
         }
 
+        //Deze methode zorgt ervoor om de data in de database op te slaan.
+        protected override void OnConfiguring(DbContextOptionsBuilder b) 
+            => b.UseSqlServer("Data Source=localhost\\SQLEXPRESS;" +
+                                            "Initial Catalog=instnwnd;" +
+                                            "Integrated Security = True;" +
+                                            "Encrypt = True;" +
+                                            "TrustServerCertificate=True;");
+        // b.UseSqlServer("Connection string") //Je kan de keuze van de database ook in de startup van de app plaatsen
+
+
         //Deze methode is voor de child klasse van de Gebruiker klasse.
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
