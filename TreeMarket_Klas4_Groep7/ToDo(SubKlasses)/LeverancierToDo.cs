@@ -4,6 +4,7 @@ namespace TreeMarket_Klas4_Groep7.ToDo
 {
     public class LeverancierToDo
     {
+        public int LeverancierId { get; set; }
         public string Naam { get; set; }
         public string Email { get; set; }
         public string? Telefoonnummer { get; set; }

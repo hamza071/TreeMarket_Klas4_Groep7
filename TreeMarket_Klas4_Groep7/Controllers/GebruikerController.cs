@@ -24,24 +24,45 @@ namespace TreeMarket_Klas4_Groep7.Controllers
         //Een gebruiker aanmaken
         [HttpPost]
         //Wil dit later de datatype klasse 'KlantToDo' gebruiken zodat je niet veel te veel in Post hoeft in te vullen.
-        public JsonResult CreateUserKlant(Gebruiker klant)
+        //public JsonResult CreateUserKlant(Gebruiker klant)
+        //{
+        //    if(klant.GebruikerId == 0)
+        //    {
+        //        //Dit gaat een gebruiker aanmaken
+        //        _context.Gebruiker.Add(klant);
+        //    } else
+        //    {
+        //        var gebruikerInDb = _context.Gebruiker.Find(klant.GebruikerId);
+
+        //        if(gebruikerInDb == null)
+        //        {
+        //            return new JsonResult(NotFound());
+        //        }
+
+        //        gebruikerInDb = klant;
+        //    }
+
+        //    _context.SaveChanges();
+
+        //    return new JsonResult(Ok(klant));
+        //}
+
+        //Maakt een klant aan
+        [HttpPost]
+        public JsonResult CreateUserKlantTest(KlantToDo klantToDo)
         {
-            if(klant.GebruikerId == 0)
+            var klant = new Klant
             {
-                //Dit gaat een gebruiker aanmaken
-                _context.Gebruiker.Add(klant);
-            } else
-            {
-                var gebruikerInDb = _context.Gebruiker.Find(klant.GebruikerId);
+                GebruikerId = klantToDo.GebruikerId,
+                Naam = klantToDo.Naam,
+                Email = klantToDo.Email,
+                Telefoonnummer = klantToDo.Telefoonnummer,
+                Wachtwoord = klantToDo.Wachtwoord,
+                //Rol moet ik nog even kijken.
+                // Rol wordt automatisch "Klant" door constructor in Klant.cs
+            };
 
-                if(gebruikerInDb == null)
-                {
-                    return new JsonResult(NotFound());
-                }
-
-                gebruikerInDb = klant;
-            }
-
+            _context.Gebruiker.Add(klant);
             _context.SaveChanges();
 
             return new JsonResult(Ok(klant));

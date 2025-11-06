@@ -15,6 +15,7 @@ import ReportsPage from './pages/ReportsPage'
 import AuthPage from './pages/AuthPage'
 import AboutUsPage from './pages/AboutUsPage'
 import HomePage from './pages/HomePage'
+import ShopPage from './pages/ShopPage'
 
 
 //De lijst waar je de navigatie wilt meegeven.
@@ -25,6 +26,7 @@ const NAVIGATION_ITEMS = [
     { id: 'reports', label: 'Rapporten' },
     { id: 'home', label: 'Home' },
     { id: 'about', label: 'About' },
+    { id: 'shop', label: 'Shop' },
 ]
 
 function App() {

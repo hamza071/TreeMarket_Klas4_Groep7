@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TreeMarket_Klas4_Groep7.Models;
+using TreeMarket_Klas4_Groep7.ToDo;
 
 namespace TreeMarket_Klas4_Groep7.Data
 {
@@ -15,7 +16,6 @@ namespace TreeMarket_Klas4_Groep7.Data
         public DbSet<Dashboard> Dashboard { get; set; }
         public DbSet<Claim> Claim { get; set; }
 
-        
         public ApiContext(DbContextOptions<ApiContext> options)
             : base(options)
         {
@@ -44,6 +44,11 @@ namespace TreeMarket_Klas4_Groep7.Data
             modelBuilder.Entity<Klant>().HasBaseType<Gebruiker>();
             modelBuilder.Entity<Leverancier>().HasBaseType<Gebruiker>();
             modelBuilder.Entity<Veilingsmeester>().HasBaseType<Gebruiker>();
+            //modelBuilder.Entity<Product>()
+            //.HasOne(p => p.Leverancier)
+            //.WithMany()
+            //.HasForeignKey(p => p.LeverancierId);
+
         }
 
     }

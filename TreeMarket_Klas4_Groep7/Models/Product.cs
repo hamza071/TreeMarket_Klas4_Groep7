@@ -20,7 +20,7 @@ namespace TreeMarket_Klas4_Groep7.Models
 
         //Een op meer relatie
         [ForeignKey(nameof(Leverancier))]
-        public decimal LeverancierID { get; set; }
+        public int LeverancierID { get; set; }
         public Leverancier Leverancier { get; set; }
     }
 }
