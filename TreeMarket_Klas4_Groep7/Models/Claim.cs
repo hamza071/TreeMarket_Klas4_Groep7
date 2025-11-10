@@ -12,6 +12,8 @@ namespace TreeMarket_Klas4_Groep7.Models
 
         //Het staat in de RIM als INT, maar de rest is decimal
         [Required]
+        //De decimal geeft hoeveel decimal het minimaal mag
+        [Column(TypeName = "decimal(18,2)")]
         public decimal Prijs { get; set; }
         //Foreign key kan gedaan worden in twee methodes:
 

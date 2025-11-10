@@ -18,6 +18,7 @@ import HomePage from './pages/HomePage'
 import ShopPage from './pages/ShopPage'
 
 
+
 //De lijst waar je de navigatie wilt meegeven.
 const NAVIGATION_ITEMS = [
     { id: 'dashboard', label: 'Dashboard' },

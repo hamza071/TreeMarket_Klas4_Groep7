@@ -14,6 +14,8 @@ namespace TreeMarket_Klas4_Groep7.Models
         [Required]
         public int Hoeveelheid { get; set; }
         [Required]
+        //De decimal geeft hoeveel decimal het minimaal mag
+        [Column(TypeName = "decimal(18,2)")]
         public decimal MinimumPrijs { get; set; }
         [Required]
         public DateTime Dagdatum { get; set; }

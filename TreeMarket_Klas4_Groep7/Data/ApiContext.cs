@@ -6,7 +6,7 @@ using TreeMarket_Klas4_Groep7.ToDo;
 
 namespace TreeMarket_Klas4_Groep7.Data
 {
-    //Moet nog verbonden worden met de database...
+    //Database wordt opgeroepen binnen de Program.cs
     public class ApiContext : DbContext
     {
         //Roept van bestaande klasses
@@ -22,16 +22,7 @@ namespace TreeMarket_Klas4_Groep7.Data
 
         }
 
-        //Deze methode zorgt ervoor om de data in de database op te slaan.
-        protected override void OnConfiguring(DbContextOptionsBuilder b) 
-            => b.UseSqlServer("Data Source=localhost\\SQLEXPRESS;" +
-                                            "Initial Catalog=instnwnd;" +
-                                            "Integrated Security = True;" +
-                                            "Encrypt = True;" +
-                                            "TrustServerCertificate=True;");
-        // b.UseSqlServer("Connection string") //Je kan de keuze van de database ook in de startup van de app plaatsen
-
-
+        
         //Deze methode is voor de child klasse van de Gebruiker klasse.
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -49,7 +40,24 @@ namespace TreeMarket_Klas4_Groep7.Data
             //.WithMany()
             //.HasForeignKey(p => p.LeverancierId);
 
-        }
+            //Dit zijn van de datatype decimaal waar het ook bij de Model zelf toegevoegd is.
+            modelBuilder.Entity<Claim>()
+                .Property(c => c.Prijs)
+                .HasColumnType("decimal(18,2)");
 
+            modelBuilder.Entity<Product>()
+                .Property(p => p.MinimumPrijs)
+                .HasColumnType("decimal(18,2)");
+
+            modelBuilder.Entity<Veiling>()
+                .Property(v => v.StartPrijs)
+                .HasColumnType("decimal(18,2)");
+            modelBuilder.Entity<Veiling>()
+                .Property(v => v.EindPrijs)
+                .HasColumnType("decimal(18,2)");
+            modelBuilder.Entity<Veiling>()
+                .Property(v => v.HuidigePrijs)
+                .HasColumnType("decimal(18,2)");
+        }
     }
 }

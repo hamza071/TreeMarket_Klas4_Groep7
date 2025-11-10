@@ -53,7 +53,6 @@ namespace TreeMarket_Klas4_Groep7.Controllers
         {
             var klant = new Klant
             {
-                GebruikerId = klantToDo.GebruikerId,
                 Naam = klantToDo.Naam,
                 Email = klantToDo.Email,
                 Telefoonnummer = klantToDo.Telefoonnummer,

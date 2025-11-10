@@ -12,10 +12,14 @@ namespace TreeMarket_Klas4_Groep7.Models
         //Status is met BIT. IK weet niet welke. Misschien int of bool
         public bool? Status { get; set; }
 
+        //De decimal geeft hoeveel decimal het minimaal mag
+        [Column(TypeName = "decimal(18,2)")]
         public decimal StartPrijs { get; set; }
 
+        [Column(TypeName = "decimal(18,2)")]
         public decimal EindPrijs { get; set; }
 
+        [Column(TypeName = "decimal(18,2)")]
         public decimal HuidigePrijs { get; set; }
 
         public int PrijsStap { get; set; }
