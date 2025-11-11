@@ -33,7 +33,7 @@ builder.Services.AddSwaggerGen(c =>
 // EF Core DbContext
 // =======================
 
-// ✅ ApiContext is jullie main database context
+// ✅ ApiContext is de main database context
 builder.Services.AddDbContext<ApiContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("LocalExpress")));
 
