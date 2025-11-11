@@ -1,4 +1,50 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using TreeMarket_Klas4_Groep7.Services;
+using TreeMarket_Klas4_Groep7.Models;
+
+namespace TreeMarket_Klas4_Groep7.Controllers
+{
+    [Route("api/[controller]")]
+    [ApiController]
+    public class ProductController : ControllerBase
+    {
+        private readonly ProductService _productService;
+
+        public ProductController(ProductService productService)
+        {
+            _productService = productService;
+        }
+
+        // ✅ Haal producten van vandaag op
+        [HttpGet("vandaag")]
+        public IActionResult GetVandaag()
+        {
+            var producten = _productService.GetProductenVanVandaag();
+            return Ok(producten);
+        }
+
+        // ✅ Haal producten met Leverancier info op
+        [HttpGet("leverancier")]
+        public IActionResult GetMetLeverancier()
+        {
+            var producten = _productService.GetProductenMetLeverancier();
+            return Ok(producten);
+        }
+
+        // ✅ Voeg nieuw product toe of update bestaand product
+        [HttpPost]
+        public IActionResult CreateOrUpdateProduct(Product product)
+        {
+            var result = _productService.AddOrUpdateProduct(product);
+            return Ok(result);
+        }
+    }
+}
+
+
+
+
+/* using Microsoft.AspNetCore.Mvc;
 using TreeMarket_Klas4_Groep7.Data;
 using TreeMarket_Klas4_Groep7.Models;
 
@@ -40,24 +86,6 @@ namespace TreeMarket_Klas4_Groep7.Controllers
             return new JsonResult(Ok(product));
 
         }
-
-        [HttpGet("{id}")]
-        public JsonResult GetProductById(int id)
-        {
-            var result = _context.Product.Find(id);
-            if (result == null)
-            {
-                return new JsonResult(NotFound("Id is not found: " + id));
-            }
-            return new JsonResult(Ok(result));
-        }
-
-        [HttpGet]
-        public JsonResult GetAllProducts() 
-        {
-            var result = _context.Product.ToList();
-
-            return new JsonResult(Ok(result));
-        }
     }
 }
+*/
