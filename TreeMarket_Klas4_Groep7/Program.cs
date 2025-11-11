@@ -6,12 +6,7 @@ using Microsoft.AspNetCore.Mvc.Razor;
 var builder = WebApplication.CreateBuilder(args);
 
 // Register MVC with views (required for Controller.View, TempData, Razor)
-builder.Services.AddDbContext<ApiContext>();
-
-//Voor nu controllers zonder views. Later kunnen we met views gebruiken zodien dat nodig is.
-builder.Services.AddControllers();
-//builder.Services.AddControllersWithViews();
-
+builder.Services.AddControllersWithViews();
 
 // If you want Razor to search the Front-End folder for views:
 //builder.Services.Configure<RazorViewEngineOptions>(options =>
@@ -22,21 +17,21 @@ builder.Services.AddControllers();
 //});
 
 builder.Services.AddRouting();
+builder.Services.AddAuthorization();
 
 // Swagger
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-//builder.Services.AddSwaggerGen(c =>
-//{
-//    c.SwaggerDoc("v1", new OpenApiInfo
-//    {
-//        Title = "TreeMarket API",
-//        Version = "v1"
-//    });
-//});
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "TreeMarket API",
+        Version = "v1"
+    });
+});
 
 // EF Core
-builder.Services.AddDbContext<ApiContext>(options =>
+builder.Services.AddDbContext<BloggingContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("LocalExpress")));
 
 var app = builder.Build();
@@ -52,19 +47,12 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-app.UseStaticFiles();
-app.UseRouting();
+//app.UseStaticFiles();
+//app.UseRouting();
 app.UseAuthorization();
 
-app.MapControllerRoute(
-    name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
-
 app.MapControllers();
-
-//De app runt
 app.Run();
-
 
 
 
