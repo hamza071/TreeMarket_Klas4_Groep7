@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using TreeMarket_Klas4_Groep7.Data;
-using Microsoft.AspNetCore.Mvc.Razor;
+using TreeMarket_Klas4_Groep7.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,18 +20,15 @@ Console.WriteLine(builder.Configuration.GetConnectionString("LocalExpress"));
 //builder.Services.AddControllersWithViews();
 
 
-// If you want Razor to search the Front-End folder for views:
-//builder.Services.Configure<RazorViewEngineOptions>(options =>
-//{
-//    // {1} = controller name, {0} = view name
-//    options.ViewLocationFormats.Add("/Front-End/{1}/{0}.cshtml");
-//    options.ViewLocationFormats.Add("/Front-End/{0}.cshtml");
-//});
+// ✅ Voeg controllers + views toe (voor MVC + Razor)
+builder.Services.AddControllersWithViews();
 
 ////Deze regel doet nu niks
 //builder.Services.AddRouting();
 
-// Swagger
+// =======================
+// Swagger (voor API testing / documentation)
+// =======================
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 //builder.Services.AddSwaggerGen(c =>
@@ -43,28 +40,45 @@ builder.Services.AddSwaggerGen();
 //    });
 //});
 
+// =======================
+// Dependency Injection
+// =======================
+
+// ProductService kan nu via constructor in controllers worden gebruikt
+builder.Services.AddScoped<ProductService>();
+
+// =======================
+// Build the app
+// =======================
 var app = builder.Build();
+
+// =======================
+// Configure middleware
+// =======================
 
 if (app.Environment.IsDevelopment())
 {
+    // Swagger UI alleen in development
     app.UseSwagger();
     app.UseSwaggerUI();
-    //app.UseSwaggerUI(c =>
-    //{
-    //    c.SwaggerEndpoint("/swagger/v1/swagger.json", "TreeMarket API v1");
-    //});
 }
 
 app.UseHttpsRedirection();
-//app.UseStaticFiles();
-//app.UseRouting();
+
+// Routing en Authorization
+app.UseRouting();
 app.UseAuthorization();
 
+// Map alle controllers
 app.MapControllers();
 
 //De app runt via een localhost
 app.Run();
 
+// =======================
+// Run the app
+// =======================
+app.Run();
 
 
 

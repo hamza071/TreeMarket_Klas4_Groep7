@@ -10,11 +10,11 @@ namespace TreeMarket_Klas4_Groep7.Data
     public class ApiContext : DbContext
     {
         //Roept van bestaande klasses
-        public DbSet<Product> Product { get; set; }
-        public DbSet<Gebruiker> Gebruiker { get; set; }
-        public DbSet<Veiling> Veiling { get; set; }
-        public DbSet<Dashboard> Dashboard { get; set; }
-        public DbSet<Claim> Claim { get; set; }
+        public DbSet<Product> Producten { get; set; }
+        public DbSet<Gebruiker> Gebruikers { get; set; }
+        public DbSet<Veiling> Veilingen { get; set; }
+        public DbSet<Dashboard> Dashboards { get; set; }
+        public DbSet<Claim> Claims { get; set; }
 
         public ApiContext(DbContextOptions<ApiContext> options)
             : base(options)
