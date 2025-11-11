@@ -13,9 +13,10 @@ builder.Services.AddDbContext<ApiContext>(options =>
 //Voor nu controllers zonder views. Later kunnen we met views gebruiken zodien dat nodig is.
 builder.Services.AddControllers();
 
-//Test of de controller wel de database pakt binnen de appsettings.json
-Console.WriteLine("Active Connection:");
+//EF Core Test of de controller wel de database pakt binnen de appsettings.json
+Console.WriteLine("==== Active Connection ====");
 Console.WriteLine(builder.Configuration.GetConnectionString("LocalExpress"));
+
 
 //builder.Services.AddControllersWithViews();
 

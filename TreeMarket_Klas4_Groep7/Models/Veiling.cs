@@ -13,6 +13,7 @@ namespace TreeMarket_Klas4_Groep7.Models
         public bool? Status { get; set; }
 
         //De decimal geeft hoeveel decimal het minimaal mag
+        //De annotaties wordt ook in de ContextKlasse opgenoemd.
         [Column(TypeName = "decimal(18,2)")]
         public decimal StartPrijs { get; set; }
 
