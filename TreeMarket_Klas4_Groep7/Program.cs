@@ -9,12 +9,12 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 
 // If you want Razor to search the Front-End folder for views:
-builder.Services.Configure<RazorViewEngineOptions>(options =>
-{
-    // {1} = controller name, {0} = view name
-    options.ViewLocationFormats.Add("/Front-End/{1}/{0}.cshtml");
-    options.ViewLocationFormats.Add("/Front-End/{0}.cshtml");
-});
+//builder.Services.Configure<RazorViewEngineOptions>(options =>
+//{
+//    // {1} = controller name, {0} = view name
+//    options.ViewLocationFormats.Add("/Front-End/{1}/{0}.cshtml");
+//    options.ViewLocationFormats.Add("/Front-End/{0}.cshtml");
+//});
 
 builder.Services.AddRouting();
 builder.Services.AddAuthorization();
@@ -39,24 +39,20 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "TreeMarket API v1");
-    });
+    app.UseSwaggerUI();
+    //app.UseSwaggerUI(c =>
+    //{
+    //    c.SwaggerEndpoint("/swagger/v1/swagger.json", "TreeMarket API v1");
+    //});
 }
 
 app.UseHttpsRedirection();
-app.UseStaticFiles();
-app.UseRouting();
+//app.UseStaticFiles();
+//app.UseRouting();
 app.UseAuthorization();
-
-app.MapControllerRoute(
-    name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.MapControllers();
 app.Run();
-
 
 
 

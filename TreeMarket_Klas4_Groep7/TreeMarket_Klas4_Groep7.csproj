@@ -1,16 +1,10 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
     <PropertyGroup>
         <TargetFramework>net9.0</TargetFramework>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
     </PropertyGroup>
-
-    <ItemGroup>
-      <Content Remove="Front-End\home\index.cshtml" />
-      <Content Remove="Front-End\home\Test1 - Copy.cshtml" />
-      <Content Remove="Front-End\home\Test1.cshtml" />
-    </ItemGroup>
 
     <ItemGroup>
         <PackageReference Include="Microsoft.AspNetCore.Mvc" Version="2.3.0" />
@@ -28,13 +22,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Front-End\shared\" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <None Include="Front-End\home\index.cshtml" />
-      <None Include="Front-End\home\Test1 - Copy.cshtml" />
-      <None Include="Front-End\home\Test1.cshtml" />
+      <Folder Include="Migrations\" />
     </ItemGroup>
 
 </Project>
