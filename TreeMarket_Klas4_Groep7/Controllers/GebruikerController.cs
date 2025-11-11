@@ -5,15 +5,12 @@ using TreeMarket_Klas4_Groep7.Data;
 using TreeMarket_Klas4_Groep7.Models;
 using TreeMarket_Klas4_Groep7.ToDo;
 
-
 namespace TreeMarket_Klas4_Groep7.Controllers
 {
-    //Dit is de parent (super) klasse, maar het is vooral voor een test
     [Route("api/[controller]")]
     [ApiController]
     public class GebruikerController : ControllerBase
     {
-        //Dit wordt gebruikt via de Database, daarom is de datatype 'readonly'
         private readonly ApiContext _context;
 
         public GebruikerController(ApiContext context)
@@ -21,66 +18,70 @@ namespace TreeMarket_Klas4_Groep7.Controllers
             _context = context;
         }
 
-        //Een gebruiker aanmaken
-        [HttpPost]
-        //Wil dit later de datatype klasse 'KlantToDo' gebruiken zodat je niet veel te veel in Post hoeft in te vullen.
-        //public JsonResult CreateUserKlant(Gebruiker klant)
-        //{
-        //    if(klant.GebruikerId == 0)
-        //    {
-        //        //Dit gaat een gebruiker aanmaken
-        //        _context.Gebruiker.Add(klant);
-        //    } else
-        //    {
-        //        var gebruikerInDb = _context.Gebruiker.Find(klant.GebruikerId);
-
-        //        if(gebruikerInDb == null)
-        //        {
-        //            return new JsonResult(NotFound());
-        //        }
-
-        //        gebruikerInDb = klant;
-        //    }
-
-        //    _context.SaveChanges();
-
-        //    return new JsonResult(Ok(klant));
-        //}
-
-        //Maakt een klant aan
-        [HttpPost]
-        public JsonResult CreateUserKlantTest(KlantToDo klantToDo)
+        // --- HIER IS DE BUSINESSLOGICA TOEGEVOEGD ---
+        // Maakt een klant aan met business-regels
+        [HttpPost] // Er was maar één [HttpPost] nodig voor het aanmaken
+        public JsonResult CreateUserKlantTest([FromBody] KlantToDo klantToDo)
         {
+            // --- BEGIN BUSINESSLOGICA (REGEL 1: VALIDATIE) ---
+            if (string.IsNullOrEmpty(klantToDo.Naam))
+            {
+                return new JsonResult(BadRequest("Naam mag niet leeg zijn."));
+            }
+
+            if (string.IsNullOrEmpty(klantToDo.Email) || !klantToDo.Email.Contains("@"))
+            {
+                return new JsonResult(BadRequest("Een geldig e-mailadres is verplicht."));
+            }
+            // --- EINDE BUSINESSLOGICA (REGEL 1) ---
+
+
+            // --- BEGIN BUSINESSLOGICA (REGEL 2: UNIEKE CHECK) ---
+            // We gebruiken .FirstOrDefault hier i.p.v. .Any om 'case insensitive' te kunnen checken
+            var emailBestaatAl = _context.Gebruiker
+                .FirstOrDefault(g => g.Email.ToLower() == klantToDo.Email.ToLower());
+            
+            if (emailBestaatAl != null)
+            {
+                // Stuur een 'Conflict' (409) foutmelding terug
+                return new JsonResult(Conflict("Dit e-mailadres is al in gebruik."));
+            }
+            // --- EINDE BUSINESSLOGICA (REGEL 2) ---
+
             var klant = new Klant
             {
+                // GebruikerId wordt automatisch ingevuld door de database,
+                // die hoef je niet vanuit de ToDo (DTO) mee te geven.
                 Naam = klantToDo.Naam,
                 Email = klantToDo.Email,
                 Telefoonnummer = klantToDo.Telefoonnummer,
-                Wachtwoord = klantToDo.Wachtwoord,
-                //Rol moet ik nog even kijken.
-                // Rol wordt automatisch "Klant" door constructor in Klant.cs
+                Wachtwoord = klantToDo.Wachtwoord, 
+                // Rol wordt automatisch "Klant" door constructor
             };
 
-            _context.Gebruiker.Add(klant);
-            _context.SaveChanges();
+            // --- BEGIN FOUTAFHANDELING (DATABASE) ---
+            try
+            {
+                _context.Gebruiker.Add(klant);
+                _context.SaveChanges(); // Sla de wijzigingen op
+            }
+            catch (Exception ex)
+            {
+                // Vang eventuele databasefouten af
+                // Log de 'ex' variabele als je een logging-systeem hebt
+                return new JsonResult(StatusCode(500, "Er is een interne serverfout opgetreden bij het opslaan."));
+            }
+            // --- EINDE FOUTAFHANDELING ---
 
+            // Stuur het nieuwe 'klant' object terug (nu met een database ID)
             return new JsonResult(Ok(klant));
         }
 
-        //Deze methode toont alle gebruikers
-        [HttpGet]
-        public JsonResult GetUserById(int id)
-        {
-            var result = _context.Gebruiker.Find(id);
-            if(result == null)
-            {
-                return new JsonResult(NotFound("Id is not found: " + id));
-            }
-            return new JsonResult(Ok(result));
-        }
 
-        //Toont alle gebruikers
-        [HttpGet("/GetAll")]
+        // --- ROUTE CORRECTIE ---
+        // Toont alle gebruikers
+        // De '/' aan het begin is weggehaald, anders negeert het "api/[controller]"
+        [HttpGet("All")] // Was [HttpGet("/GetAll")]
         public JsonResult GetAllUsers()
         {
             var result = _context.Gebruiker.ToList();
@@ -89,7 +90,6 @@ namespace TreeMarket_Klas4_Groep7.Controllers
         }
 
         //Verwijderd de gebruiker uit de database
-        //De id binnen de HttpDelete zorgt ervoor dat het verplicht is om dat te vullen. Zonder id, gaat het niet werken.
         [HttpDelete("{id}")]
         public JsonResult Delete(int id)
         {
@@ -104,25 +104,27 @@ namespace TreeMarket_Klas4_Groep7.Controllers
             return new JsonResult(NoContent());
         }
 
-
-
-        //_______Eager loading toegepast________
+        // --- ROUTE CORRECTIE ---
+        // Je had twee 'Get op ID' methodes. 
+        // Dit is de standaard manier, dus de andere (GetUserById) kan weg.
+        // Ik heb het omgedoopt van 'GetUserWithChildrenEager' naar 'GetUserById'
         [HttpGet("{id}")]
-        public JsonResult GetUserWithChildrenEager(int id)
+        public JsonResult GetUserById(int id)
         {
             //Eager loading, omdat het gelijk de waarde binnen de 'include' gaat toevoegen
-
             var gebruiker = _context.Gebruiker
-                //Include is eager loading
-                //Het haalt meteen de child klasses op en toont de waardes
                 .Include(gebruiker => gebruiker.Klant)
                 .Include(gebruiker => gebruiker.Leverancier)
                 .Include(gebruiker => gebruiker.Veilingsmeester)
                 .FirstOrDefault(gebruiker => gebruiker.GebruikerId == id);
 
-            if (gebruiker == null) return new JsonResult(NotFound());
-
-            return new JsonResult(Ok("Sigma boy!"));
+            if (gebruiker == null) 
+            {
+                return new JsonResult(NotFound($"Gebruiker met id {id} niet gevonden."));
+            }
+            
+            // Stuur de gevonden gebruiker terug, niet de tekst "Sigma boy!"
+            return new JsonResult(Ok(gebruiker));
         }
     }
 }
