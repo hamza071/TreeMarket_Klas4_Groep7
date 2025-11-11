@@ -19,11 +19,11 @@ namespace TreeMarket_Klas4_Groep7.Data
         public ApiContext(DbContextOptions<ApiContext> options)
             : base(options)
         {
-
         }
 
         
         //Deze methode is voor de child klasse van de Gebruiker klasse.
+        //Dit wordt ook gebruikt voor unieke annotaties.
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             //De base.OnModelCreating zorgt ervoor dat de data niet overgeschreven worden wat het ook veiliger maakt.

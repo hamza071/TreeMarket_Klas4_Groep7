@@ -40,5 +40,24 @@ namespace TreeMarket_Klas4_Groep7.Controllers
             return new JsonResult(Ok(product));
 
         }
+
+        [HttpGet("{id}")]
+        public JsonResult GetProductById(int id)
+        {
+            var result = _context.Product.Find(id);
+            if (result == null)
+            {
+                return new JsonResult(NotFound("Id is not found: " + id));
+            }
+            return new JsonResult(Ok(result));
+        }
+
+        [HttpGet]
+        public JsonResult GetAllProducts() 
+        {
+            var result = _context.Product.ToList();
+
+            return new JsonResult(Ok(result));
+        }
     }
 }

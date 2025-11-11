@@ -5,8 +5,20 @@ using Microsoft.AspNetCore.Mvc.Razor;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Register MVC with views (required for Controller.View, TempData, Razor)
-builder.Services.AddControllersWithViews();
+// EF Core
+builder.Services.AddDbContext<ApiContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("LocalExpress")));
+
+// REST API Controllers
+//Voor nu controllers zonder views. Later kunnen we met views gebruiken zodien dat nodig is.
+builder.Services.AddControllers();
+
+//Test of de controller wel de database pakt binnen de appsettings.json
+Console.WriteLine("Active Connection:");
+Console.WriteLine(builder.Configuration.GetConnectionString("LocalExpress"));
+
+//builder.Services.AddControllersWithViews();
+
 
 // If you want Razor to search the Front-End folder for views:
 //builder.Services.Configure<RazorViewEngineOptions>(options =>
@@ -16,23 +28,20 @@ builder.Services.AddControllersWithViews();
 //    options.ViewLocationFormats.Add("/Front-End/{0}.cshtml");
 //});
 
-builder.Services.AddRouting();
-builder.Services.AddAuthorization();
+////Deze regel doet nu niks
+//builder.Services.AddRouting();
 
 // Swagger
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(c =>
-{
-    c.SwaggerDoc("v1", new OpenApiInfo
-    {
-        Title = "TreeMarket API",
-        Version = "v1"
-    });
-});
-
-// EF Core
-builder.Services.AddDbContext<BloggingContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("LocalExpress")));
+builder.Services.AddSwaggerGen();
+//builder.Services.AddSwaggerGen(c =>
+//{
+//    c.SwaggerDoc("v1", new OpenApiInfo
+//    {
+//        Title = "TreeMarket API",
+//        Version = "v1"
+//    });
+//});
 
 var app = builder.Build();
 
@@ -52,6 +61,8 @@ app.UseHttpsRedirection();
 app.UseAuthorization();
 
 app.MapControllers();
+
+//De app runt via een localhost
 app.Run();
 
 
