@@ -28,7 +28,7 @@ builder.Services.AddSwaggerGen(c =>
         Title = "TreeMarket API",
         Version = "v1"
     });
-});
+});   
 
 // EF Core
 builder.Services.AddDbContext<BloggingContext>(options =>
