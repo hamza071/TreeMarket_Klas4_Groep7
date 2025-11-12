@@ -1,6 +1,6 @@
-﻿namespace TreeMarket_Klas4_Groep7.ToDo
+﻿namespace TreeMarket_Klas4_Groep7.Models.DTO
 {
-    public class VeilingsmeesterToDo
+    public class VeilingsmeesterDto
     {
         public int VeilingsmeesterId { get; set; }
         public string Naam { get; set; }

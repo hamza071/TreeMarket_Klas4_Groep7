@@ -39,7 +39,7 @@ builder.Services.AddSwaggerGen();
 //        Title = "TreeMarket API",
 //        Version = "v1"
 //    });
-//});
+//});       
 
 // =======================
 // Dependency Injection
@@ -73,8 +73,8 @@ app.UseAuthorization();
 // Map alle controllers
 app.MapControllers();
 
-//De app runt via een localhost
-app.Run();
+////De app runt via een localhost
+//app.Run();
 
 // =======================
 // Run the app

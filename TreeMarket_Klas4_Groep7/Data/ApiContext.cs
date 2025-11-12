@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TreeMarket_Klas4_Groep7.Models;
-using TreeMarket_Klas4_Groep7.ToDo;
+using TreeMarket_Klas4_Groep7.Models.DTO;
 
 namespace TreeMarket_Klas4_Groep7.Data
 {
@@ -15,6 +15,8 @@ namespace TreeMarket_Klas4_Groep7.Data
         public DbSet<Veiling> Veiling { get; set; }
         public DbSet<Dashboard> Dashboard { get; set; }
         public DbSet<Claim> Claim { get; set; }
+        public DbSet<Leverancier> Leverancier { get; set; }
+
 
         public ApiContext(DbContextOptions<ApiContext> options)
             : base(options)
