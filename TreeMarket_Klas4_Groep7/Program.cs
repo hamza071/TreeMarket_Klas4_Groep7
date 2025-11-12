@@ -1,59 +1,85 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using TreeMarket_Klas4_Groep7.Data;
-using Microsoft.AspNetCore.Mvc.Razor;
+using TreeMarket_Klas4_Groep7.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Register MVC with views (required for Controller.View, TempData, Razor)
-builder.Services.AddControllersWithViews();
-
-// If you want Razor to search the Front-End folder for views:
-//builder.Services.Configure<RazorViewEngineOptions>(options =>
-//{
-//    // {1} = controller name, {0} = view name
-//    options.ViewLocationFormats.Add("/Front-End/{1}/{0}.cshtml");
-//    options.ViewLocationFormats.Add("/Front-End/{0}.cshtml");
-//});
-
-builder.Services.AddRouting();
-builder.Services.AddAuthorization();
-
-// Swagger
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(c =>
-{
-    c.SwaggerDoc("v1", new OpenApiInfo
-    {
-        Title = "TreeMarket API",
-        Version = "v1"
-    });
-});
-
 // EF Core
-builder.Services.AddDbContext<BloggingContext>(options =>
+builder.Services.AddDbContext<ApiContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("LocalExpress")));
 
+// REST API Controllers
+//Voor nu controllers zonder views. Later kunnen we met views gebruiken zodien dat nodig is.
+builder.Services.AddControllers();
+
+//EF Core Test of de controller wel de database pakt binnen de appsettings.json
+Console.WriteLine("==== Active Connection ====");
+Console.WriteLine(builder.Configuration.GetConnectionString("LocalExpress"));
+
+
+//builder.Services.AddControllersWithViews();
+
+
+// ✅ Voeg controllers + views toe (voor MVC + Razor)
+builder.Services.AddControllersWithViews();
+
+////Deze regel doet nu niks
+//builder.Services.AddRouting();
+
+// =======================
+// Swagger (voor API testing / documentation)
+// =======================
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+//builder.Services.AddSwaggerGen(c =>
+//{
+//    c.SwaggerDoc("v1", new OpenApiInfo
+//    {
+//        Title = "TreeMarket API",
+//        Version = "v1"
+//    });
+//});       
+
+// =======================
+// Dependency Injection
+// =======================
+
+// ProductService kan nu via constructor in controllers worden gebruikt
+builder.Services.AddScoped<ProductService>();
+
+// =======================
+// Build the app
+// =======================
 var app = builder.Build();
+
+// =======================
+// Configure middleware
+// =======================
 
 if (app.Environment.IsDevelopment())
 {
+    // Swagger UI alleen in development
     app.UseSwagger();
     app.UseSwaggerUI();
-    //app.UseSwaggerUI(c =>
-    //{
-    //    c.SwaggerEndpoint("/swagger/v1/swagger.json", "TreeMarket API v1");
-    //});
 }
 
 app.UseHttpsRedirection();
-//app.UseStaticFiles();
-//app.UseRouting();
+
+// Routing en Authorization
+app.UseRouting();
 app.UseAuthorization();
 
+// Map alle controllers
 app.MapControllers();
+
+//De app runt via een localhost
 app.Run();
 
+// =======================
+// Run the app
+// =======================
+app.Run();
 
 
 
