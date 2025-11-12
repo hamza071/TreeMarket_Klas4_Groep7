@@ -24,5 +24,9 @@ namespace TreeMarket_Klas4_Groep7.Models
         [ForeignKey(nameof(Leverancier))]
         public int LeverancierID { get; set; }
         public Leverancier Leverancier { get; set; }
+
+        //Voor de LINQ om de veilingen toe te voegen
+        public ICollection<Veiling> Veilingen { get; set; } = new List<Veiling>();
+
     }
 }

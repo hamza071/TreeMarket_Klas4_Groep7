@@ -9,6 +9,7 @@ namespace TreeMarket_Klas4_Groep7.Services
     // Houdt LINQ-query’s netjes apart van de controller
     public class ProductService
     {
+        //Maakt gebruik van de ApiContext
         private readonly ApiContext _context;
 
         public ProductService(ApiContext context)
@@ -17,11 +18,11 @@ namespace TreeMarket_Klas4_Groep7.Services
         }
 
         // ✅ Haal alle producten van vandaag op
-        public List<ProductDto> GetProductenVanVandaag()
+        public async Task<List<ProductDto>> GetProductenVanVandaag()
         {
             var vandaag = DateTime.Today;
 
-            return _context.Producten
+            return await _context.Product
                 .Where(p => p.Dagdatum.Date == vandaag)  // Filter: alleen producten van vandaag
                 .OrderBy(p => p.MinimumPrijs)           // Sorteer op minimumprijs
                 .Select(p => new ProductDto             // Projecteer naar DTO
@@ -31,13 +32,13 @@ namespace TreeMarket_Klas4_Groep7.Services
                     MinimumPrijs = p.MinimumPrijs,
                     Hoeveelheid = p.Hoeveelheid
                 })
-                .ToList(); // Voer query uit
+                .ToListAsync(); // Voer query uit
         }
 
         // ✅ Haal producten op met Leverancier info
-        public List<ProductMetLeverancierDto> GetProductenMetLeverancier()
+        public async Task<List<ProductMetLeverancierDto>> GetProductenMetLeverancier()
         {
-            return _context.Producten
+            return await _context.Product
                 .Include(p => p.Leverancier) // Zorg dat Leverancier geladen wordt
                 .Select(p => new ProductMetLeverancierDto
                 {
@@ -45,21 +46,21 @@ namespace TreeMarket_Klas4_Groep7.Services
                     MinimumPrijs = p.MinimumPrijs,
                     LeverancierNaam = p.Leverancier.Naam
                 })
-                .ToList();
+                .ToListAsync();
         }
 
         // ✅ Voeg een nieuw product toe of update een bestaand product
-        public Product AddOrUpdateProduct(Product product)
+        public async Task<Product> AddOrUpdateProduct(Product product)
         {
             if (product.ProductId == 0)
             {
                 // Nieuw product
-                _context.Producten.Add(product);
+                await _context.Product.AddAsync(product);
             }
             else
             {
                 // Bestaand product updaten
-                var productInDb = _context.Producten.Find(product.ProductId);
+                var productInDb = _context.Product.Find(product.ProductId);
                 if (productInDb != null)
                 {
                     productInDb.Foto = product.Foto;
@@ -71,7 +72,7 @@ namespace TreeMarket_Klas4_Groep7.Services
                 }
             }
 
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
             return product;
         }
     }

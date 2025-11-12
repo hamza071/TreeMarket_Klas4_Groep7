@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using TreeMarket_Klas4_Groep7.Services;
+using TreeMarket_Klas4_Groep7.Data;
 using TreeMarket_Klas4_Groep7.Models;
+using TreeMarket_Klas4_Groep7.Services;
 
 namespace TreeMarket_Klas4_Groep7.Controllers
 {
@@ -8,8 +9,9 @@ namespace TreeMarket_Klas4_Groep7.Controllers
     [ApiController]
     public class ProductController : ControllerBase
     {
+        //Die van productService maakt gebruik van LINQ
         private readonly ProductService _productService;
-
+        
         public ProductController(ProductService productService)
         {
             _productService = productService;
@@ -17,25 +19,25 @@ namespace TreeMarket_Klas4_Groep7.Controllers
 
         // ✅ Haal producten van vandaag op
         [HttpGet("vandaag")]
-        public IActionResult GetVandaag()
+        public async Task<IActionResult> GetVandaag()
         {
-            var producten = _productService.GetProductenVanVandaag();
+            var producten = await _productService.GetProductenVanVandaag();
             return Ok(producten);
         }
 
         // ✅ Haal producten met Leverancier info op
         [HttpGet("leverancier")]
-        public IActionResult GetMetLeverancier()
+        public async Task<IActionResult> GetMetLeverancier()
         {
-            var producten = _productService.GetProductenMetLeverancier();
+            var producten = await _productService.GetProductenMetLeverancier();
             return Ok(producten);
         }
 
         // ✅ Voeg nieuw product toe of update bestaand product
         [HttpPost]
-        public IActionResult CreateOrUpdateProduct(Product product)
+        public async Task<IActionResult> CreateOrUpdateProduct(Product product)
         {
-            var result = _productService.AddOrUpdateProduct(product);
+            var result = await _productService.AddOrUpdateProduct(product);
             return Ok(result);
         }
     }

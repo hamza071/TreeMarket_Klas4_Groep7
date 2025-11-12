@@ -83,12 +83,6 @@ namespace TreeMarket_Klas4_Groep7.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("KlantGebruikerId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("LeverancierGebruikerId")
-                        .HasColumnType("int");
-
                     b.Property<string>("Naam")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -100,20 +94,11 @@ namespace TreeMarket_Klas4_Groep7.Migrations
                     b.Property<string>("Telefoonnummer")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("VeilingsmeesterGebruikerId")
-                        .HasColumnType("int");
-
                     b.Property<string>("Wachtwoord")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("GebruikerId");
-
-                    b.HasIndex("KlantGebruikerId");
-
-                    b.HasIndex("LeverancierGebruikerId");
-
-                    b.HasIndex("VeilingsmeesterGebruikerId");
 
                     b.ToTable("Gebruiker");
 
@@ -245,7 +230,7 @@ namespace TreeMarket_Klas4_Groep7.Migrations
                     b.HasOne("TreeMarket_Klas4_Groep7.Models.Klant", "klant")
                         .WithMany()
                         .HasForeignKey("KlantId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("TreeMarket_Klas4_Groep7.Models.Veiling", "Veiling")
@@ -270,33 +255,12 @@ namespace TreeMarket_Klas4_Groep7.Migrations
                     b.Navigation("Product");
                 });
 
-            modelBuilder.Entity("TreeMarket_Klas4_Groep7.Models.Gebruiker", b =>
-                {
-                    b.HasOne("TreeMarket_Klas4_Groep7.Models.Klant", "Klant")
-                        .WithMany()
-                        .HasForeignKey("KlantGebruikerId");
-
-                    b.HasOne("TreeMarket_Klas4_Groep7.Models.Leverancier", "Leverancier")
-                        .WithMany()
-                        .HasForeignKey("LeverancierGebruikerId");
-
-                    b.HasOne("TreeMarket_Klas4_Groep7.Models.Veilingsmeester", "Veilingsmeester")
-                        .WithMany()
-                        .HasForeignKey("VeilingsmeesterGebruikerId");
-
-                    b.Navigation("Klant");
-
-                    b.Navigation("Leverancier");
-
-                    b.Navigation("Veilingsmeester");
-                });
-
             modelBuilder.Entity("TreeMarket_Klas4_Groep7.Models.Product", b =>
                 {
                     b.HasOne("TreeMarket_Klas4_Groep7.Models.Leverancier", "Leverancier")
-                        .WithMany()
+                        .WithMany("Producten")
                         .HasForeignKey("LeverancierID")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Leverancier");
@@ -305,20 +269,30 @@ namespace TreeMarket_Klas4_Groep7.Migrations
             modelBuilder.Entity("TreeMarket_Klas4_Groep7.Models.Veiling", b =>
                 {
                     b.HasOne("TreeMarket_Klas4_Groep7.Models.Product", "Product")
-                        .WithMany()
+                        .WithMany("Veilingen")
                         .HasForeignKey("ProductID")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("TreeMarket_Klas4_Groep7.Models.Veilingsmeester", "Veilingsmeester")
                         .WithMany()
                         .HasForeignKey("VeilingsmeesterID")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Product");
 
                     b.Navigation("Veilingsmeester");
+                });
+
+            modelBuilder.Entity("TreeMarket_Klas4_Groep7.Models.Product", b =>
+                {
+                    b.Navigation("Veilingen");
+                });
+
+            modelBuilder.Entity("TreeMarket_Klas4_Groep7.Models.Leverancier", b =>
+                {
+                    b.Navigation("Producten");
                 });
 #pragma warning restore 612, 618
         }
