@@ -4,7 +4,7 @@
 //3. Veilingsmeester
 //4. Leverancier
 
-import { useMemo, useState } from 'react'
+import { useCallback, useMemo, useRef, useState } from 'react'
 //Importeerd de styling voor die bestanden
 import './assets/css/App.css'
 //Importeerd de React pages binnen de map
@@ -32,6 +32,31 @@ const NAVIGATION_ITEMS = [
 
 function App() {
     const [activeView, setActiveView] = useState('dashboard')
+    const navigationRefs = useRef([])
+
+    const handleNavKeyDown = useCallback((event, currentIndex) => {
+        if (!navigationRefs.current.length) {
+            return
+        }
+
+        const { key } = event
+        if (key === 'ArrowRight' || key === 'ArrowLeft') {
+            event.preventDefault()
+            const direction = key === 'ArrowRight' ? 1 : -1
+            const nextIndex = (currentIndex + direction + NAVIGATION_ITEMS.length) % NAVIGATION_ITEMS.length
+            navigationRefs.current[nextIndex]?.focus()
+        }
+
+        if (key === 'Home') {
+            event.preventDefault()
+            navigationRefs.current[0]?.focus()
+        }
+
+        if (key === 'End') {
+            event.preventDefault()
+            navigationRefs.current[NAVIGATION_ITEMS.length - 1]?.focus()
+        }
+    }, [])
 
     //Deze switch is een navbar waar je kunt navigeren.
     //Probeer het eens uit als je het runned :)
@@ -51,7 +76,7 @@ function App() {
                 return <ShopPage />
             case 'auth':
                 return <AuthPage />
-            case 'about':   
+            case 'about':
                 return <AboutUsPage />
             default:
                 return <DashboardPage />
@@ -61,15 +86,23 @@ function App() {
 
     return (
         <div className="app-shell">
+            <a className="skip-link" href="#main-content">
+                Ga direct naar de hoofdinhoud
+            </a>
             <header className="app-header">
                 <div className="brand">TREE MARKET</div>
-                <nav className="main-nav">
-                    {NAVIGATION_ITEMS.map((item) => (
+                <nav aria-label="Primaire navigatie" className="main-nav">
+                    {NAVIGATION_ITEMS.map((item, index) => (
                         <button
                             key={item.id}
                             type="button"
                             className={`nav-link ${activeView === item.id ? 'is-active' : ''}`}
                             onClick={() => setActiveView(item.id)}
+                            aria-current={activeView === item.id ? 'page' : undefined}
+                            onKeyDown={(event) => handleNavKeyDown(event, index)}
+                            ref={(element) => {
+                                navigationRefs.current[index] = element
+                            }}
                         >
                             {item.label}
                         </button>
@@ -79,11 +112,14 @@ function App() {
                     type="button"
                     className={`user-chip ${activeView === 'auth' ? 'is-active' : ''}`}
                     onClick={() => setActiveView('auth')}
+                    aria-label="Ga naar de gebruikerspagina"
                 >
                     User
                 </button>
             </header>
-            <main className="page-area">{ActivePage}</main>
+            <main className="page-area" id="main-content">
+                {ActivePage}
+            </main>
         </div>
     )
 }
