@@ -1,8 +1,8 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace TreeMarket_Klas4_Groep7.ToDo
+namespace TreeMarket_Klas4_Groep7.Models.DTO
 {
-    public class LeverancierToDo
+    public class LeverancierDto
     {
         public int LeverancierId { get; set; }
         public string Naam { get; set; }
