@@ -16,7 +16,7 @@ export default function AboutPage() {
                         {/* HIER IS DE WIJZIGING VOOR RESPONSIVENESS: */}
                         <img
                             src={heroImage}
-                            alt="Pink cherry blossoms in bloom"
+                            alt="Roze kersenbloesems in volle bloei aan takken tegen een heldere lucht."
                             style={{ width: '100%', height: 'auto' }}
                         />
                     </figure>
