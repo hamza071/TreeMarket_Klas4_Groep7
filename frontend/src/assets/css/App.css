@@ -160,8 +160,8 @@
 .eyebrow {
     text-transform: uppercase;
     letter-spacing: 0.4em;
-    font-size: 0.75rem;
-    color: #60b282;
+    font-size: 1.5rem;
+    color: black;
 }
 
 .featured-card {
@@ -534,7 +534,7 @@
 }
 
 * {
-    margin-left: 25px;
+    margin-left: 0px;
 }
 
 section {
