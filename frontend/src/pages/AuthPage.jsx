@@ -1,23 +1,85 @@
 ﻿import { useState } from 'react'
 
-const registerFields = [
-    { label: 'Naam', placeholder: 'Voornaam', type: 'text' },
-    { label: 'Achternaam', placeholder: 'Achternaam', type: 'text' },
-    { label: 'Email', placeholder: 'naam@voorbeeld.nl', type: 'email' },
-    { label: 'Wachtwoord', placeholder: '●●●●●●●●', type: 'password' },
-    { label: 'Bevestig wachtwoord', placeholder: '●●●●●●●●', type: 'password' },
-]
-
-const loginFields = [
-    { label: 'Email', placeholder: 'naam@voorbeeld.nl', type: 'email' },
-    { label: 'Wachtwoord', placeholder: '●●●●●●●●', type: 'password' },
-]
-
 function AuthPage() {
     const [activeTab, setActiveTab] = useState('register')
+    //Hier wordt de data met de DTO Tabel
+    //---Pss DTO is toegepast .....-----
+    const [formData, setFormData] = useState({
+        naam: "",
+        email: "",
+        telefoonnummer: "",
+        wachtwoord: "",
+        herhaalWachtwoord: "",
+    })
 
     const isRegister = activeTab === 'register'
-    const fields = isRegister ? registerFields : loginFields
+    //const fields = isRegister ? registerFields : loginFields
+
+
+    //De formData en setFormData wordt gebruikt
+    const handleChange = (e) => {
+        setFormData({
+            ...formData,
+            [e.target.name]: e.target.value,
+        });
+    }
+
+    // Formulier wordt verzonden
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+
+        //_____Registratie________
+        //Controlleerd of het wachtwoord en herhaal wachtwoord overeenkomt
+        if (isRegister && formData.wachtwoord !== formData.herhaalWachtwoord) {
+            alert("Wachtwoorden komen niet overeen.");
+            return;
+        }
+
+        //Wanneer de gebruiker registreerd
+        if (isRegister) {
+            try {
+                //Voor nu maakt die alleen van de klant aan.
+                //Fetch wordt gebruikt om gegevens op te halen of te versturen. In dit geval stuurt hij de gegevens op.
+                const response = await fetch("https://localhost:7054/api/Gebruiker/Klant", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(formData),
+                });
+
+                if (response.ok) {
+                    alert("Registratie succesvol!");
+                    //Als het succesvol is gegaan, dan wordt de gegevens binnen dezelfde pagina gereset
+                    setFormData({ naam: "", email: "", telefoonnummer: "", wachtwoord: "", herhaalWachtwoord: "" });
+
+                } else {
+                    const error = await response.json();
+                    alert("Fout: " + (error.message || JSON.stringify(error)));
+                }
+            } catch (err) {
+                console.error(err);
+                alert("Er ging iets mis bij het registreren.");
+            }
+        }
+            //______Einde van registratie______
+
+            ////______Login_________
+        else {
+            // Aanmelden — hier kun je later een login endpoint gebruiken
+            // TODO: maak een aparte DTO voor Login aan!
+            //if (isLogin) {
+            //}
+
+
+            ////______Einde van login
+            alert(`Inloggen met ${formData.email}`);
+        }
+
+
+        
+
+    };
+
+    ////Controlleerd of je register of login page gaat gebruiken.
 
     return (
         <div className="auth-page">
@@ -30,6 +92,7 @@ function AuthPage() {
                         </p>
                     </header>
 
+                    {/*Deze knoppen zorgen ervoor dat je naar registratie of naar login kunt navigeren */}
                     <div className="auth-tabs">
                         <button
                             type="button"
@@ -47,27 +110,76 @@ function AuthPage() {
                         </button>
                     </div>
 
-                    <form className="auth-form" onSubmit={(event) => event.preventDefault()}>
-                        {fields.map((field) => (
-                            <label key={field.label} className="form-field">
-                                <span>{field.label}</span>
-                                <input type={field.type} placeholder={field.placeholder} />
-                            </label>
-                        ))}
+                    {/*//Formulier om de data te sturen.*/}
+                    <form className="auth-form" onSubmit={handleSubmit}>
+                        {isRegister && (
+                            <>
+                                <label className="form-field">
+                                    <span>Naam</span>
+                                    <input
+                                        name="naam"
+                                        type="text"
+                                        value={formData.naam}
+                                        onChange={handleChange}
+                                        placeholder="Voornaam"
+                                        required
+                                    />
+                                </label>
 
-                        <label className="checkbox-field">
-                            <input type="checkbox" defaultChecked />
-                            <span>Aangemeld blijven</span>
-                        </label>
-
-                        {!isRegister && (
-                            <button type="button" className="link-button align-right">
-                                Wachtwoord vergeten?
-                            </button>
+                                <label className="form-field">
+                                    <span>Telefoonnummer</span>
+                                    <input
+                                        name="telefoonnummer"
+                                        type="tel"
+                                        value={formData.telefoonnummer}
+                                        onChange={handleChange}
+                                        placeholder="0612345678"
+                                    />
+                                </label>
+                            </>
                         )}
 
+                        <label className="form-field">
+                            <span>Email</span>
+                            <input
+                                name="email"
+                                type="email"
+                                value={formData.email}
+                                onChange={handleChange}
+                                placeholder="naam@voorbeeld.nl"
+                                required
+                            />
+                        </label>
+
+                        <label className="form-field">
+                            <span>Wachtwoord</span>
+                            <input
+                                name="wachtwoord"
+                                type="password"
+                                value={formData.wachtwoord}
+                                onChange={handleChange}
+                                placeholder="●●●●●●●●"
+                                required
+                            />
+                        </label>
+
+                        {isRegister && (
+                            <label className="form-field">
+                                <span>Herhaal wachtwoord</span>
+                                <input
+                                    name="herhaalWachtwoord"
+                                    type="password"
+                                    value={formData.herhaalWachtwoord}
+                                    onChange={handleChange}
+                                    placeholder="Herhaal wachtwoord"
+                                    required
+                                />
+                            </label>
+                        )}
+
+                        {/*Nadat je gegevens ingevuld hebt, kun je op deze knop drukken*/}
                         <button type="submit" className="primary-action full-width">
-                            {isRegister ? 'Registreren' : 'Aanmelden'}
+                            {isRegister ? "Registreren" : "Aanmelden"}
                         </button>
                     </form>
                 </div>
@@ -76,12 +188,12 @@ function AuthPage() {
                     <img
                         src={
                             isRegister
-                                ? 'https://images.unsplash.com/photo-1545243424-0ce743321e11?auto=format&fit=crop&w=800&q=80'
-                                : 'https://images.unsplash.com/photo-1517427294546-5aaefec2b2bb?auto=format&fit=crop&w=800&q=80'
+                                ? "https://images.unsplash.com/photo-1545243424-0ce743321e11?auto=format&fit=crop&w=800&q=80"
+                                : "https://images.unsplash.com/photo-1517427294546-5aaefec2b2bb?auto=format&fit=crop&w=800&q=80"
                         }
-                        alt={isRegister ? 'Bloemenkweker in het veld' : 'Bloemenverzorger met tulpen'}
+                        alt={isRegister ? "Bloemenkweker in het veld" : "Bloemenverzorger met tulpen"}
                     />
-                </div>  
+                </div>
             </section>
             <footer className="auth-footer">© Royal Flora 2025</footer>
         </div>

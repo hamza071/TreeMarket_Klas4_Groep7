@@ -21,24 +21,46 @@ namespace TreeMarket_Klas4_Groep7.Controllers
         [HttpGet("vandaag")]
         public async Task<IActionResult> GetVandaag()
         {
-            var producten = await _productService.GetProductenVanVandaag();
-            return Ok(producten);
+            try
+            {
+                var producten = await _productService.GetProductenVanVandaag();
+                return Ok(producten);
+            } 
+            catch (Exception ex)
+            {
+                return new JsonResult(StatusCode(500, new { message = "Databasefout: Product van vandaag kan niet getoont worden.", error = ex.Message }));
+            }
         }
 
         // ✅ Haal producten met Leverancier info op
         [HttpGet("leverancier")]
         public async Task<IActionResult> GetMetLeverancier()
         {
-            var producten = await _productService.GetProductenMetLeverancier();
-            return Ok(producten);
+            try
+            {
+                var producten = await _productService.GetProductenMetLeverancier();
+                return Ok(producten);
+            } 
+            catch (Exception ex)
+            {
+                return new JsonResult(StatusCode(500, new { message = "Databasefout: Product van de leverancier kan niet getoont worden.", error = ex.Message }));
+            }
         }
 
         // ✅ Voeg nieuw product toe of update bestaand product
         [HttpPost]
         public async Task<IActionResult> CreateOrUpdateProduct(Product product)
         {
-            var result = await _productService.AddOrUpdateProduct(product);
-            return Ok(result);
+            try
+            {
+                var result = await _productService.AddOrUpdateProduct(product);
+                return Ok(result);
+            }
+            catch(Exception ex)
+            {
+                return new JsonResult(StatusCode(500, new { message = "Databasefout: Product kan niet toegevoegd of geupdate worden.", error = ex.Message }));
+
+            }
         }
     }
 }

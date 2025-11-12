@@ -2,6 +2,7 @@
 using TreeMarket_Klas4_Groep7.Data;
 using TreeMarket_Klas4_Groep7.Models;
 using System.Linq;
+using Microsoft.EntityFrameworkCore;
 
 namespace TreeMarket_Klas4_Groep7.Controllers
 {
@@ -19,23 +20,32 @@ namespace TreeMarket_Klas4_Groep7.Controllers
 
         // ===============================
         // POST: Voeg een nieuwe leverancier toe
+        // Bij deze methode wordt letterlijk alles verwacht ingevuld te worden. Niet hetzelfde als bij de GebruikersController.
         // Endpoint: POST /api/Leverancier
         // ===============================
         [HttpPost]
-        public IActionResult CreateLeverancier(Leverancier leverancier)
+        public async Task<IActionResult> CreateLeverancier(Leverancier leverancier)
         {
-            // Validatie: check dat alle required velden ingevuld zijn
-            if (!ModelState.IsValid)
+            try
             {
-                return BadRequest(ModelState);
+                // Validatie: check dat alle required velden ingevuld zijn
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
+                // Voeg leverancier toe aan database
+                await _context.Leverancier.AddAsync(leverancier);
+                await _context.SaveChangesAsync();
+
+                // Return het aangemaakte object (inclusief ID)
+                return Ok(leverancier);
+            } 
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Databasefout: Kon veilingen niet ophalen.", error = ex.Message });
             }
-
-            // Voeg leverancier toe aan database
-            _context.Leverancier.Add(leverancier);
-            _context.SaveChanges();
-
-            // Return het aangemaakte object (inclusief ID)
-            return Ok(leverancier);
+            
         }
 
         // ===============================
@@ -43,10 +53,18 @@ namespace TreeMarket_Klas4_Groep7.Controllers
         // Endpoint: GET /api/Leverancier
         // ===============================
         [HttpGet]
-        public IActionResult GetAllLeveranciers()
+        public async Task<IActionResult> GetAllLeveranciers()
         {
-            var leveranciers = _context.Leverancier.ToList();
-            return Ok(leveranciers);
+            try
+            {
+                var leveranciers = await _context.Leverancier.ToListAsync();
+                return Ok(leveranciers);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Databasefout: Kon leverancier niet ophalen.", error = ex.Message });
+            }
+            
         }
 
         // ===============================
@@ -54,14 +72,22 @@ namespace TreeMarket_Klas4_Groep7.Controllers
         // Endpoint: GET /api/Leverancier/{id}
         // ===============================
         [HttpGet("{id}")]
-        public IActionResult GetLeverancierById(int id)
+        public async Task<IActionResult> GetLeverancierById(int id)
         {
-            var leverancier = _context.Leverancier.Find(id);
+            try
+            {
+                var leverancier = await _context.Leverancier.FindAsync(id);
 
-            if (leverancier == null)
-                return NotFound("Leverancier niet gevonden met ID: " + id);
+                if (leverancier == null)
+                    return NotFound("Leverancier niet gevonden met ID: " + id);
 
-            return Ok(leverancier);
+                return Ok(leverancier);
+            } 
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Databasefout: Leverancier Id kon niet opgehaald worden.", error = ex.Message });
+            }
+
         }
     }
 }

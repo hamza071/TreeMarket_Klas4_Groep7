@@ -16,6 +16,9 @@ import AuthPage from './pages/AuthPage'
 import AboutUsPage from './pages/AboutUsPage'
 import HomePage from './pages/HomePage'
 import ShopPage from './pages/ShopPage'
+import AllUsers from './pages/CRUD/AllUsers'
+import IdUser from './pages/CRUD/IdUser'
+import DeleteUser from './pages/CRUD/DeleteUser'
 
 
 
@@ -28,6 +31,9 @@ const NAVIGATION_ITEMS = [
     { id: 'home', label: 'Home' },
     { id: 'about', label: 'About' },
     { id: 'shop', label: 'Shop' },
+    { id: 'allusers', label: 'GetAlleGebruikers' },
+    { id: 'idUser', label: 'GetIdGebruiker' },
+    { id: 'deleteUser', label: 'DeleteIdGebruiker' },
 ]
 
 function App() {
@@ -78,6 +84,12 @@ function App() {
                 return <AuthPage />
             case 'about':
                 return <AboutUsPage />
+            case 'allusers':
+                return <AllUsers />
+            case 'idUser':
+                return < IdUser />
+            case 'deleteUser':
+                return < DeleteUser />
             default:
                 return <DashboardPage />
 

@@ -8,12 +8,15 @@ using TreeMarket_Klas4_Groep7.Models.DTO;
 namespace TreeMarket_Klas4_Groep7.Controllers
 {
     //Dit is de parent (super) klasse, maar het is vooral voor een test
+    //Deze route wordt ook opgenoemd bij de react componenten waar ze de gebruiker data gebruiken
     [Route("api/[controller]")]
     [ApiController]
     public class GebruikerController : ControllerBase
     {
         //Dit wordt gebruikt via de Database, daarom is de datatype 'readonly'
         private readonly ApiContext _context;
+        //Deze variabele wordt gebruikt voor de methode
+        private string rol;
 
         public GebruikerController(ApiContext context)
         {
@@ -31,17 +34,17 @@ namespace TreeMarket_Klas4_Groep7.Controllers
         //Maakt een klant aan
 
         [HttpPost("Klant")] // Er was maar één [HttpPost] nodig voor het aanmaken
-        public async Task<JsonResult> CreateUserKlantTest([FromBody] KlantDto klantToDo)
+        public async Task<IActionResult> CreateUserKlantTest([FromBody] KlantDto klantToDo)
         {
             // --- BEGIN BUSINESSLOGICA (REGEL 1: VALIDATIE) ---
             if (string.IsNullOrEmpty(klantToDo.Naam))
             {
-                return new JsonResult(BadRequest("Naam mag niet leeg zijn."));
+                return BadRequest("Naam mag niet leeg zijn.");
             }
 
             if (string.IsNullOrEmpty(klantToDo.Email) || !klantToDo.Email.Contains("@"))
             {
-                return new JsonResult(BadRequest("Een geldig e-mailadres is verplicht."));
+                return BadRequest("Een geldig e-mailadres is verplicht.");
             }
             // --- EINDE BUSINESSLOGICA (REGEL 1) ---
 
@@ -54,39 +57,47 @@ namespace TreeMarket_Klas4_Groep7.Controllers
             if (emailBestaatAl != null)
             {
                 // Stuur een 'Conflict' (409) foutmelding terug
-                return new JsonResult(Conflict("Dit e-mailadres is al in gebruik."));
+                return (Conflict("Dit e-mailadres is al in gebruik."));
             }
             // --- EINDE BUSINESSLOGICA (REGEL 2) ---
 
-            var klant = new Klant
+            try
             {
-                Naam = klantToDo.Naam,
-                Email = klantToDo.Email,
-                Telefoonnummer = klantToDo.Telefoonnummer,
-                Wachtwoord = klantToDo.Wachtwoord,
-                // Rol wordt automatisch "Klant" door constructor in Klant.cs
-            };
+                var klant = new Klant
+                {
+                    Naam = klantToDo.Naam,
+                    Email = klantToDo.Email,
+                    Telefoonnummer = klantToDo.Telefoonnummer,
+                    Wachtwoord = klantToDo.Wachtwoord,
+                    // Rol wordt automatisch "Klant" door constructor in Klant.cs
+                };
 
-            await _context.Gebruiker.AddAsync(klant);
-            await _context.SaveChangesAsync();
+                await _context.Gebruiker.AddAsync(klant);
+                await _context.SaveChangesAsync();
 
-            return new JsonResult(Ok(klant));
+                return (Ok(klant));
+            }
+            catch (Exception ex)
+            {
+                return new JsonResult(StatusCode(500, new { message = "Databasefout: Klant kan niet aangemaakt worden.", error = ex.Message }));
+            }
+
         }
 
         //Maakt een leverancier aan
         [HttpPost("Leverancier")]
-        public async Task<JsonResult> CreateUserLeverancier(LeverancierDto leverancierToDo)
+        public async Task<IActionResult> CreateUserLeverancier(LeverancierDto leverancierToDo)
         {
 
             // --- BEGIN BUSINESSLOGICA (REGEL 1: VALIDATIE) ---
             if (string.IsNullOrEmpty(leverancierToDo.Naam))
             {
-                return new JsonResult(BadRequest("Naam mag niet leeg zijn."));
+                return BadRequest("Naam mag niet leeg zijn.");
             }
 
             if (string.IsNullOrEmpty(leverancierToDo.Email) || !leverancierToDo.Email.Contains("@"))
             {
-                return new JsonResult(BadRequest("Een geldig e-mailadres is verplicht."));
+                return BadRequest("Een geldig e-mailadres is verplicht.");
             }
             // --- EINDE BUSINESSLOGICA (REGEL 1) ---
 
@@ -99,11 +110,12 @@ namespace TreeMarket_Klas4_Groep7.Controllers
             if (emailBestaatAl != null)
             {
                 // Stuur een 'Conflict' (409) foutmelding terug
-                return new JsonResult(Conflict("Dit e-mailadres is al in gebruik."));
+                return Conflict("Dit e-mailadres is al in gebruik.");
             }
             // --- EINDE BUSINESSLOGICA (REGEL 2) ---
 
 
+            try
             {
                 var leverancier = new Leverancier
                 {
@@ -121,25 +133,28 @@ namespace TreeMarket_Klas4_Groep7.Controllers
                 await _context.Gebruiker.AddAsync(leverancier);
                 await _context.SaveChangesAsync();
 
-                return new JsonResult(Ok(leverancier));
+                return Ok(leverancier);
+            }
+            catch (Exception ex) {
+                return StatusCode(500, new { message = "Databasefout: Leveerancier kan niet aangemaakt worden.", error = ex.Message });
             }
         }
 
         //Maakt een veilingsmeester aan
         [HttpPost("Veilingsmeester")]
-        public async Task<JsonResult> CreateUserVeilingsmeester(VeilingsmeesterDto veilingsmeesterToDo)
+        public async Task<IActionResult> CreateUserVeilingsmeester(VeilingsmeesterDto veilingsmeesterToDo)
         {
 
 
             // --- BEGIN BUSINESSLOGICA (REGEL 1: VALIDATIE) ---
             if (string.IsNullOrEmpty(veilingsmeesterToDo.Naam))
             {
-                return new JsonResult(BadRequest("Naam mag niet leeg zijn."));
+                return BadRequest("Naam mag niet leeg zijn.");
             }
 
             if (string.IsNullOrEmpty(veilingsmeesterToDo.Email) || !veilingsmeesterToDo.Email.Contains("@"))
             {
-                return new JsonResult(BadRequest("Een geldig e-mailadres is verplicht."));
+                return BadRequest("Een geldig e-mailadres is verplicht.");
             }
             // --- EINDE BUSINESSLOGICA (REGEL 1) ---
 
@@ -152,10 +167,11 @@ namespace TreeMarket_Klas4_Groep7.Controllers
             if (emailBestaatAl != null)
             {
                 // Stuur een 'Conflict' (409) foutmelding terug
-                return new JsonResult(Conflict("Dit e-mailadres is al in gebruik."));
+                return Conflict("Dit e-mailadres is al in gebruik.");
             }
 
             // --- EINDE BUSINESSLOGICA (REGEL 2) ---
+            try
             {
                 var veilingsmeester = new Veilingsmeester
                 {
@@ -171,38 +187,48 @@ namespace TreeMarket_Klas4_Groep7.Controllers
                 await _context.Gebruiker.AddAsync(veilingsmeester);
                 await _context.SaveChangesAsync();
 
-                return new JsonResult(Ok(veilingsmeester));
+                return Ok(veilingsmeester);
+            }
+            catch (Exception ex) {
+                return StatusCode(500, new { message = "Databasefout: Veilingmeester kan niet aangemaakt worden.", error = ex.Message });
             }
         }
 
         //--------GET------------
-        //Deze methode toont alle gebruikers
-        [HttpGet]
-        public async Task<JsonResult> GetUserById(int id)
+        //Deze methode toont een gebruiker op basis van een ID
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetUserById(int id)
         {
-            //Eager loading, omdat het gelijk de waarde binnen de 'include' gaat toevoegen
-            var gebruiker = _context.Gebruiker
-                .Include(gebruiker => gebruiker.Klant)
-                .Include(gebruiker => gebruiker.Leverancier)
-                .Include(gebruiker => gebruiker.Veilingsmeester)
-                .FirstOrDefault(gebruiker => gebruiker.GebruikerId == id);
-
-            if (gebruiker == null) 
+            try
             {
-                return new JsonResult(NotFound($"Gebruiker met id {id} niet gevonden."));
+                var result = await _context.Gebruiker.FindAsync(id);
+                if (result == null)
+                {
+                    return NotFound("Id is not found: " + id);
+                }
+                return Ok(result);
+            } 
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Databasefout: Gebruiker op basis van een ID kan niet opgehaald worden.", error = ex.Message });
             }
-            
-            // Stuur de gevonden gebruiker terug, niet de tekst "Sigma boy!"
-            return new JsonResult(Ok(gebruiker));
+           
         }
 
         //Toont alle gebruikers
-        [HttpGet("/GetAll")]
-        public async Task<JsonResult> GetAllUsers()
+        [HttpGet("GetAllUsers")]
+        public async Task<IActionResult> GetAllUsers()
         {
-            var result = await _context.Gebruiker.ToListAsync();
+            try
+            {
+                var result = await _context.Gebruiker.ToListAsync();
+                return Ok(result);
+            }
+            catch (Exception ex) 
+            {
+                return StatusCode(500, new { message = "Databasefout: Gebruikers kan niet opgehaald worden.", error = ex.Message });
+            }
 
-            return new JsonResult(Ok(result));
         }
 
         //----------Delete-------------
@@ -211,25 +237,32 @@ namespace TreeMarket_Klas4_Groep7.Controllers
 
         //Deze functie werkt voor alle gebruikers
         [HttpDelete("{id}")]
-        public async Task<JsonResult> DeleteUser(int id)
+        public async Task<IActionResult> DeleteUser(int id)
         {
-            var result = await _context.Gebruiker.FindAsync(id);
+            try
+            {
+                var result = await _context.Gebruiker.FindAsync(id);
 
-            if (result == null)
-                return new JsonResult(NotFound());
+                if (result == null)
+                    return NotFound();
 
-            //Bij delete hoef je geen Async te gebruiken omdat het alleen de data verwijderd.
-            _context.Gebruiker.Remove(result);
-            await _context.SaveChangesAsync();
+                //Bij delete hoef je geen Async te gebruiken omdat het alleen de data verwijderd.
+                _context.Gebruiker.Remove(result);
+                await _context.SaveChangesAsync();
 
-            return new JsonResult(NoContent());
+                return NoContent();
+            }
+            catch (Exception ex) 
+            {
+                return StatusCode(500, new { message = "Databasefout: Gebruiker kan niet verwijderd worden.", error = ex.Message });
+            }
         }
 
 
 
         ////_______Eager loading toegepast________
         //[HttpGet("{id}")]
-        //public async Task<JsonResult> GetUserWithChildrenEager(int id)
+        //public async Task<IActionResult> GetUserWithChildrenEager(int id)
         //{
         //    //Eager loading, omdat het gelijk de waarde binnen de 'include' gaat toevoegen
 
@@ -241,9 +274,9 @@ namespace TreeMarket_Klas4_Groep7.Controllers
         //        .Include(gebruiker => gebruiker.Veilingsmeester)
         //        .FirstOrDefaultAsync(gebruiker => gebruiker.GebruikerId == id);
 
-        //    if (gebruiker == null) return new JsonResult(NotFound());
+        //    if (gebruiker == null) return NotFound();
 
-        //    return new JsonResult(Ok("Sigma boy!"));
+        //    return Ok("Sigma boy!");
         //}
     }
 }
