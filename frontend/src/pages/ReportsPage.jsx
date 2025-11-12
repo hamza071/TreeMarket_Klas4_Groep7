@@ -1,5 +1,5 @@
 const metrics = [
-    { label: 'Totale omzet deze week', value: '€ 128.400', trend: '+12% t.o.v. vorige week' },
+    { label: 'Totale omzet deze week', value: '€128.400', trend: '+12% ten opzichte van vorige week' },
     { label: 'Actieve kopers', value: '356', trend: '+24 nieuwe registraties' },
     { label: 'Gemiddelde verkooptijd', value: '06:45', trend: 'Sneller dan 86% van de kavels' },
 ]
@@ -7,7 +7,7 @@ const metrics = [
 const highlights = [
     {
         title: 'Populairste productcategorie',
-        detail: 'Snijbloemen & Tulpen',
+        detail: 'Snijbloemen en tulpen',
     },
     {
         title: 'Beste presterende kweker',
@@ -15,7 +15,7 @@ const highlights = [
     },
     {
         title: 'Hoogste verkoopprijs',
-        detail: '€ 86,00 voor Rozen Avalanche',
+        detail: '€86,00 voor Rozen Avalanche',
     },
 ]
 
@@ -32,18 +32,28 @@ function ReportsPage() {
                 </button>
             </header>
 
-            <section className="metrics-grid">
+            <section aria-labelledby="metrics-heading" className="metrics-grid">
+                <h2 id="metrics-heading" className="sr-only">
+                    Kerncijfers van deze week
+                </h2>
                 {metrics.map((metric) => (
-                    <article key={metric.label} className="metric-card">
-                        <h2>{metric.value}</h2>
-                        <p className="metric-label">{metric.label}</p>
-                        <span className="metric-trend">{metric.trend}</span>
+                    <article key={metric.label} className="metric-card" aria-label={metric.label}>
+                        <dl>
+                            <div>
+                                <dt className="sr-only">Waarde</dt>
+                                <dd aria-live="polite">{metric.value}</dd>
+                            </div>
+                            <div>
+                                <dt className="metric-label">{metric.label}</dt>
+                                <dd className="metric-trend">{metric.trend}</dd>
+                            </div>
+                        </dl>
                     </article>
                 ))}
             </section>
 
-            <section className="highlights">
-                <h2>Belangrijkste inzichten</h2>
+            <section aria-labelledby="highlights-heading" className="highlights">
+                <h2 id="highlights-heading">Belangrijkste inzichten</h2>
                 <div className="highlight-grid">
                     {highlights.map((highlight) => (
                         <article key={highlight.title} className="highlight-card">
