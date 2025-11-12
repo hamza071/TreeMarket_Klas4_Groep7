@@ -29,9 +29,35 @@ namespace TreeMarket_Klas4_Groep7.Controllers
         //Asycn zorgt ervoor dat de server niet vastloopt.
 
         //Maakt een klant aan
-        [HttpPost("Klant")]
-        public async Task<JsonResult> CreateUserKlantASync(KlantDto klantToDo)
+
+        [HttpPost("Klant")] // Er was maar één [HttpPost] nodig voor het aanmaken
+        public async Task<JsonResult> CreateUserKlantTest([FromBody] KlantDto klantToDo)
         {
+            // --- BEGIN BUSINESSLOGICA (REGEL 1: VALIDATIE) ---
+            if (string.IsNullOrEmpty(klantToDo.Naam))
+            {
+                return new JsonResult(BadRequest("Naam mag niet leeg zijn."));
+            }
+
+            if (string.IsNullOrEmpty(klantToDo.Email) || !klantToDo.Email.Contains("@"))
+            {
+                return new JsonResult(BadRequest("Een geldig e-mailadres is verplicht."));
+            }
+            // --- EINDE BUSINESSLOGICA (REGEL 1) ---
+
+
+            // --- BEGIN BUSINESSLOGICA (REGEL 2: UNIEKE CHECK) ---
+            // We gebruiken .FirstOrDefault hier i.p.v. .Any om 'case insensitive' te kunnen checken
+            var emailBestaatAl = _context.Gebruiker
+                .FirstOrDefault(g => g.Email.ToLower() == klantToDo.Email.ToLower());
+
+            if (emailBestaatAl != null)
+            {
+                // Stuur een 'Conflict' (409) foutmelding terug
+                return new JsonResult(Conflict("Dit e-mailadres is al in gebruik."));
+            }
+            // --- EINDE BUSINESSLOGICA (REGEL 2) ---
+
             var klant = new Klant
             {
                 Naam = klantToDo.Naam,
@@ -49,46 +75,104 @@ namespace TreeMarket_Klas4_Groep7.Controllers
 
         //Maakt een leverancier aan
         [HttpPost("Leverancier")]
-        public async Task<JsonResult> CreateUserLeverancier(LeverancierDto LeverancierToDo)
+        public async Task<JsonResult> CreateUserLeverancier(LeverancierDto leverancierToDo)
         {
-            var leverancier = new Leverancier
+
+            // --- BEGIN BUSINESSLOGICA (REGEL 1: VALIDATIE) ---
+            if (string.IsNullOrEmpty(leverancierToDo.Naam))
             {
-                Naam = LeverancierToDo.Naam,
-                Email = LeverancierToDo.Email,
-                Telefoonnummer = LeverancierToDo.Telefoonnummer,
-                bedrijf = LeverancierToDo.Bedrijf,
-                KvKNummer = LeverancierToDo.KvKNummer,
-                IBANnummer = LeverancierToDo.IBANnummer,
-                Wachtwoord = LeverancierToDo.Wachtwoord,
-                //Rol moet ik nog even kijken.
-                // Rol wordt automatisch "Klant" door constructor in Klant.cs
-            };
+                return new JsonResult(BadRequest("Naam mag niet leeg zijn."));
+            }
 
-            await _context.Gebruiker.AddAsync(leverancier);
-            await _context.SaveChangesAsync();
+            if (string.IsNullOrEmpty(leverancierToDo.Email) || !leverancierToDo.Email.Contains("@"))
+            {
+                return new JsonResult(BadRequest("Een geldig e-mailadres is verplicht."));
+            }
+            // --- EINDE BUSINESSLOGICA (REGEL 1) ---
 
-            return new JsonResult(Ok(leverancier));
+
+            // --- BEGIN BUSINESSLOGICA (REGEL 2: UNIEKE CHECK) ---
+            // We gebruiken .FirstOrDefault hier i.p.v. .Any om 'case insensitive' te kunnen checken
+            var emailBestaatAl = _context.Gebruiker
+                .FirstOrDefault(g => g.Email.ToLower() == leverancierToDo.Email.ToLower());
+
+            if (emailBestaatAl != null)
+            {
+                // Stuur een 'Conflict' (409) foutmelding terug
+                return new JsonResult(Conflict("Dit e-mailadres is al in gebruik."));
+            }
+            // --- EINDE BUSINESSLOGICA (REGEL 2) ---
+
+
+            {
+                var leverancier = new Leverancier
+                {
+                    Naam = leverancierToDo.Naam,
+                    Email = leverancierToDo.Email,
+                    Telefoonnummer = leverancierToDo.Telefoonnummer,
+                    bedrijf = leverancierToDo.Bedrijf,
+                    KvKNummer = leverancierToDo.KvKNummer,
+                    IBANnummer = leverancierToDo.IBANnummer,
+                    Wachtwoord = leverancierToDo.Wachtwoord,
+                    //Rol moet ik nog even kijken.
+                    // Rol wordt automatisch "Klant" door constructor in Klant.cs
+                };
+
+                await _context.Gebruiker.AddAsync(leverancier);
+                await _context.SaveChangesAsync();
+
+                return new JsonResult(Ok(leverancier));
+            }
         }
 
         //Maakt een veilingsmeester aan
         [HttpPost("Veilingsmeester")]
-        public async Task<JsonResult> CreateUserVeilingsmeester(VeilingsmeesterDto VeilingsmeesterToDo)
+        public async Task<JsonResult> CreateUserVeilingsmeester(VeilingsmeesterDto veilingsmeesterToDo)
         {
-            var veilingsmeester = new Veilingsmeester
+
+
+            // --- BEGIN BUSINESSLOGICA (REGEL 1: VALIDATIE) ---
+            if (string.IsNullOrEmpty(veilingsmeesterToDo.Naam))
             {
-                Naam = VeilingsmeesterToDo.Naam,
-                Email = VeilingsmeesterToDo.Email,
-                Telefoonnummer = VeilingsmeesterToDo.Telefoonnummer,
-                PlanDatum = VeilingsmeesterToDo.PlanDatum,
-                Wachtwoord = VeilingsmeesterToDo.Wachtwoord,
-                //Rol moet ik nog even kijken.
-                // Rol wordt automatisch "Klant" door constructor in Klant.cs
-            };
+                return new JsonResult(BadRequest("Naam mag niet leeg zijn."));
+            }
 
-            await _context.Gebruiker.AddAsync(veilingsmeester);
-            await _context.SaveChangesAsync();
+            if (string.IsNullOrEmpty(veilingsmeesterToDo.Email) || !veilingsmeesterToDo.Email.Contains("@"))
+            {
+                return new JsonResult(BadRequest("Een geldig e-mailadres is verplicht."));
+            }
+            // --- EINDE BUSINESSLOGICA (REGEL 1) ---
 
-            return new JsonResult(Ok(veilingsmeester));
+
+            // --- BEGIN BUSINESSLOGICA (REGEL 2: UNIEKE CHECK) ---
+            // We gebruiken .FirstOrDefault hier i.p.v. .Any om 'case insensitive' te kunnen checken
+            var emailBestaatAl = _context.Gebruiker
+                .FirstOrDefault(g => g.Email.ToLower() == veilingsmeesterToDo.Email.ToLower());
+
+            if (emailBestaatAl != null)
+            {
+                // Stuur een 'Conflict' (409) foutmelding terug
+                return new JsonResult(Conflict("Dit e-mailadres is al in gebruik."));
+            }
+
+            // --- EINDE BUSINESSLOGICA (REGEL 2) ---
+            {
+                var veilingsmeester = new Veilingsmeester
+                {
+                    Naam = veilingsmeesterToDo.Naam,
+                    Email = veilingsmeesterToDo.Email,
+                    Telefoonnummer = veilingsmeesterToDo.Telefoonnummer,
+                    PlanDatum = veilingsmeesterToDo.PlanDatum,
+                    Wachtwoord = veilingsmeesterToDo.Wachtwoord,
+                    //Rol moet ik nog even kijken.
+                    // Rol wordt automatisch "Klant" door constructor in Klant.cs
+                };
+
+                await _context.Gebruiker.AddAsync(veilingsmeester);
+                await _context.SaveChangesAsync();
+
+                return new JsonResult(Ok(veilingsmeester));
+            }
         }
 
         //--------GET------------
@@ -96,12 +180,20 @@ namespace TreeMarket_Klas4_Groep7.Controllers
         [HttpGet]
         public async Task<JsonResult> GetUserById(int id)
         {
-            var result = await _context.Gebruiker.FindAsync(id);
-            if(result == null)
+            //Eager loading, omdat het gelijk de waarde binnen de 'include' gaat toevoegen
+            var gebruiker = _context.Gebruiker
+                .Include(gebruiker => gebruiker.Klant)
+                .Include(gebruiker => gebruiker.Leverancier)
+                .Include(gebruiker => gebruiker.Veilingsmeester)
+                .FirstOrDefault(gebruiker => gebruiker.GebruikerId == id);
+
+            if (gebruiker == null) 
             {
-                return new JsonResult(NotFound("Id is not found: " + id));
+                return new JsonResult(NotFound($"Gebruiker met id {id} niet gevonden."));
             }
-            return new JsonResult(Ok(result));
+            
+            // Stuur de gevonden gebruiker terug, niet de tekst "Sigma boy!"
+            return new JsonResult(Ok(gebruiker));
         }
 
         //Toont alle gebruikers
