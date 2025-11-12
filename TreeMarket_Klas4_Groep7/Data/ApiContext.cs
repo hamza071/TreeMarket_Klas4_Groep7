@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TreeMarket_Klas4_Groep7.Models;
-using TreeMarket_Klas4_Groep7.ToDo;
+using TreeMarket_Klas4_Groep7.Models.DTO;
 
 namespace TreeMarket_Klas4_Groep7.Data
 {

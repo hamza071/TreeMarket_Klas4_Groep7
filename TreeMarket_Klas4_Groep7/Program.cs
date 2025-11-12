@@ -73,8 +73,8 @@ app.UseAuthorization();
 // Map alle controllers
 app.MapControllers();
 
-//De app runt via een localhost
-app.Run();
+////De app runt via een localhost
+//app.Run();
 
 // =======================
 // Run the app
