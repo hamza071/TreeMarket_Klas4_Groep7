@@ -12,8 +12,8 @@ using TreeMarket_Klas4_Groep7.Data;
 namespace TreeMarket_Klas4_Groep7.Migrations
 {
     [DbContext(typeof(ApiContext))]
-    [Migration("20251111214939_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20251112092852_InitialCreate.cs")]
+    partial class InitialCreatecs
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

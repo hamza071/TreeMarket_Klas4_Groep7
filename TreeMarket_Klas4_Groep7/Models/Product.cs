@@ -23,7 +23,7 @@ namespace TreeMarket_Klas4_Groep7.Models
         //Een op meer relatie
         [ForeignKey(nameof(Leverancier))]
         public int LeverancierID { get; set; }
-        public Leverancier Leverancier { get; set; }
+        public Leverancier? Leverancier { get; set; } // de ? achter Leverancier toegevoegd zodat het nullable is en dan hoef je niet helemaal de volledige Leverancier te posten bij post product
 
         //Voor de LINQ om de veilingen toe te voegen
         public ICollection<Veiling> Veilingen { get; set; } = new List<Veiling>();
