@@ -3,8 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TreeMarket_Klas4_Groep7.Data;
 using TreeMarket_Klas4_Groep7.Models;
-using TreeMarket_Klas4_Groep7.ToDo;
-
+using TreeMarket_Klas4_Groep7.Models.DTO;
 
 namespace TreeMarket_Klas4_Groep7.Controllers
 {
@@ -31,7 +30,7 @@ namespace TreeMarket_Klas4_Groep7.Controllers
 
         //Maakt een klant aan
         [HttpPost("Klant")]
-        public async Task<JsonResult> CreateUserKlantASync(KlantToDo klantToDo)
+        public async Task<JsonResult> CreateUserKlantASync(KlantDto klantToDo)
         {
             var klant = new Klant
             {
@@ -50,7 +49,7 @@ namespace TreeMarket_Klas4_Groep7.Controllers
 
         //Maakt een leverancier aan
         [HttpPost("Leverancier")]
-        public async Task<JsonResult> CreateUserLeverancier(LeverancierToDo LeverancierToDo)
+        public async Task<JsonResult> CreateUserLeverancier(LeverancierDto LeverancierToDo)
         {
             var leverancier = new Leverancier
             {
@@ -73,7 +72,7 @@ namespace TreeMarket_Klas4_Groep7.Controllers
 
         //Maakt een veilingsmeester aan
         [HttpPost("Veilingsmeester")]
-        public async Task<JsonResult> CreateUserVeilingsmeester(VeilingsmeesterToDo VeilingsmeesterToDo)
+        public async Task<JsonResult> CreateUserVeilingsmeester(VeilingsmeesterDto VeilingsmeesterToDo)
         {
             var veilingsmeester = new Veilingsmeester
             {
