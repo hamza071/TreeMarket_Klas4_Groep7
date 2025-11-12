@@ -60,9 +60,9 @@ function AuthPage() {
                 alert("Er ging iets mis bij het registreren.");
             }
         }
-            //______Einde van registratie______
+        //______Einde van registratie______
 
-            ////______Login_________
+        ////______Login_________
         else {
             // Aanmelden — hier kun je later een login endpoint gebruiken
             // TODO: maak een aparte DTO voor Login aan!
@@ -75,7 +75,7 @@ function AuthPage() {
         }
 
 
-        
+
 
     };
 
@@ -83,25 +83,20 @@ function AuthPage() {
 
     return (
         <div className="auth-page">
-            <section className="auth-card" aria-labelledby="auth-heading">
+            <section className="auth-card">
                 <div className="auth-card__form">
                     <header className="auth-header">
-                        <h1 id="auth-heading">
-                            {isRegister ? 'Registreren bij TreeMarket' : 'Aanmelden bij TreeMarket'}
-                        </h1>
+                        <h1>{isRegister ? 'Registreren bij TreeMarket' : 'Aanmelden bij TreeMarket'}</h1>
                         <p>
                             Voordat u doorgaat, moet u zich aanmelden of registreren als u nog geen account heeft.
                         </p>
                     </header>
 
+                    {/*Deze knoppen zorgen ervoor dat je naar registratie of naar login kunt navigeren */}
                     <div className="auth-tabs">
                         <button
                             type="button"
                             className={`auth-tab ${isRegister ? 'is-inactive' : 'is-active'}`}
-                            role="tab"
-                            aria-selected={!isRegister}
-                            aria-controls="login-panel"
-                            id="login-tab"
                             onClick={() => setActiveTab('login')}
                         >
                             Aanmelden
@@ -109,27 +104,63 @@ function AuthPage() {
                         <button
                             type="button"
                             className={`auth-tab ${isRegister ? 'is-active' : 'is-inactive'}`}
-                            role="tab"
-                            aria-selected={isRegister}
-                            aria-controls="register-panel"
-                            id="register-tab"
                             onClick={() => setActiveTab('register')}
                         >
                             Registreren
                         </button>
                     </div>
 
-                    <form className="auth-form" onSubmit={(event) => event.preventDefault()}>
-                        {fields.map((field) => (
-                            <label key={field.label} className="form-field">
-                                <span>{field.label}</span>
-                                <input type={field.type} placeholder={field.placeholder} />
-                            </label>
-                        ))}
+                    {/*//Formulier om de data te sturen.*/}
+                    <form className="auth-form" onSubmit={handleSubmit}>
+                        {isRegister && (
+                            <>
+                                <label className="form-field">
+                                    <span>Naam</span>
+                                    <input
+                                        name="naam"
+                                        type="text"
+                                        value={formData.naam}
+                                        onChange={handleChange}
+                                        placeholder="Voornaam"
+                                        required
+                                    />
+                                </label>
 
-                        <label className="checkbox-field">
-                            <input type="checkbox" defaultChecked />
-                            <span>Aangemeld blijven</span>
+                                <label className="form-field">
+                                    <span>Telefoonnummer</span>
+                                    <input
+                                        name="telefoonnummer"
+                                        type="tel"
+                                        value={formData.telefoonnummer}
+                                        onChange={handleChange}
+                                        placeholder="0612345678"
+                                    />
+                                </label>
+                            </>
+                        )}
+
+                        <label className="form-field">
+                            <span>Email</span>
+                            <input
+                                name="email"
+                                type="email"
+                                value={formData.email}
+                                onChange={handleChange}
+                                placeholder="naam@voorbeeld.nl"
+                                required
+                            />
+                        </label>
+
+                        <label className="form-field">
+                            <span>Wachtwoord</span>
+                            <input
+                                name="wachtwoord"
+                                type="password"
+                                value={formData.wachtwoord}
+                                onChange={handleChange}
+                                placeholder="●●●●●●●●"
+                                required
+                            />
                         </label>
 
                         {isRegister && (
@@ -153,14 +184,14 @@ function AuthPage() {
                     </form>
                 </div>
 
-                <div className="auth-card__media" aria-hidden="true">
+                <div className="auth-card__media">
                     <img
                         src={
                             isRegister
                                 ? "https://images.unsplash.com/photo-1545243424-0ce743321e11?auto=format&fit=crop&w=800&q=80"
                                 : "https://images.unsplash.com/photo-1517427294546-5aaefec2b2bb?auto=format&fit=crop&w=800&q=80"
                         }
-                        alt={isRegister ? 'Bloemenkweker in het veld' : 'Bloemenverzorger met tulpen'}
+                        alt={isRegister ? "Bloemenkweker in het veld" : "Bloemenverzorger met tulpen"}
                     />
                 </div>
             </section>
