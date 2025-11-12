@@ -21,11 +21,16 @@ namespace TreeMarket_Klas4_Groep7.Models
 
         //Binnen de gebruiker klasse de variabele van de child klasses gebruiken.
         //Ik gebruik JsonIgnore annotatie, omdat het anders binnen swagger veel te veel staat.
+
+        //Deze variabeles en annotaties voorkomt de Drop-Database enz. werkt 
         [JsonIgnore]
+        [NotMapped]
         public virtual Klant? Klant { get; set; }
         [JsonIgnore]
+        [NotMapped]
         public virtual Leverancier? Leverancier { get; set; }
         [JsonIgnore]
+        [NotMapped]
         public virtual Veilingsmeester? Veilingsmeester { get; set; }
     }
 
@@ -36,6 +41,12 @@ namespace TreeMarket_Klas4_Groep7.Models
     //Klant child klasse
     public class Klant : Gebruiker
     {
+
+        // alias, EF Core hoeft hier niks van te weten
+        [NotMapped]
+        //Deze variabele zorgt ervoor dat de klantId overeenkomt met de gebruikersId
+        public int KlantId => this.GebruikerId;
+
         public Klant()
         {
             this.Rol = "Klant";
@@ -46,12 +57,18 @@ namespace TreeMarket_Klas4_Groep7.Models
     //Leverancier child klasse
     public class Leverancier : Gebruiker
     {
+        [NotMapped]
+        //Deze variabele zorgt ervoor dat de klantId overeenkomt met de gebruikersId
+        public int LeverancierId => this.GebruikerId;
         [Required]
         public string bedrijf { get; set; }
         [Required]
         public string KvKNummer { get; set; }
         [Required]
         public string IBANnummer { get; set; }
+
+        public ICollection<Product> Producten { get; set; } = new List<Product>();
+
 
         public Leverancier() {
             this.Rol = "Leverancier";
@@ -61,6 +78,9 @@ namespace TreeMarket_Klas4_Groep7.Models
     //Veilingsmeester child klasse
     public class Veilingsmeester : Gebruiker
     {
+        [NotMapped]
+        //Deze variabele zorgt ervoor dat de klantId overeenkomt met de gebruikersId
+        public int VeilingsmeesterId => this.GebruikerId;
         [Required]
         public DateTime PlanDatum { get; set; }
         

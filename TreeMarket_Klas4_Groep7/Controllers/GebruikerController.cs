@@ -21,35 +21,17 @@ namespace TreeMarket_Klas4_Groep7.Controllers
             _context = context;
         }
 
-        //Een gebruiker aanmaken
-        [HttpPost]
-        //Wil dit later de datatype klasse 'KlantToDo' gebruiken zodat je niet veel te veel in Post hoeft in te vullen.
-        //public JsonResult CreateUserKlant(Gebruiker klant)
-        //{
-        //    if(klant.GebruikerId == 0)
-        //    {
-        //        //Dit gaat een gebruiker aanmaken
-        //        _context.Gebruiker.Add(klant);
-        //    } else
-        //    {
-        //        var gebruikerInDb = _context.Gebruiker.Find(klant.GebruikerId);
+        //Er wordt 3 keer de annotatie 'HttpPost' gebruikt.
+        //Dus het moet uniek, anders gaat het mis binnen de Swagger.
 
-        //        if(gebruikerInDb == null)
-        //        {
-        //            return new JsonResult(NotFound());
-        //        }
-
-        //        gebruikerInDb = klant;
-        //    }
-
-        //    _context.SaveChanges();
-
-        //    return new JsonResult(Ok(klant));
-        //}
+        //Hier wordt Async toegepast.
+        //Async zorgt ervoor dat de uitgevoerde code wacht totdat de vorige klaar is.
+        //Het zorgt ervoor dat er niet te veel blockades komt net als de transactie in sql.
+        //Asycn zorgt ervoor dat de server niet vastloopt.
 
         //Maakt een klant aan
-        [HttpPost]
-        public JsonResult CreateUserKlantTest(KlantToDo klantToDo)
+        [HttpPost("Klant")]
+        public async Task<JsonResult> CreateUserKlantASync(KlantToDo klantToDo)
         {
             var klant = new Klant
             {
@@ -57,21 +39,65 @@ namespace TreeMarket_Klas4_Groep7.Controllers
                 Email = klantToDo.Email,
                 Telefoonnummer = klantToDo.Telefoonnummer,
                 Wachtwoord = klantToDo.Wachtwoord,
-                //Rol moet ik nog even kijken.
                 // Rol wordt automatisch "Klant" door constructor in Klant.cs
             };
 
-            _context.Gebruiker.Add(klant);
-            _context.SaveChanges();
+            await _context.Gebruiker.AddAsync(klant);
+            await _context.SaveChangesAsync();
 
             return new JsonResult(Ok(klant));
         }
 
+        //Maakt een leverancier aan
+        [HttpPost("Leverancier")]
+        public async Task<JsonResult> CreateUserLeverancier(LeverancierToDo LeverancierToDo)
+        {
+            var leverancier = new Leverancier
+            {
+                Naam = LeverancierToDo.Naam,
+                Email = LeverancierToDo.Email,
+                Telefoonnummer = LeverancierToDo.Telefoonnummer,
+                bedrijf = LeverancierToDo.Bedrijf,
+                KvKNummer = LeverancierToDo.KvKNummer,
+                IBANnummer = LeverancierToDo.IBANnummer,
+                Wachtwoord = LeverancierToDo.Wachtwoord,
+                //Rol moet ik nog even kijken.
+                // Rol wordt automatisch "Klant" door constructor in Klant.cs
+            };
+
+            await _context.Gebruiker.AddAsync(leverancier);
+            await _context.SaveChangesAsync();
+
+            return new JsonResult(Ok(leverancier));
+        }
+
+        //Maakt een veilingsmeester aan
+        [HttpPost("Veilingsmeester")]
+        public async Task<JsonResult> CreateUserVeilingsmeester(VeilingsmeesterToDo VeilingsmeesterToDo)
+        {
+            var veilingsmeester = new Veilingsmeester
+            {
+                Naam = VeilingsmeesterToDo.Naam,
+                Email = VeilingsmeesterToDo.Email,
+                Telefoonnummer = VeilingsmeesterToDo.Telefoonnummer,
+                PlanDatum = VeilingsmeesterToDo.PlanDatum,
+                Wachtwoord = VeilingsmeesterToDo.Wachtwoord,
+                //Rol moet ik nog even kijken.
+                // Rol wordt automatisch "Klant" door constructor in Klant.cs
+            };
+
+            await _context.Gebruiker.AddAsync(veilingsmeester);
+            await _context.SaveChangesAsync();
+
+            return new JsonResult(Ok(veilingsmeester));
+        }
+
+        //--------GET------------
         //Deze methode toont alle gebruikers
         [HttpGet]
-        public JsonResult GetUserById(int id)
+        public async Task<JsonResult> GetUserById(int id)
         {
-            var result = _context.Gebruiker.Find(id);
+            var result = await _context.Gebruiker.FindAsync(id);
             if(result == null)
             {
                 return new JsonResult(NotFound("Id is not found: " + id));
@@ -81,48 +107,52 @@ namespace TreeMarket_Klas4_Groep7.Controllers
 
         //Toont alle gebruikers
         [HttpGet("/GetAll")]
-        public JsonResult GetAllUsers()
+        public async Task<JsonResult> GetAllUsers()
         {
-            var result = _context.Gebruiker.ToList();
+            var result = await _context.Gebruiker.ToListAsync();
 
             return new JsonResult(Ok(result));
         }
 
+        //----------Delete-------------
         //Verwijderd de gebruiker uit de database
         //De id binnen de HttpDelete zorgt ervoor dat het verplicht is om dat te vullen. Zonder id, gaat het niet werken.
+
+        //Deze functie werkt voor alle gebruikers
         [HttpDelete("{id}")]
-        public JsonResult Delete(int id)
+        public async Task<JsonResult> DeleteUser(int id)
         {
-            var result = _context.Gebruiker.Find(id);
+            var result = await _context.Gebruiker.FindAsync(id);
 
             if (result == null)
                 return new JsonResult(NotFound());
 
+            //Bij delete hoef je geen Async te gebruiken omdat het alleen de data verwijderd.
             _context.Gebruiker.Remove(result);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
 
             return new JsonResult(NoContent());
         }
 
 
 
-        //_______Eager loading toegepast________
-        [HttpGet("{id}")]
-        public JsonResult GetUserWithChildrenEager(int id)
-        {
-            //Eager loading, omdat het gelijk de waarde binnen de 'include' gaat toevoegen
+        ////_______Eager loading toegepast________
+        //[HttpGet("{id}")]
+        //public async Task<JsonResult> GetUserWithChildrenEager(int id)
+        //{
+        //    //Eager loading, omdat het gelijk de waarde binnen de 'include' gaat toevoegen
 
-            var gebruiker = _context.Gebruiker
-                //Include is eager loading
-                //Het haalt meteen de child klasses op en toont de waardes
-                .Include(gebruiker => gebruiker.Klant)
-                .Include(gebruiker => gebruiker.Leverancier)
-                .Include(gebruiker => gebruiker.Veilingsmeester)
-                .FirstOrDefault(gebruiker => gebruiker.GebruikerId == id);
+        //    var gebruiker = await _context.Gebruiker
+        //        //Include is eager loading
+        //        //Het haalt meteen de child klasses op en toont de waardes
+        //        .Include(gebruiker => gebruiker.Klant)
+        //        .Include(gebruiker => gebruiker.Leverancier)
+        //        .Include(gebruiker => gebruiker.Veilingsmeester)
+        //        .FirstOrDefaultAsync(gebruiker => gebruiker.GebruikerId == id);
 
-            if (gebruiker == null) return new JsonResult(NotFound());
+        //    if (gebruiker == null) return new JsonResult(NotFound());
 
-            return new JsonResult(Ok("Sigma boy!"));
-        }
+        //    return new JsonResult(Ok("Sigma boy!"));
+        //}
     }
 }

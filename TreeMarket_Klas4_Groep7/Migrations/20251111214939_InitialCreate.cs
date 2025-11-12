@@ -22,9 +22,6 @@ namespace TreeMarket_Klas4_Groep7.Migrations
                     Telefoonnummer = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Wachtwoord = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Rol = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    KlantGebruikerId = table.Column<int>(type: "int", nullable: true),
-                    LeverancierGebruikerId = table.Column<int>(type: "int", nullable: true),
-                    VeilingsmeesterGebruikerId = table.Column<int>(type: "int", nullable: true),
                     Discriminator = table.Column<string>(type: "nvarchar(21)", maxLength: 21, nullable: false),
                     bedrijf = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     KvKNummer = table.Column<string>(type: "nvarchar(max)", nullable: true),
@@ -34,21 +31,6 @@ namespace TreeMarket_Klas4_Groep7.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Gebruiker", x => x.GebruikerId);
-                    table.ForeignKey(
-                        name: "FK_Gebruiker_Gebruiker_KlantGebruikerId",
-                        column: x => x.KlantGebruikerId,
-                        principalTable: "Gebruiker",
-                        principalColumn: "GebruikerId");
-                    table.ForeignKey(
-                        name: "FK_Gebruiker_Gebruiker_LeverancierGebruikerId",
-                        column: x => x.LeverancierGebruikerId,
-                        principalTable: "Gebruiker",
-                        principalColumn: "GebruikerId");
-                    table.ForeignKey(
-                        name: "FK_Gebruiker_Gebruiker_VeilingsmeesterGebruikerId",
-                        column: x => x.VeilingsmeesterGebruikerId,
-                        principalTable: "Gebruiker",
-                        principalColumn: "GebruikerId");
                 });
 
             migrationBuilder.CreateTable(
@@ -72,7 +54,7 @@ namespace TreeMarket_Klas4_Groep7.Migrations
                         column: x => x.LeverancierID,
                         principalTable: "Gebruiker",
                         principalColumn: "GebruikerId",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -119,13 +101,13 @@ namespace TreeMarket_Klas4_Groep7.Migrations
                         column: x => x.VeilingsmeesterID,
                         principalTable: "Gebruiker",
                         principalColumn: "GebruikerId",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_Veiling_Product_ProductID",
                         column: x => x.ProductID,
                         principalTable: "Product",
                         principalColumn: "ProductId",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -146,7 +128,7 @@ namespace TreeMarket_Klas4_Groep7.Migrations
                         column: x => x.KlantId,
                         principalTable: "Gebruiker",
                         principalColumn: "GebruikerId",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_Claim_Veiling_VeilingId",
                         column: x => x.VeilingId,
@@ -169,21 +151,6 @@ namespace TreeMarket_Klas4_Groep7.Migrations
                 name: "IX_Dashboard_ProductID",
                 table: "Dashboard",
                 column: "ProductID");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Gebruiker_KlantGebruikerId",
-                table: "Gebruiker",
-                column: "KlantGebruikerId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Gebruiker_LeverancierGebruikerId",
-                table: "Gebruiker",
-                column: "LeverancierGebruikerId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Gebruiker_VeilingsmeesterGebruikerId",
-                table: "Gebruiker",
-                column: "VeilingsmeesterGebruikerId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Product_LeverancierID",
