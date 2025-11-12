@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using SQLitePCL;
 using TreeMarket_Klas4_Groep7.Data;
-using TreeMarket_Klas4_Group7.Models;
 
 namespace TreeMarket_Klas4_Group7.Controllers
 {
