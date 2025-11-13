@@ -13,7 +13,11 @@ function AuthPage() {
     })
 
     const isRegister = activeTab === 'register'
-    //const fields = isRegister ? registerFields : loginFields
+
+    //const loginFields = [
+    //    { id: 'login-email', label: 'E-mailadres', placeholder: 'naam@voorbeeld.nl', type: 'email', autoComplete: 'email' },
+    //    { id: 'login-password', label: 'Wachtwoord', placeholder: 'Je wachtwoord', type: 'password', autoComplete: 'current-password' },
+    //]
 
 
     //De formData en setFormData wordt gebruikt
@@ -121,7 +125,7 @@ function AuthPage() {
                                         type="text"
                                         value={formData.naam}
                                         onChange={handleChange}
-                                        placeholder="Voornaam"
+                                        placeholder="Voornaam en Achternaam"
                                         required
                                     />
                                 </label>
@@ -139,8 +143,9 @@ function AuthPage() {
                             </>
                         )}
 
+                        {/*Deze code wordt bij zowel aanmelden en register toegepast*/}
                         <label className="form-field">
-                            <span>Email</span>
+                            <span>E-mailadres</span>
                             <input
                                 name="email"
                                 type="email"
@@ -158,20 +163,20 @@ function AuthPage() {
                                 type="password"
                                 value={formData.wachtwoord}
                                 onChange={handleChange}
-                                placeholder="●●●●●●●●"
+                                placeholder="Minimaal 8 tekens"
                                 required
                             />
                         </label>
 
                         {isRegister && (
                             <label className="form-field">
-                                <span>Herhaal wachtwoord</span>
+                                <span>Bevestig wachtwoord</span>
                                 <input
                                     name="herhaalWachtwoord"
                                     type="password"
                                     value={formData.herhaalWachtwoord}
                                     onChange={handleChange}
-                                    placeholder="Herhaal wachtwoord"
+                                    placeholder="Nogmaals wachtwoord"
                                     required
                                 />
                             </label>
