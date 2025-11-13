@@ -1,4 +1,4 @@
-const defaultForm = {
+ï»¿const defaultForm = {
     title: '',
     variety: '',
     quantity: '',
@@ -36,7 +36,7 @@ function UploadAuctionPage() {
                         />
                     </label>
                     <label className="form-field" htmlFor="auction-variety">
-                        <span className="form-label">Variëteit</span>
+                        <span className="form-label">VariÃ«teit</span>
                         <input
                             id="auction-variety"
                             name="variety"
@@ -68,7 +68,7 @@ function UploadAuctionPage() {
                             id="auction-price"
                             name="price"
                             type="text"
-                            placeholder="€ 0,00"
+                            placeholder="â‚¬ 0,00"
                             defaultValue={defaultForm.price}
                             inputMode="decimal"
                         />

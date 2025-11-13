@@ -1,5 +1,5 @@
-const metrics = [
-    { label: 'Totale omzet deze week', value: '€128.400', trend: '+12% ten opzichte van vorige week' },
+ï»¿const metrics = [
+    { label: 'Totale omzet deze week', value: 'â‚¬128.400', trend: '+12% ten opzichte van vorige week' },
     { label: 'Actieve kopers', value: '356', trend: '+24 nieuwe registraties' },
     { label: 'Gemiddelde verkooptijd', value: '06:45', trend: 'Sneller dan 86% van de kavels' },
 ]
@@ -15,7 +15,7 @@ const highlights = [
     },
     {
         title: 'Hoogste verkoopprijs',
-        detail: '€86,00 voor Rozen Avalanche',
+        detail: 'â‚¬86,00 voor Rozen Avalanche',
     },
 ]
 

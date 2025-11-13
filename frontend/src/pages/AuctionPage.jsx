@@ -1,23 +1,23 @@
-const auctionLots = [
+ï»¿const auctionLots = [
     {
         id: 'C45610',
         title: 'Gerbera Sunshine',
-        description: 'Frisse gele gerbera’s, 60cm stelen',
-        price: '€18,20',
+        description: 'Frisse gele gerberaâ€™s, 60cm stelen',
+        price: 'â‚¬18,20',
         bidders: 8,
     },
     {
         id: 'C45611',
         title: 'Lavendel Provence',
         description: 'Geurige lavendel, 40 stuks per krat',
-        price: '€14,50',
+        price: 'â‚¬14,50',
         bidders: 5,
     },
     {
         id: 'C45612',
         title: 'Eucalyptus Silver Dollar',
         description: 'Vers gesneden groen, bundels van 25',
-        price: '€19,95',
+        price: 'â‚¬19,95',
         bidders: 12,
     },
 ]
