@@ -62,6 +62,7 @@ function App() {
         }
     }, [])
 
+    //TODO:---- De navbar moet een eigen URL hebben ----
     //Deze switch is een navbar waar je kunt navigeren.
     //Probeer het eens uit als je het runned :)
     const ActivePage = useMemo(() => {

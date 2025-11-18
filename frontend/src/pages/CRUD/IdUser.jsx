@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 function IdUser() {
     //De Id wordt verzameld om de juiste gebruiker te tonen.
@@ -7,28 +7,25 @@ function IdUser() {
     const [user, setUser] = useState(null);
     const [error, setError] = useState("");
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        //De ID staat in ${id} zodat het niet statisch bij een waarde staat.
-        fetch(`https://localhost:7054/api/Gebruiker/${id}`, {
-            //Voor de zekerheid dat het naar de GET gaat.
-            method: "GET",
-        })
-            // De gebruiker bestaat niet
-            .then(res => {
-                if (!res.ok) throw new Error("Gebruiker niet gevonden");
-                return res.json();
-            })
-            //Toont de data van de gebruiker
-            .then(data => {
-                setUser(data);
-                setError("");
-            })
-            //Wanneer het misgaat binnen de programma
-            .catch(err => {
-                setUser(null);
-                setError(err.message);
+
+        try {
+            const response = await fetch(`https://localhost:7054/api/Gebruiker/${id}`, {
+                method: "GET",
             });
+
+            if (!response.ok) {
+                throw new Error("Gebruiker niet gevonden");
+            }
+
+            const data = await response.json();
+            setUser(data);
+            setError("");
+        } catch (err) {
+            setUser(null);
+            setError(err.message);
+        }
     };
 
     return (
