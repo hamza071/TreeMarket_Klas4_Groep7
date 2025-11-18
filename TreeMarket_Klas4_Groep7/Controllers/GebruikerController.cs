@@ -34,7 +34,7 @@ namespace TreeMarket_Klas4_Groep7.Controllers
         //Maakt een klant aan
 
         [HttpPost("Klant")] // Er was maar één [HttpPost] nodig voor het aanmaken
-        public async Task<IActionResult> CreateUserKlantTest([FromBody] KlantDto klantToDo)
+        public async Task<IActionResult> CreateUserKlant([FromBody] KlantDto klantToDo)
         {
             // --- BEGIN BUSINESSLOGICA (REGEL 1: VALIDATIE) ---
             if (string.IsNullOrEmpty(klantToDo.Naam))
