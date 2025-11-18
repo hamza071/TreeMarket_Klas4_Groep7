@@ -53,46 +53,41 @@ namespace TreeMarket_Klas4_Groep7.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateOrUpdateProduct([FromBody] Product product)
         {
-            // --- BEGIN BUSINESSLOGICA (VALIDATIE VAN INVOER) ---
-            //Hier controleren we of verplichte velden een geldige waarde hebben voordat we de service aanroepen.
-
-            //Artikelkenmerken moet ingevuld zijn
+          
             if (string.IsNullOrWhiteSpace(product.Artikelkenmerken))
             {
                 return BadRequest("Artikelkenmerken is verplicht.");
             }
 
-            //Hoeveelheid moet groter zijn dan 0
+           
             if (product.Hoeveelheid <= 0)
             {
                 return BadRequest("Hoeveelheid moet groter zijn dan 0.");
             }
 
-            //MinimumPrijs mag niet negatief zijn
+           
             if (product.MinimumPrijs < 0)
             {
                 return BadRequest("MinimumPrijs mag niet negatief zijn.");
             }
 
-            //Dagdatum mag niet in het verleden liggen (optionele businessregel)
             if (product.Dagdatum.Date < DateTime.Today)
             {
                 return BadRequest("Dagdatum mag niet in het verleden liggen.");
             }
 
-            //LeverancierID moet gezet zijn (we verwachten dat dit een bestaande leverancier is)
+           
             if (product.LeverancierID <= 0)
             {
                 return BadRequest("LeverancierID is verplicht.");
             }
-            // --- EINDE BUSINESSLOGICA (VALIDATIE VAN INVOER) ---
+            
 
             try
             {
-                // --- BEGIN BUSINESSLOGICA (BEPALEN OF HET EEN CREATE OF UPDATE IS) ---
-                //Als ProductId 0 is, zien we het als een nieuw product (Create), anders een update.
+                
                 bool isNieuwProduct = product.ProductId == 0;
-                // --- EINDE BUSINESSLOGICA (BEPALEN OF HET EEN CREATE OF UPDATE IS) ---
+                
 
                 //Hier wordt de service aangeroepen die met EF Core / LINQ de database bewerkt
                 var result = await _productService.AddOrUpdateProduct(product);
