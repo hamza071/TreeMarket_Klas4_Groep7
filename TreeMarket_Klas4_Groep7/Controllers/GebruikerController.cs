@@ -36,7 +36,6 @@ namespace TreeMarket_Klas4_Groep7.Controllers
         [HttpPost("Klant")] // Er was maar één [HttpPost] nodig voor het aanmaken
         public async Task<IActionResult> CreateUserKlant([FromBody] KlantDto klantToDo)
         {
-            // --- BEGIN BUSINESSLOGICA (REGEL 1: VALIDATIE) ---
             if (string.IsNullOrEmpty(klantToDo.Naam))
             {
                 return BadRequest("Naam mag niet leeg zijn.");
@@ -46,20 +45,19 @@ namespace TreeMarket_Klas4_Groep7.Controllers
             {
                 return BadRequest("Een geldig e-mailadres is verplicht.");
             }
-            // --- EINDE BUSINESSLOGICA (REGEL 1) ---
+    
 
 
-            // --- BEGIN BUSINESSLOGICA (REGEL 2: UNIEKE CHECK) ---
-            // We gebruiken .FirstOrDefault hier i.p.v. .Any om 'case insensitive' te kunnen checken
+            
             var emailBestaatAl = _context.Gebruiker
                 .FirstOrDefault(g => g.Email.ToLower() == klantToDo.Email.ToLower());
 
             if (emailBestaatAl != null)
             {
-                // Stuur een 'Conflict' (409) foutmelding terug
+               
                 return (Conflict("Dit e-mailadres is al in gebruik."));
             }
-            // --- EINDE BUSINESSLOGICA (REGEL 2) ---
+            
 
             try
             {
@@ -89,7 +87,6 @@ namespace TreeMarket_Klas4_Groep7.Controllers
         public async Task<IActionResult> CreateUserLeverancier(LeverancierDto leverancierToDo)
         {
 
-            // --- BEGIN BUSINESSLOGICA (REGEL 1: VALIDATIE) ---
             if (string.IsNullOrEmpty(leverancierToDo.Naam))
             {
                 return BadRequest("Naam mag niet leeg zijn.");
@@ -99,20 +96,15 @@ namespace TreeMarket_Klas4_Groep7.Controllers
             {
                 return BadRequest("Een geldig e-mailadres is verplicht.");
             }
-            // --- EINDE BUSINESSLOGICA (REGEL 1) ---
-
-
-            // --- BEGIN BUSINESSLOGICA (REGEL 2: UNIEKE CHECK) ---
-            // We gebruiken .FirstOrDefault hier i.p.v. .Any om 'case insensitive' te kunnen checken
+           
             var emailBestaatAl = _context.Gebruiker
                 .FirstOrDefault(g => g.Email.ToLower() == leverancierToDo.Email.ToLower());
 
             if (emailBestaatAl != null)
             {
-                // Stuur een 'Conflict' (409) foutmelding terug
                 return Conflict("Dit e-mailadres is al in gebruik.");
             }
-            // --- EINDE BUSINESSLOGICA (REGEL 2) ---
+         
 
 
             try
@@ -146,7 +138,6 @@ namespace TreeMarket_Klas4_Groep7.Controllers
         {
 
 
-            // --- BEGIN BUSINESSLOGICA (REGEL 1: VALIDATIE) ---
             if (string.IsNullOrEmpty(veilingsmeesterToDo.Naam))
             {
                 return BadRequest("Naam mag niet leeg zijn.");
@@ -156,21 +147,16 @@ namespace TreeMarket_Klas4_Groep7.Controllers
             {
                 return BadRequest("Een geldig e-mailadres is verplicht.");
             }
-            // --- EINDE BUSINESSLOGICA (REGEL 1) ---
-
-
-            // --- BEGIN BUSINESSLOGICA (REGEL 2: UNIEKE CHECK) ---
-            // We gebruiken .FirstOrDefault hier i.p.v. .Any om 'case insensitive' te kunnen checken
+           
             var emailBestaatAl = _context.Gebruiker
                 .FirstOrDefault(g => g.Email.ToLower() == veilingsmeesterToDo.Email.ToLower());
 
             if (emailBestaatAl != null)
             {
-                // Stuur een 'Conflict' (409) foutmelding terug
+               
                 return Conflict("Dit e-mailadres is al in gebruik.");
             }
 
-            // --- EINDE BUSINESSLOGICA (REGEL 2) ---
             try
             {
                 var veilingsmeester = new Veilingsmeester
