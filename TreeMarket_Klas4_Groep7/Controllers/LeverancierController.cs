@@ -12,7 +12,7 @@ namespace TreeMarket_Klas4_Groep7.Controllers
     {
         private readonly ApiContext _context;
 
-        // ✅ Constructor: krijgt de databasecontext via Dependency Injection
+        //  Constructor: krijgt de databasecontext via Dependency Injection
         public LeverancierController(ApiContext context)
         {
             _context = context;

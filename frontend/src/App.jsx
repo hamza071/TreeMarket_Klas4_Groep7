@@ -1,13 +1,16 @@
-//Deze navbar wordt gebruikt voor het volgende:
-//1. Bezoeker (niet ingelogt)
-//2. Klant
-//3. Veilingsmeester
-//4. Leverancier
+// Deze navbar wordt gebruikt voor het volgende:
+// 1. Bezoeker (niet ingelogd)
+// 2. Klant
+// 3. Veilingsmeester
+// 4. Leverancier
 
-import { useCallback, useMemo, useRef, useState } from 'react'
-//Importeerd de styling voor die bestanden
+import { Link, Routes, Route, useLocation } from "react-router-dom";
+import { useRef, useCallback } from "react";
+
+// Import styling
 import './assets/css/App.css'
-//Importeerd de React pages binnen de map
+
+// Import React pages
 import DashboardPage from './pages/DashboardPage'
 import AuctionPage from './pages/AuctionPage'
 import UploadAuctionPage from './pages/UploadAuctionPage'
@@ -19,9 +22,7 @@ import AllUsers from './pages/CRUD/AllUsers'
 import IdUser from './pages/CRUD/IdUser'
 import DeleteUser from './pages/CRUD/DeleteUser'
 
-
-
-//De lijst waar je de navigatie wilt meegeven.
+// NAVIGATION_ITEMS bevat alle items van de navbar
 const NAVIGATION_ITEMS = [
     { id: 'dashboard', label: 'Dashboard' },
     { id: 'auction', label: 'Veiling' },
@@ -35,99 +36,73 @@ const NAVIGATION_ITEMS = [
 ]
 
 function App() {
-    const [activeView, setActiveView] = useState('dashboard')
+    // useLocation voor debug console
+    const location = useLocation();
+    console.log("Current URL:", location.pathname);
+
+    // useRef om focus op de navigatie links te beheren
     const navigationRefs = useRef([])
 
+    // Keyboard navigatie handler
     const handleNavKeyDown = useCallback((event, currentIndex) => {
-        if (!navigationRefs.current.length) {
-            return
-        }
-
-        const { key } = event
-        if (key === 'ArrowRight' || key === 'ArrowLeft') {
-            event.preventDefault()
-            const direction = key === 'ArrowRight' ? 1 : -1
-            const nextIndex = (currentIndex + direction + NAVIGATION_ITEMS.length) % NAVIGATION_ITEMS.length
+        if (event.key === "ArrowRight") {
+            const nextIndex = (currentIndex + 1) % NAVIGATION_ITEMS.length
             navigationRefs.current[nextIndex]?.focus()
         }
 
-        if (key === 'Home') {
-            event.preventDefault()
-            navigationRefs.current[0]?.focus()
-        }
-
-        if (key === 'End') {
-            event.preventDefault()
-            navigationRefs.current[NAVIGATION_ITEMS.length - 1]?.focus()
+        if (event.key === "ArrowLeft") {
+            const prevIndex =
+                (currentIndex - 1 + NAVIGATION_ITEMS.length) % NAVIGATION_ITEMS.length
+            navigationRefs.current[prevIndex]?.focus()
         }
     }, [])
 
-    //TODO:---- De navbar moet een eigen URL hebben ----
-    //Deze switch is een navbar waar je kunt navigeren.
-    //Probeer het eens uit als je het runned :)
-    const ActivePage = useMemo(() => {
-        switch (activeView) {
-            case 'dashboard':
-                return <DashboardPage />
-            case 'auction':
-                return <AuctionPage />
-            case 'upload':
-                return <UploadAuctionPage />
-            case 'reports':
-                return <ReportsPage />
-            case 'home':
-                return <HomePage />
-            case 'auth':
-                return <AuthPage />
-            case 'about':
-                return <AboutUsPage />
-            case 'allusers':
-                return <AllUsers />
-            case 'idUser':
-                return < IdUser />
-            case 'deleteUser':
-                return < DeleteUser />
-            default:
-                return <DashboardPage />
-
-        }
-    }, [activeView])
-
     return (
         <div className="app-shell">
+            {/* Skip link voor toegankelijkheid */}
             <a className="skip-link" href="#main-content">
                 Ga direct naar de hoofdinhoud
             </a>
+
             <header className="app-header">
                 <div className="brand">TREE MARKET</div>
+
+                {/* Navbar */}
                 <nav aria-label="Primaire navigatie" className="main-nav">
                     {NAVIGATION_ITEMS.map((item, index) => (
-                        <button
+                        <Link
                             key={item.id}
-                            type="button"
-                            className={`nav-link ${activeView === item.id ? 'is-active' : ''}`}
-                            onClick={() => setActiveView(item.id)}
-                            aria-current={activeView === item.id ? 'page' : undefined}
-                            onKeyDown={(event) => handleNavKeyDown(event, index)}
-                            ref={(element) => {
-                                navigationRefs.current[index] = element
-                            }}
+                            to={item.id === 'dashboard' ? '/dashboard' : '/' + item.id}
+                            className="nav-link"
+                            ref={(el) => (navigationRefs.current[index] = el)}
+                            onKeyDown={(e) => handleNavKeyDown(e, index)}
                         >
                             {item.label}
-                        </button>
+                        </Link>
                     ))}
                 </nav>
-                <button
-                    type="button"
-                    className={`user-chip ${activeView === 'auth' ? 'is-active' : ''}`}
-                    onClick={() => setActiveView('auth')}
-                    aria-label="Ga naar de gebruikerspagina"
-                >
+
+                {/* User knop */}
+                <Link className="user-chip" to="/auth">
                     User
-                </button>
+                </Link>
             </header>
+
+            {/* Routes renderen de juiste pagina op basis van URL */}
             <main className="page-area" id="main-content">
-                {ActivePage}
+                <Routes>
+                    <Route path="/dashboard" element={<DashboardPage />} />
+                    <Route path="/auction" element={<AuctionPage />} />
+                    <Route path="/upload" element={<UploadAuctionPage />} />
+                    <Route path="/reports" element={<ReportsPage />} />
+                    <Route path="/home" element={<HomePage />} />
+                    <Route path="/about" element={<AboutUsPage />} />
+                    <Route path="/auth" element={<AuthPage />} />
+                    <Route path="/allusers" element={<AllUsers />} />
+                    <Route path="/idUser" element={<IdUser />} />
+                    <Route path="/deleteUser" element={<DeleteUser />} />
+                    <Route path="*" element={<DashboardPage />} />
+                </Routes>
             </main>
         </div>
     )
