@@ -23,6 +23,8 @@ namespace TreeMarket_Klas4_Groep7.Controllers
             _context = context;
         }
 
+
+        //================De klant, leverancier en veilingsmeester wat in de register front-end moet ==================
         //Er wordt 3 keer de annotatie 'HttpPost' gebruikt.
         //Dus het moet uniek, anders gaat het mis binnen de Swagger.
 
@@ -32,9 +34,8 @@ namespace TreeMarket_Klas4_Groep7.Controllers
         //Asycn zorgt ervoor dat de server niet vastloopt.
 
         //Maakt een klant aan
-
         [HttpPost("Klant")] // Er was maar één [HttpPost] nodig voor het aanmaken
-        public async Task<IActionResult> CreateUserKlantTest([FromBody] KlantDto klantToDo)
+        public async Task<IActionResult> CreateUserKlant([FromBody] KlantDto klantToDo)
         {
             if (string.IsNullOrEmpty(klantToDo.Naam))
             {
@@ -118,8 +119,6 @@ namespace TreeMarket_Klas4_Groep7.Controllers
                     KvKNummer = leverancierToDo.KvKNummer,
                     IBANnummer = leverancierToDo.IBANnummer,
                     Wachtwoord = leverancierToDo.Wachtwoord,
-                    //Rol moet ik nog even kijken.
-                    // Rol wordt automatisch "Klant" door constructor in Klant.cs
                 };
 
                 await _context.Gebruiker.AddAsync(leverancier);
@@ -164,9 +163,7 @@ namespace TreeMarket_Klas4_Groep7.Controllers
                     Naam = veilingsmeesterToDo.Naam,
                     Email = veilingsmeesterToDo.Email,
                     Telefoonnummer = veilingsmeesterToDo.Telefoonnummer,
-                    PlanDatum = veilingsmeesterToDo.PlanDatum,
                     Wachtwoord = veilingsmeesterToDo.Wachtwoord,
-                    //Rol moet ik nog even kijken.
                     // Rol wordt automatisch "Klant" door constructor in Klant.cs
                 };
 
@@ -243,26 +240,5 @@ namespace TreeMarket_Klas4_Groep7.Controllers
                 return StatusCode(500, new { message = "Databasefout: Gebruiker kan niet verwijderd worden.", error = ex.Message });
             }
         }
-
-
-
-        ////_______Eager loading toegepast________
-        //[HttpGet("{id}")]
-        //public async Task<IActionResult> GetUserWithChildrenEager(int id)
-        //{
-        //    //Eager loading, omdat het gelijk de waarde binnen de 'include' gaat toevoegen
-
-        //    var gebruiker = await _context.Gebruiker
-        //        //Include is eager loading
-        //        //Het haalt meteen de child klasses op en toont de waardes
-        //        .Include(gebruiker => gebruiker.Klant)
-        //        .Include(gebruiker => gebruiker.Leverancier)
-        //        .Include(gebruiker => gebruiker.Veilingsmeester)
-        //        .FirstOrDefaultAsync(gebruiker => gebruiker.GebruikerId == id);
-
-        //    if (gebruiker == null) return NotFound();
-
-        //    return Ok("Sigma boy!");
-        //}
     }
 }

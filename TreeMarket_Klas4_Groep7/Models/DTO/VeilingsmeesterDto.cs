@@ -6,7 +6,7 @@
         public string Naam { get; set; }
         public string Email { get; set; }
         public string? Telefoonnummer { get; set; }
-        public DateTime PlanDatum { get; set; } = DateTime.Now;
+        //public DateTime PlanDatum { get; set; } = DateTime.Now;
         public string Wachtwoord { get; set; }
     }
 }

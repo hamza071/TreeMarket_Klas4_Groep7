@@ -10,15 +10,15 @@ function AuthPage() {
         telefoonnummer: "",
         wachtwoord: "",
         herhaalWachtwoord: "",
+        rol: "",
+        //Voor veilingsmeester
+        bedrijf: "",
+        KvKNummer: "",
+        IBANnummer: ""
     })
+  
 
     const isRegister = activeTab === 'register'
-
-    //const loginFields = [
-    //    { id: 'login-email', label: 'E-mailadres', placeholder: 'naam@voorbeeld.nl', type: 'email', autoComplete: 'email' },
-    //    { id: 'login-password', label: 'Wachtwoord', placeholder: 'Je wachtwoord', type: 'password', autoComplete: 'current-password' },
-    //]
-
 
     //De formData en setFormData wordt gebruikt
     const handleChange = (e) => {
@@ -32,19 +32,37 @@ function AuthPage() {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        //_____Registratie________
+        //_____Registratie een selectie rol aanmaken________
         //Controlleerd of het wachtwoord en herhaal wachtwoord overeenkomt
         if (isRegister && formData.wachtwoord !== formData.herhaalWachtwoord) {
             alert("Wachtwoorden komen niet overeen.");
             return;
         }
 
-        //Wanneer de gebruiker registreerd
+        let endpoint = "";
+
         if (isRegister) {
+            // Bepaal endpoint op basis van rol, met behulp van de select in de html geprogrammeerde code
+            switch (formData.rol) {
+                case "klant":
+                    endpoint = "https://localhost:7054/api/Gebruiker/Klant";
+                    break;
+                case "leverancier":
+                    endpoint = "https://localhost:7054/api/Gebruiker/Leverancier";
+                    break;
+                case "veilingsmeester":
+                    endpoint = "https://localhost:7054/api/Gebruiker/Veilingsmeester";
+                    break;
+                default:
+                    alert("Selecteer een rol.");
+                    return;
+                }
+
+        //Wanneer de gebruiker registreerd
             try {
                 //Voor nu maakt die alleen van de klant aan.
                 //Fetch wordt gebruikt om gegevens op te halen of te versturen. In dit geval stuurt hij de gegevens op.
-                const response = await fetch("https://localhost:7054/api/Gebruiker/Klant", {
+                const response = await fetch(endpoint, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(formData),
@@ -53,7 +71,14 @@ function AuthPage() {
                 if (response.ok) {
                     alert("Registratie succesvol!");
                     //Als het succesvol is gegaan, dan wordt de gegevens binnen dezelfde pagina gereset
-                    setFormData({ naam: "", email: "", telefoonnummer: "", wachtwoord: "", herhaalWachtwoord: "" });
+                    setFormData({
+                        naam: "",
+                        email: "",
+                        telefoonnummer: "",
+                        wachtwoord: "",
+                        herhaalWachtwoord: "",
+                        rol: ""
+                    });
 
                 } else {
                     const error = await response.json();
@@ -77,10 +102,6 @@ function AuthPage() {
             ////______Einde van login
             alert(`Inloggen met ${formData.email}`);
         }
-
-
-
-
     };
 
     ////Controlleerd of je register of login page gaat gebruiken.
@@ -118,6 +139,26 @@ function AuthPage() {
                     <form className="auth-form" onSubmit={handleSubmit}>
                         {isRegister && (
                             <>
+                                {/*De select zorgt ervoor dat de rol ook naar de juiste endpoint verstuurd wordt op basis van switch case hierboven*/}
+                                <label className="form-field">
+                                    <span>Rol</span>
+                                    <select
+                                        name="rol"
+                                        value={formData.rol}
+                                        onChange={handleChange}
+                                        className="input-field"
+                                        required>
+                                        <option value="null">-- Selecteer rol --</option>
+                                        <option value="klant">Klant</option>
+                                        <option value="leverancier">Leverancier</option>
+                                        <option value="veilingsmeester">Veilingsmeester</option>
+                                    </select>
+                                </label>
+                                { /* Einde van de selectie veld.*/}
+
+                                
+
+
                                 <label className="form-field">
                                     <span>Naam</span>
                                     <input
@@ -140,6 +181,49 @@ function AuthPage() {
                                         placeholder="0612345678"
                                     />
                                 </label>
+
+                                {/* Extra velden voor Leverancier */}
+                                {formData.rol === "leverancier" && (
+                                    <>
+                                        <label className="form-field">
+                                            <span>Bedrijf</span>
+                                            <input
+                                                name="bedrijf"
+                                                type="text"
+                                                value={formData.bedrijf || ""}
+                                                onChange={handleChange}
+                                                placeholder="Bedrijfsnaam"
+                                                required
+                                            />
+                                        </label>
+
+                                        <label className="form-field">
+                                            <span>KvK Nummer</span>
+                                            <input
+                                                name="KvKNummer"
+                                                type="text"
+                                                value={formData.KvKNummer || ""}
+                                                onChange={handleChange}
+                                                placeholder="KvK nummer"
+                                                required
+                                            />
+                                        </label>
+
+                                        <label className="form-field">
+                                            <span>IBAN</span>
+                                            <input
+                                                name="IBANnummer"
+                                                type="text"
+                                                value={formData.IBANnummer || ""}
+                                                onChange={handleChange}
+                                                placeholder="IBAN nummer"
+                                                required
+                                            />
+                                            {/* Einde veld voor leverancier */}
+
+                                        </label>
+                                    </>
+                                )}
                             </>
                         )}
 
@@ -155,6 +239,7 @@ function AuthPage() {
                                 required
                             />
                         </label>
+
 
                         <label className="form-field">
                             <span>Wachtwoord</span>

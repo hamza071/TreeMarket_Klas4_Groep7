@@ -11,7 +11,9 @@ function IdUser() {
         e.preventDefault();
 
         try {
+            //De ID staat in ${id} zodat het niet statisch bij een waarde staat.
             const response = await fetch(`https://localhost:7054/api/Gebruiker/${id}`, {
+                //Voor de zekerheid dat het naar de GET gaat.
                 method: "GET",
             });
 
