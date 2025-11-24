@@ -6,10 +6,8 @@ using TreeMarket_Klas4_Groep7.Models.DTO;
 
 namespace TreeMarket_Klas4_Groep7.Data
 {
-    //Database wordt opgeroepen binnen de Program.cs
     public class ApiContext : DbContext
     {
-        //Roept van bestaande klasses
         public DbSet<Product> Product { get; set; }
         public DbSet<Gebruiker> Gebruiker { get; set; }
         public DbSet<Veiling> Veiling { get; set; }
@@ -17,57 +15,42 @@ namespace TreeMarket_Klas4_Groep7.Data
         public DbSet<Claim> Claim { get; set; }
         public DbSet<Leverancier> Leverancier { get; set; }
 
-
-        public ApiContext(DbContextOptions<ApiContext> options)
-            : base(options)
+        public ApiContext(DbContextOptions<ApiContext> options) : base(options)
         {
         }
 
-        
-        //Deze methode is voor de child klasse van de Gebruiker klasse.
-        //Dit wordt ook gebruikt voor unieke annotaties.
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            //De base.OnModelCreating zorgt ervoor dat de data niet overgeschreven worden wat het ook veiliger maakt.
             base.OnModelCreating(modelBuilder);
 
-            //Modelbuilder configureert de structuur van de database.
-            //klant, leverancier en veilingsmeester is de subklasse van de gebruiker
-            //De modelbuilder wordt gebruikt als andere tabel een FK zit van andere tabellen.
-            modelBuilder.Entity<Klant>().HasBaseType<Gebruiker>();
-            modelBuilder.Entity<Leverancier>().HasBaseType<Gebruiker>();
-            modelBuilder.Entity<Veilingsmeester>().HasBaseType<Gebruiker>();
-            //modelBuilder.Entity<Product>()
-            //.HasOne(p => p.Leverancier)
-            //.WithMany()
-            //.HasForeignKey(p => p.LeverancierId);
-            
-            //____De FK en de cascade error te voorkomen_____
+            // === HIER ZAT HET PROBLEEM ===
+            // Gebruik ToTable("Naam") om aan te geven dat het aparte tabellen zijn in SQL
+            modelBuilder.Entity<Gebruiker>().ToTable("Gebruiker");
+            modelBuilder.Entity<Klant>().ToTable("Klant");
+            modelBuilder.Entity<Leverancier>().ToTable("Leverancier");
+            modelBuilder.Entity<Veilingsmeester>().ToTable("Veilingsmeester");
+            // ==============================
 
-            // Veiling -> Product
-            //De Product die bij een veiling hoort
+            // Relaties configureren
             modelBuilder.Entity<Veiling>()
                 .HasOne(v => v.Product)
                 .WithMany(p => p.Veilingen) 
                 .HasForeignKey(v => v.ProductID)
-                .OnDelete(DeleteBehavior.Restrict); // Prevents cascading deletes conflict
+                .OnDelete(DeleteBehavior.Restrict); 
 
-            // Product -> Leverancier
-            //De Leverancier die producten kan ophalen
             modelBuilder.Entity<Product>()
                 .HasOne(p => p.Leverancier)
                 .WithMany(l => l.Producten) 
                 .HasForeignKey(p => p.LeverancierID)
-                .OnDelete(DeleteBehavior.Restrict); // Optional: prevent cascading deletes to Gebruiker
+                .OnDelete(DeleteBehavior.Restrict); 
 
-            // Veiling -> Veilingsmeester
             modelBuilder.Entity<Veiling>()
                 .HasOne(v => v.Veilingsmeester)
                 .WithMany()
                 .HasForeignKey(v => v.VeilingsmeesterID)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // Disable all automatic cascade deletes on Gebruiker children
+            // Cascade delete voorkomen
             foreach (var fk in modelBuilder.Model.GetEntityTypes()
                   .SelectMany(t => t.GetForeignKeys())
                   .Where(fk => fk.PrincipalEntityType.ClrType.IsSubclassOf(typeof(Gebruiker))))
@@ -75,11 +58,7 @@ namespace TreeMarket_Klas4_Groep7.Data
                 fk.DeleteBehavior = DeleteBehavior.Restrict;
             }
 
-
-
-
-            //Decimals
-            //Dit zijn van de datatype decimaal waar het ook bij de Model zelf toegevoegd is.
+            // Decimals instellen
             modelBuilder.Entity<Claim>()
                 .Property(c => c.Prijs)
                 .HasColumnType("decimal(18,2)");
@@ -92,9 +71,9 @@ namespace TreeMarket_Klas4_Groep7.Data
             modelBuilder.Entity<Veiling>()
                 .Property(v => v.EindPrijs)
                 .HasColumnType("decimal(18,2)");
-            modelBuilder.Entity<Veiling>()
-                .Property(v => v.HuidigePrijs)
-                .HasColumnType("decimal(18,2)");
+
+            // LET OP: Ik heb HuidigePrijs hier weggehaald, want die had je ook uit je SQL script gehaald!
+            // Als je die laat staan, crasht hij straks weer.
         }
     }
 }
