@@ -25,7 +25,7 @@ import DeleteUser from './pages/CRUD/DeleteUser'
 // NAVIGATION_ITEMS bevat alle items van de navbar
 const NAVIGATION_ITEMS = [
     { id: 'dashboard', label: 'Dashboard' },
-    { id: 'auction', label: 'Veiling' },
+    { id: 'veiling', label: 'Veiling' },
     { id: 'upload', label: 'Upload Veiling' },
     { id: 'reports', label: 'Rapporten' },
     { id: 'home', label: 'Home' },
@@ -92,7 +92,7 @@ function App() {
             <main className="page-area" id="main-content">
                 <Routes>
                     <Route path="/dashboard" element={<DashboardPage />} />
-                    <Route path="/auction" element={<AuctionPage />} />
+                    <Route path="/veiling" element={<AuctionPage />} />
                     <Route path="/upload" element={<UploadAuctionPage />} />
                     <Route path="/reports" element={<ReportsPage />} />
                     <Route path="/home" element={<HomePage />} />
