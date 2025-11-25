@@ -1,112 +1,133 @@
-﻿const defaultForm = {
+﻿import { useState } from 'react';
+import '../assets/css/UploadAuctionPage.css';
+
+const defaultForm = {
     title: '',
     variety: '',
     quantity: '',
-    price: '',
-    closing: '',
     description: '',
-}
+    image: null,
+    minPrice: '', // minimumprijs door leverancier
+};
 
-function UploadAuctionPage() {
+function UploadAuctionPage({ addNewLot }) {
+    const [form, setForm] = useState(defaultForm);
+
+    const handleChange = (e) => {
+        const { name, value, files } = e.target;
+        if (name === 'image') {
+            setForm(prev => ({ ...prev, image: files[0] }));
+        } else {
+            setForm(prev => ({ ...prev, [name]: value }));
+        }
+    };
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+
+        if (!form.minPrice || Number(form.minPrice) <= 0) {
+            return alert('Vul een geldige minimumprijs in.');
+        }
+
+        const newLot = {
+            code: 'X' + Math.floor(Math.random() * 100000),
+            name: form.title,
+            specs: form.variety,
+            lots: form.quantity,
+            description: form.description,
+            image: form.image ? URL.createObjectURL(form.image) : null,
+            minPrice: Number(form.minPrice), // minimumprijs ingesteld door leverancier
+            status: 'pending', // verschijnt pas bij veiling na publicatie
+        };
+
+        addNewLot(newLot);
+        setForm(defaultForm);
+        alert('Kavel toegevoegd! Deze verschijnt pas bij de veiling na publicatie door de veilingmeester.');
+    };
+
     return (
         <div className="upload-page">
             <header className="section-header">
-                <div>
-                    <h1>Upload nieuwe veiling</h1>
-                    <p id="upload-intro">Voer je kavelgegevens in en maak deze direct beschikbaar voor kopers.</p>
-                </div>
-                <button type="button" className="secondary-action">
-                    Voorbeeld bekijken
-                </button>
+                <h1>Upload nieuwe veiling (leverancier)</h1>
+                <p id="upload-intro">
+                    Voer je kavelgegevens in. Minimumprijs wordt door jou ingesteld, beginprijs en sluitingstijd later door de veilingmeester.
+                </p>
             </header>
 
-            <form className="upload-form" aria-describedby="upload-intro" onSubmit={(event) => event.preventDefault()}>
+            <form className="upload-form" aria-describedby="upload-intro" onSubmit={handleSubmit}>
                 <fieldset className="form-grid">
                     <legend className="sr-only">Kavelgegevens</legend>
-                    <label className="form-field" htmlFor="auction-title">
+
+                    <label className="form-field">
                         <span className="form-label">Productnaam</span>
                         <input
-                            id="auction-title"
                             name="title"
-                            type="text"
-                            placeholder="Bijvoorbeeld: Dahlia Summer"
-                            defaultValue={defaultForm.title}
-                            autoComplete="off"
+                            value={form.title}
+                            onChange={handleChange}
                             required
+                            placeholder="Bijv. Dahlia Summer"
                         />
                     </label>
-                    <label className="form-field" htmlFor="auction-variety">
+
+                    <label className="form-field">
                         <span className="form-label">Variëteit</span>
                         <input
-                            id="auction-variety"
                             name="variety"
-                            type="text"
+                            value={form.variety}
+                            onChange={handleChange}
                             placeholder="Kleur of soort"
-                            defaultValue={defaultForm.variety}
-                            autoComplete="off"
                         />
                     </label>
-                    <label className="form-field" htmlFor="auction-quantity">
+
+                    <label className="form-field">
                         <span className="form-label">Aantal stuks</span>
                         <input
-                            id="auction-quantity"
-                            name="quantity"
                             type="number"
-                            placeholder="0"
-                            min="0"
-                            defaultValue={defaultForm.quantity}
-                            aria-describedby="quantity-help"
+                            name="quantity"
+                            value={form.quantity}
+                            onChange={handleChange}
+                            min="1"
                             required
                         />
-                        <small id="quantity-help" className="field-help">
-                            Vul het aantal bossen of planten in zoals getoond op de veilingklok.
-                        </small>
                     </label>
-                    <label className="form-field" htmlFor="auction-price">
-                        <span className="form-label">Startprijs per bos</span>
-                        <input
-                            id="auction-price"
-                            name="price"
-                            type="text"
-                            placeholder="€ 0,00"
-                            defaultValue={defaultForm.price}
-                            inputMode="decimal"
+
+                    <label className="form-field full-width">
+                        <span className="form-label">Omschrijving</span>
+                        <textarea
+                            name="description"
+                            value={form.description}
+                            onChange={handleChange}
+                            rows="4"
+                            placeholder="Beschrijf kwaliteit, verpakking en keurmerken"
                         />
                     </label>
-                    <label className="form-field" htmlFor="auction-closing">
-                        <span className="form-label">Sluitingstijd</span>
+
+                    <label className="form-field full-width">
+                        <span className="form-label">Minimumprijs (€)</span>
                         <input
-                            id="auction-closing"
-                            name="closing"
-                            type="time"
-                            defaultValue={defaultForm.closing}
+                            type="number"
+                            name="minPrice"
+                            value={form.minPrice}
+                            onChange={handleChange}
+                            min="0.01"
+                            step="0.01"
                             required
                         />
+                    </label>
+
+                    <label className="form-field full-width">
+                        <span className="form-label">Upload afbeelding</span>
+                        <input type="file" name="image" accept="image/*" onChange={handleChange} />
                     </label>
                 </fieldset>
 
-                <label className="form-field" htmlFor="auction-description">
-                    <span className="form-label">Omschrijving</span>
-                    <textarea
-                        id="auction-description"
-                        name="description"
-                        rows="4"
-                        placeholder="Beschrijf de kwaliteit, verpakking en eventuele keurmerken van het product."
-                        defaultValue={defaultForm.description}
-                    />
-                </label>
-
                 <div className="form-actions">
-                    <button type="button" className="link-button">
-                        Opslaan als concept
-                    </button>
-                    <button type="submit" className="primary-action">
-                        Kavel publiceren
-                    </button>
+                    <button type="button" className="link-button">Opslaan als concept</button>
+                    <button type="submit" className="primary-action">Kavel toevoegen</button>
                 </div>
             </form>
         </div>
-    )
+    );
 }
 
-export default UploadAuctionPage
+export default UploadAuctionPage;

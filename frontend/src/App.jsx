@@ -1,18 +1,13 @@
-// Deze navbar wordt gebruikt voor het volgende:
-// 1. Bezoeker (niet ingelogd)
-// 2. Klant
-// 3. Veilingsmeester
-// 4. Leverancier
+﻿import { Link, Routes, Route } from "react-router-dom";
+import { useRef, useCallback, useState } from "react";
 
-import { Link, Routes, Route, useLocation } from "react-router-dom";
-import { useRef, useCallback } from "react";
-
-// Import styling
+// Styling
 import './assets/css/App.css'
 
-// Import React pages
+// Pages
 import DashboardPage from './pages/DashboardPage'
 import AuctionPage from './pages/AuctionPage'
+import AuctionDetailPage from './pages/AuctionDetailPage'
 import UploadAuctionPage from './pages/UploadAuctionPage'
 import ReportsPage from './pages/ReportsPage'
 import AuthPage from './pages/AuthPage'
@@ -22,7 +17,6 @@ import AllUsers from './pages/CRUD/AllUsers'
 import IdUser from './pages/CRUD/IdUser'
 import DeleteUser from './pages/CRUD/DeleteUser'
 
-// NAVIGATION_ITEMS bevat alle items van de navbar
 const NAVIGATION_ITEMS = [
     { id: 'dashboard', label: 'Dashboard' },
     { id: 'veiling', label: 'Veiling' },
@@ -36,64 +30,71 @@ const NAVIGATION_ITEMS = [
 ]
 
 function App() {
-    // useLocation voor debug console
-    const location = useLocation();
-    console.log("Current URL:", location.pathname);
+    const navigationRefs = useRef([]);
 
-    // useRef om focus op de navigatie links te beheren
-    const navigationRefs = useRef([])
-
-    // Keyboard navigatie handler
     const handleNavKeyDown = useCallback((event, currentIndex) => {
         if (event.key === "ArrowRight") {
             const nextIndex = (currentIndex + 1) % NAVIGATION_ITEMS.length
             navigationRefs.current[nextIndex]?.focus()
         }
-
         if (event.key === "ArrowLeft") {
-            const prevIndex =
-                (currentIndex - 1 + NAVIGATION_ITEMS.length) % NAVIGATION_ITEMS.length
+            const prevIndex = (currentIndex - 1 + NAVIGATION_ITEMS.length) % NAVIGATION_ITEMS.length
             navigationRefs.current[prevIndex]?.focus()
         }
     }, [])
 
+    // Alle kavels (status: pending / published)
+    const [lots, setLots] = useState([])
+
+    // Leverancier voegt nieuwe kavel toe (status: pending)
+    const addNewLot = (newLot) => {
+        setLots(prev => [...prev, { ...newLot, status: 'pending' }])
+    }
+
+    // Veilingmeester bewerkt kavel (voegt prijs en sluitingstijd toe en publiceert)
+    const updateLot = (updatedLot) => {
+        setLots(prev => prev.map(lot =>
+            lot.code === updatedLot.code
+                ? { ...updatedLot, status: 'published' }
+                : lot
+        ))
+    }
+
     return (
         <div className="app-shell">
-            {/* Skip link voor toegankelijkheid */}
-            <a className="skip-link" href="#main-content">
-                Ga direct naar de hoofdinhoud
-            </a>
+            <a className="skip-link" href="#main-content">Ga direct naar de hoofdinhoud</a>
 
             <header className="app-header">
                 <div className="brand">TREE MARKET</div>
-
-                {/* Navbar */}
-                <nav aria-label="Primaire navigatie" className="main-nav">
+                <nav className="main-nav" aria-label="Primaire navigatie">
                     {NAVIGATION_ITEMS.map((item, index) => (
                         <Link
                             key={item.id}
-                            to={item.id === 'dashboard' ? '/dashboard' : '/' + item.id}
+                            to={`/${item.id}`}
                             className="nav-link"
-                            ref={(el) => (navigationRefs.current[index] = el)}
-                            onKeyDown={(e) => handleNavKeyDown(e, index)}
+                            ref={el => (navigationRefs.current[index] = el)}
+                            onKeyDown={e => handleNavKeyDown(e, index)}
                         >
                             {item.label}
                         </Link>
                     ))}
                 </nav>
-
-                {/* User knop */}
-                <Link className="user-chip" to="/auth">
-                    User
-                </Link>
+                <Link className="user-chip" to="/auth">User</Link>
             </header>
 
-            {/* Routes renderen de juiste pagina op basis van URL */}
             <main className="page-area" id="main-content">
                 <Routes>
-                    <Route path="/dashboard" element={<DashboardPage />} />
-                    <Route path="/veiling" element={<AuctionPage />} />
-                    <Route path="/upload" element={<UploadAuctionPage />} />
+                    {/* Dashboard krijgt alleen gepubliceerde kavels */}
+                    <Route path="/dashboard" element={<DashboardPage lots={lots.filter(lot => lot.status === 'published')} />} />
+
+                    {/* Veiling krijgt alle kavels */}
+                    <Route path="/veiling" element={<AuctionPage lots={lots} />} />
+                    <Route path="/veiling/:code" element={<AuctionDetailPage lots={lots} updateLot={updateLot} />} />
+
+                    {/* Upload voor leverancier */}
+                    <Route path="/upload" element={<UploadAuctionPage addNewLot={addNewLot} />} />
+
+                    {/* Overige pages */}
                     <Route path="/reports" element={<ReportsPage />} />
                     <Route path="/home" element={<HomePage />} />
                     <Route path="/about" element={<AboutUsPage />} />
@@ -101,11 +102,13 @@ function App() {
                     <Route path="/allusers" element={<AllUsers />} />
                     <Route path="/idUser" element={<IdUser />} />
                     <Route path="/deleteUser" element={<DeleteUser />} />
-                    <Route path="*" element={<DashboardPage />} />
+
+                    {/* Fallback */}
+                    <Route path="*" element={<DashboardPage lots={lots.filter(lot => lot.status === 'published')} />} />
                 </Routes>
             </main>
         </div>
     )
 }
 
-export default App
+export default App;

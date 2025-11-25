@@ -1,38 +1,70 @@
-import tulpenveld from '../assets/img/tulpenveld.jpg'
+import { useEffect, useState } from 'react';
 
-const featuredLot = {
-    id: 'A12345',
-    title: "Tulpen Mix 'Lente'",
-    price: '€24,50',
-    quantity: '100 stelen per bos',
-    timeLeft: '10 seconden',
-}
+function DashboardPage({ lots }) {
+    // Filter alleen gepubliceerde kavels
+    const publishedLots = lots.filter(lot => lot.status === 'published');
 
-const upcomingLots = [
-    {
-        code: 'B12346',
-        name: 'Orchidee Phalaenopsis',
-        specs: 'Wit, 2 takken',
-        lots: '50 bossen',
-        closing: '10:05',
-    },
-    {
-        code: 'B12347',
-        name: 'Monstera Deliciosa',
-        specs: 'Middelgroot',
-        lots: '40 planten',
-        closing: '10:08',
-    },
-    {
-        code: 'B12348',
-        name: 'Tulpen Royal',
-        specs: 'Roze mix',
-        lots: '150 bossen',
-        closing: '10:15',
-    },
-]
+    // Voeg dynamische velden toe
+    const [lotsState, setLotsState] = useState(() =>
+        publishedLots.map(lot => ({
+            ...lot,
+            startPrice: lot.startPrice ?? lot.price ?? 0,
+            minPrice: lot.minPrice ?? lot.price ?? 0,
+            closingTime: lot.closingTime ?? 0,
+            startTimestamp: lot.startTimestamp ?? Date.now(),
+            currentPrice: lot.startPrice ?? lot.price ?? 0,
+            closing: lot.closingTimestamp
+                ? Math.max(0, Math.ceil((lot.closingTimestamp - Date.now()) / 1000))
+                : 0,
+        }))
+    );
 
-function DashboardPage() {
+    // Update lotsState bij prop verandering
+    useEffect(() => {
+        const updatedLots = publishedLots.map(lot => ({
+            ...lot,
+            startPrice: lot.startPrice ?? lot.price ?? 0,
+            minPrice: lot.minPrice ?? lot.price ?? 0,
+            closingTime: lot.closingTime ?? 0,
+            startTimestamp: lot.startTimestamp ?? Date.now(),
+            currentPrice: lot.startPrice ?? lot.price ?? 0,
+            closing: lot.closingTimestamp
+                ? Math.max(0, Math.ceil((lot.closingTimestamp - Date.now()) / 1000))
+                : 0,
+        }));
+        setLotsState(updatedLots);
+    }, [lots]);
+
+    // Timer voor prijs en sluiting
+    useEffect(() => {
+        const interval = setInterval(() => {
+            const now = Date.now();
+            setLotsState(prevLots =>
+                prevLots.map(lot => {
+                    const elapsed = (now - lot.startTimestamp) / 1000;
+                    const remainingTime = Math.max(0, lot.closingTime - elapsed);
+
+                    const priceRange = lot.startPrice - lot.minPrice;
+                    const currentPrice =
+                        remainingTime > 0
+                            ? Math.max(lot.minPrice, lot.startPrice - (priceRange * (elapsed / lot.closingTime)))
+                            : lot.minPrice;
+
+                    return {
+                        ...lot,
+                        closing: Math.ceil(remainingTime),
+                        currentPrice,
+                    };
+                })
+            );
+        }, 1000);
+
+        return () => clearInterval(interval);
+    }, []);
+
+    const featuredLot = lotsState[lotsState.length - 1];
+    const featuredTime = featuredLot?.closing ?? 0;
+
     return (
         <div className="dashboard-page">
             <section className="dashboard-hero">
@@ -43,56 +75,56 @@ function DashboardPage() {
                         Digitale Veilingklok 2025 brengt kopers en kwekers samen in een moderne, efficiënte online
                         veilingomgeving.
                     </p>
-                    <button type="button" className="primary-action">
-                        Komende kavels bekijken
-                    </button>
                 </div>
-                <article aria-label="Uitgelichte kavel" className="featured-card">
-                    <img src={tulpenveld} alt="Tulpenveld in bloei" className="featured-media" />
-                    <div className="featured-body">
-                        <div className="featured-meta" aria-live="polite">
-                            <span className="badge badge-live">{featuredLot.timeLeft}</span>
-                            <span className="lot-number">#{featuredLot.id}</span>
+
+                {featuredLot && (
+                    <article className="featured-card">
+                        <img
+                            src={featuredLot.image || '/default-image.jpg'}
+                            alt={featuredLot.name}
+                            className="featured-media"
+                        />
+                        <div className="featured-body">
+                            <div className="featured-meta" aria-live="polite">
+                                <span className="badge badge-live">{featuredTime > 0 ? `${featuredTime}s` : 'Afgesloten'}</span>
+                                <span className="lot-number">#{featuredLot.code}</span>
+                            </div>
+                            <h2>{featuredLot.name}</h2>
+                            <p className="featured-quantity">{featuredLot.lots} stuks</p>
+                            <div className="featured-footer">
+                                <span className="featured-price">€{featuredLot.currentPrice?.toFixed(2)}</span>
+                                <button type="button" className="secondary-action" disabled={featuredTime <= 0}>
+                                    Bieden
+                                </button>
+                            </div>
                         </div>
-                        <h2>{featuredLot.title}</h2>
-                        <p className="featured-quantity">{featuredLot.quantity}</p>
-                        <div className="featured-footer">
-                            <span className="featured-price">{featuredLot.price}</span>
-                            <button type="button" className="secondary-action">
-                                Bieden
-                            </button>
-                        </div>
-                    </div>
-                </article>
+                    </article>
+                )}
             </section>
 
-            <section aria-labelledby="upcoming-lots-heading" className="dashboard-table">
-                <header className="section-header">
-                    <h3 id="upcoming-lots-heading">Komende kavels</h3>
-                    <button type="button" className="link-button">
-                        Alle kavels bekijken
-                    </button>
-                </header>
+            <section className="dashboard-table">
+                <h3>Komende kavels</h3>
                 <div className="table-wrapper" role="region" aria-live="polite">
                     <table className="data-table">
-                        <caption className="sr-only">Overzicht van kavels die binnenkort sluiten</caption>
                         <thead>
                             <tr>
-                                <th scope="col">Kavel</th>
-                                <th scope="col">Naam</th>
-                                <th scope="col">Specificaties</th>
-                                <th scope="col">Aantal</th>
-                                <th scope="col">Sluiting</th>
+                                <th>Kavel</th>
+                                <th>Naam</th>
+                                <th>Specificaties</th>
+                                <th>Aantal</th>
+                                <th>Huidige prijs (€)</th>
+                                <th>Sluiting</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {upcomingLots.map((lot) => (
+                            {lotsState.map(lot => (
                                 <tr key={lot.code}>
-                                    <th scope="row">{lot.code}</th>
+                                    <td>{lot.code}</td>
                                     <td>{lot.name}</td>
                                     <td>{lot.specs}</td>
                                     <td>{lot.lots}</td>
-                                    <td>{lot.closing}</td>
+                                    <td>€{lot.currentPrice?.toFixed(2)}</td>
+                                    <td>{lot.closing > 0 ? `${lot.closing}s` : 'Afgesloten'}</td>
                                 </tr>
                             ))}
                         </tbody>
@@ -100,7 +132,7 @@ function DashboardPage() {
                 </div>
             </section>
         </div>
-    )
+    );
 }
 
-export default DashboardPage
+export default DashboardPage;
