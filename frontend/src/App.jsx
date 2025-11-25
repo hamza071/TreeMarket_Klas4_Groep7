@@ -1,11 +1,11 @@
-// Deze navbar wordt gebruikt voor het volgende:
+﻿// Deze navbar wordt gebruikt voor het volgende:
 // 1. Bezoeker (niet ingelogd)
 // 2. Klant
 // 3. Veilingsmeester
 // 4. Leverancier
 
 import { Link, Routes, Route, useLocation } from "react-router-dom";
-import { useRef, useCallback } from "react";
+import { useRef, useCallback, useState } from "react";
 
 // Import styling
 import './assets/css/App.css'
@@ -36,7 +36,6 @@ const NAVIGATION_ITEMS = [
 ]
 
 function App() {
-    // useLocation voor debug console
     const location = useLocation();
     console.log("Current URL:", location.pathname);
 
@@ -49,17 +48,22 @@ function App() {
             const nextIndex = (currentIndex + 1) % NAVIGATION_ITEMS.length
             navigationRefs.current[nextIndex]?.focus()
         }
-
         if (event.key === "ArrowLeft") {
-            const prevIndex =
-                (currentIndex - 1 + NAVIGATION_ITEMS.length) % NAVIGATION_ITEMS.length
+            const prevIndex = (currentIndex - 1 + NAVIGATION_ITEMS.length) % NAVIGATION_ITEMS.length
             navigationRefs.current[prevIndex]?.focus()
         }
     }, [])
 
+    // State voor alle kavels
+    const [upcomingLots, setUpcomingLots] = useState([])
+
+    // Callback om nieuwe kavel toe te voegen vanuit UploadAuctionPage
+    const addNewLot = (newLot) => {
+        setUpcomingLots(prev => [...prev, newLot])
+    }
+
     return (
         <div className="app-shell">
-            {/* Skip link voor toegankelijkheid */}
             <a className="skip-link" href="#main-content">
                 Ga direct naar de hoofdinhoud
             </a>
@@ -67,7 +71,6 @@ function App() {
             <header className="app-header">
                 <div className="brand">TREE MARKET</div>
 
-                {/* Navbar */}
                 <nav aria-label="Primaire navigatie" className="main-nav">
                     {NAVIGATION_ITEMS.map((item, index) => (
                         <Link
@@ -82,18 +85,16 @@ function App() {
                     ))}
                 </nav>
 
-                {/* User knop */}
                 <Link className="user-chip" to="/auth">
                     User
                 </Link>
             </header>
 
-            {/* Routes renderen de juiste pagina op basis van URL */}
             <main className="page-area" id="main-content">
                 <Routes>
-                    <Route path="/dashboard" element={<DashboardPage />} />
+                    <Route path="/dashboard" element={<DashboardPage upcomingLots={upcomingLots} />} />
                     <Route path="/veiling" element={<AuctionPage />} />
-                    <Route path="/upload" element={<UploadAuctionPage />} />
+                    <Route path="/upload" element={<UploadAuctionPage addNewLot={addNewLot} />} />
                     <Route path="/reports" element={<ReportsPage />} />
                     <Route path="/home" element={<HomePage />} />
                     <Route path="/about" element={<AboutUsPage />} />
@@ -101,7 +102,7 @@ function App() {
                     <Route path="/allusers" element={<AllUsers />} />
                     <Route path="/idUser" element={<IdUser />} />
                     <Route path="/deleteUser" element={<DeleteUser />} />
-                    <Route path="*" element={<DashboardPage />} />
+                    <Route path="*" element={<DashboardPage upcomingLots={upcomingLots} />} />
                 </Routes>
             </main>
         </div>
