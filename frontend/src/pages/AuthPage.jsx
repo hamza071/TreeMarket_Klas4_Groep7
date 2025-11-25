@@ -1,4 +1,7 @@
 ﻿import { useState } from "react";
+//Importeren zodat je het kunt gebruiken om te navigeren.
+import { useNavigate } from "react-router-dom";
+
 
 function AuthPage() {
     const [activeTab, setActiveTab] = useState("register");
@@ -22,6 +25,10 @@ function AuthPage() {
     const [serverSuccess, setServerSuccess] = useState("");
 
     const isRegister = activeTab === "register";
+
+    //Deze variabele wordt gebruikt om na het inloggen te navigeren naar de home pagina.
+    const navigate = useNavigate();
+
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -178,8 +185,7 @@ function AuthPage() {
         } else {
             // ========== INLOGGEN ==========
             try {
-                // PAS DIT AAN NAAR JULLIE ECHTE LOGIN-ENDPOINT
-                const response = await fetch("https://localhost:7054/api/Auth/login", {
+                const response = await fetch("https://localhost:7054/api/Gebruiker/login", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
@@ -188,18 +194,23 @@ function AuthPage() {
                     }),
                 });
 
+                const data = await response.json().catch(() => null);
+                console.log("Login response:", response, data);
+
+                //Controlleert of de gegevens wel overeenkomen (wordt al in de gebruikerscontroller gedaan)
                 if (!response.ok) {
-                    if (response.status === 401 || response.status === 404) {
-                        setServerError("E-mailadres of wachtwoord is onjuist.");
-                    } else {
-                        setServerError("Er is een fout opgetreden bij het inloggen.");
-                    }
+                    setServerError(
+                        data?.message || "E-mailadres of wachtwoord is onjuist."
+                    );
                     return;
                 }
 
-                const data = await response.json();
                 console.log("Login response:", data);
                 setServerSuccess("Succesvol ingelogd!");
+
+                // Navigeren naar home
+                navigate("/home");
+
             } catch (err) {
                 console.error(err);
                 setServerError("Er ging iets mis bij het inloggen (server niet bereikbaar).");

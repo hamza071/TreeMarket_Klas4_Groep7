@@ -74,11 +74,6 @@ namespace TreeMarket_Klas4_Groep7.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("GebruikerId"));
 
-                    b.Property<string>("Discriminator")
-                        .IsRequired()
-                        .HasMaxLength(21)
-                        .HasColumnType("nvarchar(21)");
-
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -100,11 +95,9 @@ namespace TreeMarket_Klas4_Groep7.Migrations
 
                     b.HasKey("GebruikerId");
 
-                    b.ToTable("Gebruiker");
+                    b.ToTable("Gebruiker", (string)null);
 
-                    b.HasDiscriminator().HasValue("Gebruiker");
-
-                    b.UseTphMappingStrategy();
+                    b.UseTptMappingStrategy();
                 });
 
             modelBuilder.Entity("TreeMarket_Klas4_Groep7.Models.Product", b =>
@@ -193,7 +186,7 @@ namespace TreeMarket_Klas4_Groep7.Migrations
                 {
                     b.HasBaseType("TreeMarket_Klas4_Groep7.Models.Gebruiker");
 
-                    b.HasDiscriminator().HasValue("Klant");
+                    b.ToTable("Klant", (string)null);
                 });
 
             modelBuilder.Entity("TreeMarket_Klas4_Groep7.Models.Leverancier", b =>
@@ -212,7 +205,7 @@ namespace TreeMarket_Klas4_Groep7.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.HasDiscriminator().HasValue("Leverancier");
+                    b.ToTable("Leverancier", (string)null);
                 });
 
             modelBuilder.Entity("TreeMarket_Klas4_Groep7.Models.Veilingsmeester", b =>
@@ -222,7 +215,7 @@ namespace TreeMarket_Klas4_Groep7.Migrations
                     b.Property<DateTime>("PlanDatum")
                         .HasColumnType("datetime2");
 
-                    b.HasDiscriminator().HasValue("Veilingsmeester");
+                    b.ToTable("Veilingsmeester", (string)null);
                 });
 
             modelBuilder.Entity("TreeMarket_Klas4_Groep7.Models.Claim", b =>
@@ -283,6 +276,33 @@ namespace TreeMarket_Klas4_Groep7.Migrations
                     b.Navigation("Product");
 
                     b.Navigation("Veilingsmeester");
+                });
+
+            modelBuilder.Entity("TreeMarket_Klas4_Groep7.Models.Klant", b =>
+                {
+                    b.HasOne("TreeMarket_Klas4_Groep7.Models.Gebruiker", null)
+                        .WithOne()
+                        .HasForeignKey("TreeMarket_Klas4_Groep7.Models.Klant", "GebruikerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("TreeMarket_Klas4_Groep7.Models.Leverancier", b =>
+                {
+                    b.HasOne("TreeMarket_Klas4_Groep7.Models.Gebruiker", null)
+                        .WithOne()
+                        .HasForeignKey("TreeMarket_Klas4_Groep7.Models.Leverancier", "GebruikerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("TreeMarket_Klas4_Groep7.Models.Veilingsmeester", b =>
+                {
+                    b.HasOne("TreeMarket_Klas4_Groep7.Models.Gebruiker", null)
+                        .WithOne()
+                        .HasForeignKey("TreeMarket_Klas4_Groep7.Models.Veilingsmeester", "GebruikerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("TreeMarket_Klas4_Groep7.Models.Product", b =>

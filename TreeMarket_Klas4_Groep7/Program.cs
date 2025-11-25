@@ -4,8 +4,19 @@ using Microsoft.OpenApi.Models;
 using TreeMarket_Klas4_Groep7.Data;
 using TreeMarket_Klas4_Groep7.Models;
 using TreeMarket_Klas4_Groep7.Services;
+//Deze code wordt gebruikt om tokens te generen voor de login. 
+//Dit is ook in de appsettings.json gezet :)
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+
 
 var builder = WebApplication.CreateBuilder(args);
+
+// JWT-config ophalen
+var jwtSettings = builder.Configuration.GetSection("Jwt");
+var secretKey = jwtSettings.GetValue<string>("Key"); // Let op: Key, niet SecretKey
+
 
 // EF Core
 builder.Services.AddDbContext<ApiContext>(options =>
@@ -19,15 +30,8 @@ builder.Services.AddControllers();
 Console.WriteLine("==== Active Connection ====");
 Console.WriteLine(builder.Configuration.GetConnectionString("LocalExpress"));
 
-
-//builder.Services.AddControllersWithViews();
-
-
 // ✅ Voeg controllers + views toe (voor MVC + Razor)
 builder.Services.AddControllersWithViews();
-
-////Deze regel doet nu niks
-//builder.Services.AddRouting();
 
 // =======================
 // Swagger (voor API testing / documentation)
@@ -73,6 +77,29 @@ builder.Services.AddCors(options =>
     });
 });
 
+//=====De builder voor de JWT token.=====
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = jwtSettings["Issuer"],
+        ValidAudience = jwtSettings["Audience"],
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey))
+    };
+});
+
+// De jwt wordt geautoriseerd.
+builder.Services.AddAuthorization();
+
 
 // =======================
 // Build the app
@@ -98,6 +125,8 @@ app.UseRouting();
 //CORS wordt opgeroepen.
 //Dit zorgt ervoor dat de localhost binnen
 app.UseCors("AllowReactDev");
+app.UseAuthentication();
+//Wordt waarschijnlijk gebruikt voor rechten en rollen
 app.UseAuthorization();
 
 // Map alle controllers
