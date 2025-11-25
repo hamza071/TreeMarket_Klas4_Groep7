@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Numerics;
 using TreeMarket_Klas4_Groep7.Data;
 using TreeMarket_Klas4_Groep7.Models;
 using TreeMarket_Klas4_Groep7.Models.DTO;
@@ -15,12 +17,13 @@ namespace TreeMarket_Klas4_Groep7.Controllers
     {
         //Dit wordt gebruikt via de Database, daarom is de datatype 'readonly'
         private readonly ApiContext _context;
-        //Deze variabele wordt gebruikt voor de methode
-        private string rol;
+        //Deze variabele wordt opgeroepen binnen de Program.cs
+        private readonly PasswordHasher<Gebruiker> _passwordHasher;
 
-        public GebruikerController(ApiContext context)
+        public GebruikerController(ApiContext context, PasswordHasher<Gebruiker> passwordHasher)
         {
             _context = context;
+            _passwordHasher = passwordHasher;
         }
 
 
@@ -37,28 +40,15 @@ namespace TreeMarket_Klas4_Groep7.Controllers
         [HttpPost("Klant")] // Er was maar één [HttpPost] nodig voor het aanmaken
         public async Task<IActionResult> CreateUserKlant([FromBody] KlantDto klantToDo)
         {
-            if (string.IsNullOrEmpty(klantToDo.Naam))
-            {
-                return BadRequest("Naam mag niet leeg zijn.");
-            }
+            //Pas de code van de annotaties binnen de Gebruiker controller toe
+            if (!ModelState.IsValid)  
+                return BadRequest(ModelState);
 
-            if (string.IsNullOrEmpty(klantToDo.Email) || !klantToDo.Email.Contains("@"))
-            {
-                return BadRequest("Een geldig e-mailadres is verplicht.");
-            }
-    
-
-
-            
             var emailBestaatAl = _context.Gebruiker
                 .FirstOrDefault(g => g.Email.ToLower() == klantToDo.Email.ToLower());
 
             if (emailBestaatAl != null)
-            {
-               
-                return (Conflict("Dit e-mailadres is al in gebruik."));
-            }
-            
+                return Conflict("Dit e-mailadres is al in gebruik.");
 
             try
             {
@@ -67,9 +57,12 @@ namespace TreeMarket_Klas4_Groep7.Controllers
                     Naam = klantToDo.Naam,
                     Email = klantToDo.Email,
                     Telefoonnummer = klantToDo.Telefoonnummer,
-                    Wachtwoord = klantToDo.Wachtwoord,
                     // Rol wordt automatisch "Klant" door constructor in Klant.cs
                 };
+
+                //Het wachtwoord wordt gehashed en wordt niet letterlijk opgenomen zoals wat er in het veld staat.
+                //Anders is dat wel een security leak💀
+                klant.Wachtwoord = _passwordHasher.HashPassword(klant, klantToDo.Wachtwoord);
 
                 await _context.Gebruiker.AddAsync(klant);
                 await _context.SaveChangesAsync();
@@ -87,25 +80,15 @@ namespace TreeMarket_Klas4_Groep7.Controllers
         [HttpPost("Leverancier")]
         public async Task<IActionResult> CreateUserLeverancier(LeverancierDto leverancierToDo)
         {
+            //Pas de code van de annotaties binnen de Gebruiker controller toe
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
 
-            if (string.IsNullOrEmpty(leverancierToDo.Naam))
-            {
-                return BadRequest("Naam mag niet leeg zijn.");
-            }
-
-            if (string.IsNullOrEmpty(leverancierToDo.Email) || !leverancierToDo.Email.Contains("@"))
-            {
-                return BadRequest("Een geldig e-mailadres is verplicht.");
-            }
-           
             var emailBestaatAl = _context.Gebruiker
                 .FirstOrDefault(g => g.Email.ToLower() == leverancierToDo.Email.ToLower());
 
             if (emailBestaatAl != null)
-            {
                 return Conflict("Dit e-mailadres is al in gebruik.");
-            }
-         
 
 
             try
@@ -118,8 +101,10 @@ namespace TreeMarket_Klas4_Groep7.Controllers
                     bedrijf = leverancierToDo.Bedrijf,
                     KvKNummer = leverancierToDo.KvKNummer,
                     IBANnummer = leverancierToDo.IBANnummer,
-                    Wachtwoord = leverancierToDo.Wachtwoord,
                 };
+
+                leverancier.Wachtwoord = _passwordHasher.HashPassword(leverancier, leverancierToDo.Wachtwoord);
+
 
                 await _context.Gebruiker.AddAsync(leverancier);
                 await _context.SaveChangesAsync();
@@ -136,25 +121,15 @@ namespace TreeMarket_Klas4_Groep7.Controllers
         public async Task<IActionResult> CreateUserVeilingsmeester(VeilingsmeesterDto veilingsmeesterToDo)
         {
 
+            //Pas de code van de annotaties binnen de Gebruiker controller toe
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
 
-            if (string.IsNullOrEmpty(veilingsmeesterToDo.Naam))
-            {
-                return BadRequest("Naam mag niet leeg zijn.");
-            }
-
-            if (string.IsNullOrEmpty(veilingsmeesterToDo.Email) || !veilingsmeesterToDo.Email.Contains("@"))
-            {
-                return BadRequest("Een geldig e-mailadres is verplicht.");
-            }
-           
             var emailBestaatAl = _context.Gebruiker
                 .FirstOrDefault(g => g.Email.ToLower() == veilingsmeesterToDo.Email.ToLower());
 
             if (emailBestaatAl != null)
-            {
-               
                 return Conflict("Dit e-mailadres is al in gebruik.");
-            }
 
             try
             {
@@ -163,9 +138,11 @@ namespace TreeMarket_Klas4_Groep7.Controllers
                     Naam = veilingsmeesterToDo.Naam,
                     Email = veilingsmeesterToDo.Email,
                     Telefoonnummer = veilingsmeesterToDo.Telefoonnummer,
-                    Wachtwoord = veilingsmeesterToDo.Wachtwoord,
-                    // Rol wordt automatisch "Klant" door constructor in Klant.cs
+                    // Rol wordt automatisch "Veilingsmeester" door constructor in Klant.cs
                 };
+                veilingsmeester.Wachtwoord = _passwordHasher.HashPassword(veilingsmeester, veilingsmeesterToDo.Wachtwoord);
+
+
 
                 await _context.Gebruiker.AddAsync(veilingsmeester);
                 await _context.SaveChangesAsync();

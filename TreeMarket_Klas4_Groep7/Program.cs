@@ -1,6 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using TreeMarket_Klas4_Groep7.Data;
+using TreeMarket_Klas4_Groep7.Models;
 using TreeMarket_Klas4_Groep7.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -47,6 +49,11 @@ builder.Services.AddSwaggerGen();
 
 // ProductService kan nu via constructor in controllers worden gebruikt
 builder.Services.AddScoped<ProductService>();
+
+// De PasswordHasher zorgt ervoor dat het wachtwoord gehashed is.
+//Dit wordt alleen gebruik voor het tabel Gebruiker en zijn kinderen (sub klasses).
+builder.Services.AddScoped<PasswordHasher<Gebruiker>>();
+
 
 
 // ===============

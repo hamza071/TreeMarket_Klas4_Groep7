@@ -7,14 +7,20 @@ namespace TreeMarket_Klas4_Groep7.Models
 {
     public class Gebruiker
     {
+        //=====De annotaties wordt al toegepast in de DTO. Dus dit mag leeg zijn===========
         [Key]
         public int GebruikerId { get; set; }
-        [Required]
+
+        //De annotaties zorgen ervoor dat de code ook controleerd of de code daaraan voldoet.
+        [Required(ErrorMessage = "Naam mag niet leeg zijn.")]
+        [StringLength(100, ErrorMessage = "Naam mag maximaal 100 tekens bevatten.")]
         public string Naam { get; set; }
-        [Required]
+        [Required(ErrorMessage = "E-mail mag niet leeg zijn.")]
+        [EmailAddress(ErrorMessage = "Een geldig e-mailadres is verplicht.")]
         public string Email { get; set; }
         public string? Telefoonnummer { get; set; }
-        [Required]
+        [Required(ErrorMessage = "Wachtwoord is verplicht.")]
+        [MinLength(8, ErrorMessage = "Wachtwoord moet minimaal 8 tekens zijn.")]
         public string Wachtwoord { get; set; }
         [Required]
         public string Rol { get; set; }
@@ -63,9 +69,11 @@ namespace TreeMarket_Klas4_Groep7.Models
         [Required]
         public string bedrijf { get; set; }
         [Required]
+        [RegularExpression(@"^\d{8}$", ErrorMessage = "KvK nummer moet 8 cijfers bevatten.")]
         public string KvKNummer { get; set; }
+
         [Required]
-        public string IBANnummer { get; set; }
+        [RegularExpression(@"^[A-Z]{2}\d{2}[A-Z0-9]{1,30}$", ErrorMessage = "Ongeldig IBAN nummer.")] public string IBANnummer { get; set; }
 
         public ICollection<Product> Producten { get; set; } = new List<Product>();
 
