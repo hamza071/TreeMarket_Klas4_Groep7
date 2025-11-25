@@ -5,10 +5,9 @@ const defaultForm = {
     title: '',
     variety: '',
     quantity: '',
-    price: '',
-    closing: 10,
     description: '',
-    image: null, // nieuw veld voor plaatje
+    image: null,
+    minPrice: '', // minimumprijs door leverancier
 };
 
 function UploadAuctionPage({ addNewLot }) {
@@ -26,30 +25,33 @@ function UploadAuctionPage({ addNewLot }) {
     const handleSubmit = (e) => {
         e.preventDefault();
 
-        const closingTimestamp = Date.now() + Number(form.closing) * 1000;
+        if (!form.minPrice || Number(form.minPrice) <= 0) {
+            return alert('Vul een geldige minimumprijs in.');
+        }
 
         const newLot = {
             code: 'X' + Math.floor(Math.random() * 100000),
             name: form.title,
             specs: form.variety,
             lots: form.quantity,
-            price: `€${form.price}`,
-            closing: Number(form.closing),
-            closingTimestamp,
             description: form.description,
-            image: form.image ? URL.createObjectURL(form.image) : null, // previewable image
+            image: form.image ? URL.createObjectURL(form.image) : null,
+            minPrice: Number(form.minPrice), // minimumprijs ingesteld door leverancier
+            status: 'pending', // verschijnt pas bij veiling na publicatie
         };
 
         addNewLot(newLot);
         setForm(defaultForm);
-        alert('Kavel toegevoegd!');
+        alert('Kavel toegevoegd! Deze verschijnt pas bij de veiling na publicatie door de veilingmeester.');
     };
 
     return (
         <div className="upload-page">
             <header className="section-header">
-                <h1>Upload nieuwe veiling</h1>
-                <p id="upload-intro">Voer je kavelgegevens in en maak deze direct beschikbaar voor kopers.</p>
+                <h1>Upload nieuwe veiling (leverancier)</h1>
+                <p id="upload-intro">
+                    Voer je kavelgegevens in. Minimumprijs wordt door jou ingesteld, beginprijs en sluitingstijd later door de veilingmeester.
+                </p>
             </header>
 
             <form className="upload-form" aria-describedby="upload-intro" onSubmit={handleSubmit}>
@@ -84,28 +86,6 @@ function UploadAuctionPage({ addNewLot }) {
                             name="quantity"
                             value={form.quantity}
                             onChange={handleChange}
-                            min="0"
-                            required
-                        />
-                    </label>
-
-                    <label className="form-field">
-                        <span className="form-label">Startprijs per bos (€)</span>
-                        <input
-                            name="price"
-                            value={form.price}
-                            onChange={handleChange}
-                            placeholder="0"
-                        />
-                    </label>
-
-                    <label className="form-field">
-                        <span className="form-label">Sluitingstijd (seconden)</span>
-                        <input
-                            type="number"
-                            name="closing"
-                            value={form.closing}
-                            onChange={handleChange}
                             min="1"
                             required
                         />
@@ -123,6 +103,19 @@ function UploadAuctionPage({ addNewLot }) {
                     </label>
 
                     <label className="form-field full-width">
+                        <span className="form-label">Minimumprijs (€)</span>
+                        <input
+                            type="number"
+                            name="minPrice"
+                            value={form.minPrice}
+                            onChange={handleChange}
+                            min="0.01"
+                            step="0.01"
+                            required
+                        />
+                    </label>
+
+                    <label className="form-field full-width">
                         <span className="form-label">Upload afbeelding</span>
                         <input type="file" name="image" accept="image/*" onChange={handleChange} />
                     </label>
@@ -130,7 +123,7 @@ function UploadAuctionPage({ addNewLot }) {
 
                 <div className="form-actions">
                     <button type="button" className="link-button">Opslaan als concept</button>
-                    <button type="submit" className="primary-action">Kavel publiceren</button>
+                    <button type="submit" className="primary-action">Kavel toevoegen</button>
                 </div>
             </form>
         </div>

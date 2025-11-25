@@ -1,49 +1,69 @@
 import { useEffect, useState } from 'react';
 
-function DashboardPage({ upcomingLots }) {
-    const [lots, setLots] = useState(() => {
-        const stored = localStorage.getItem('lots');
-        return stored ? JSON.parse(stored) : upcomingLots;
-    });
+function DashboardPage({ lots }) {
+    // Filter alleen gepubliceerde kavels
+    const publishedLots = lots.filter(lot => lot.status === 'published');
 
-    const [featuredLot, setFeaturedLot] = useState(null);
-    const [featuredTime, setFeaturedTime] = useState(0);
+    // Voeg dynamische velden toe
+    const [lotsState, setLotsState] = useState(() =>
+        publishedLots.map(lot => ({
+            ...lot,
+            startPrice: lot.startPrice ?? lot.price ?? 0,
+            minPrice: lot.minPrice ?? lot.price ?? 0,
+            closingTime: lot.closingTime ?? 0,
+            startTimestamp: lot.startTimestamp ?? Date.now(),
+            currentPrice: lot.startPrice ?? lot.price ?? 0,
+            closing: lot.closingTimestamp
+                ? Math.max(0, Math.ceil((lot.closingTimestamp - Date.now()) / 1000))
+                : 0,
+        }))
+    );
 
-    // Wanneer lots veranderen, update featured lot
+    // Update lotsState bij prop verandering
     useEffect(() => {
-        setLots(upcomingLots);
-        if (upcomingLots.length > 0) {
-            const newestLot = upcomingLots[upcomingLots.length - 1];
-            setFeaturedLot(newestLot);
-            setFeaturedTime(Math.max(0, Math.ceil((newestLot.closingTimestamp - Date.now()) / 1000)));
-        }
-    }, [upcomingLots]);
+        const updatedLots = publishedLots.map(lot => ({
+            ...lot,
+            startPrice: lot.startPrice ?? lot.price ?? 0,
+            minPrice: lot.minPrice ?? lot.price ?? 0,
+            closingTime: lot.closingTime ?? 0,
+            startTimestamp: lot.startTimestamp ?? Date.now(),
+            currentPrice: lot.startPrice ?? lot.price ?? 0,
+            closing: lot.closingTimestamp
+                ? Math.max(0, Math.ceil((lot.closingTimestamp - Date.now()) / 1000))
+                : 0,
+        }));
+        setLotsState(updatedLots);
+    }, [lots]);
 
-    // Timer voor featured lot
+    // Timer voor prijs en sluiting
     useEffect(() => {
-        if (!featuredLot) return;
-
         const interval = setInterval(() => {
-            const timeLeft = Math.max(0, Math.ceil((featuredLot.closingTimestamp - Date.now()) / 1000));
-            setFeaturedTime(timeLeft);
-        }, 1000);
+            const now = Date.now();
+            setLotsState(prevLots =>
+                prevLots.map(lot => {
+                    const elapsed = (now - lot.startTimestamp) / 1000;
+                    const remainingTime = Math.max(0, lot.closingTime - elapsed);
 
-        return () => clearInterval(interval);
-    }, [featuredLot]);
+                    const priceRange = lot.startPrice - lot.minPrice;
+                    const currentPrice =
+                        remainingTime > 0
+                            ? Math.max(lot.minPrice, lot.startPrice - (priceRange * (elapsed / lot.closingTime)))
+                            : lot.minPrice;
 
-    // Timer voor alle kavels
-    useEffect(() => {
-        const interval = setInterval(() => {
-            setLots(prevLots =>
-                prevLots.map(lot => ({
-                    ...lot,
-                    closing: Math.max(0, Math.ceil((lot.closingTimestamp - Date.now()) / 1000)),
-                }))
+                    return {
+                        ...lot,
+                        closing: Math.ceil(remainingTime),
+                        currentPrice,
+                    };
+                })
             );
         }, 1000);
 
         return () => clearInterval(interval);
     }, []);
+
+    const featuredLot = lotsState[lotsState.length - 1];
+    const featuredTime = featuredLot?.closing ?? 0;
 
     return (
         <div className="dashboard-page">
@@ -66,15 +86,13 @@ function DashboardPage({ upcomingLots }) {
                         />
                         <div className="featured-body">
                             <div className="featured-meta" aria-live="polite">
-                                <span className="badge badge-live">
-                                    {featuredTime > 0 ? `${featuredTime}s` : 'Afgesloten'}
-                                </span>
+                                <span className="badge badge-live">{featuredTime > 0 ? `${featuredTime}s` : 'Afgesloten'}</span>
                                 <span className="lot-number">#{featuredLot.code}</span>
                             </div>
                             <h2>{featuredLot.name}</h2>
                             <p className="featured-quantity">{featuredLot.lots} stuks</p>
                             <div className="featured-footer">
-                                <span className="featured-price">{featuredLot.price}</span>
+                                <span className="featured-price">€{featuredLot.currentPrice?.toFixed(2)}</span>
                                 <button type="button" className="secondary-action" disabled={featuredTime <= 0}>
                                     Bieden
                                 </button>
@@ -94,16 +112,18 @@ function DashboardPage({ upcomingLots }) {
                                 <th>Naam</th>
                                 <th>Specificaties</th>
                                 <th>Aantal</th>
+                                <th>Huidige prijs (€)</th>
                                 <th>Sluiting</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {lots.map(lot => (
+                            {lotsState.map(lot => (
                                 <tr key={lot.code}>
                                     <td>{lot.code}</td>
                                     <td>{lot.name}</td>
                                     <td>{lot.specs}</td>
                                     <td>{lot.lots}</td>
+                                    <td>€{lot.currentPrice?.toFixed(2)}</td>
                                     <td>{lot.closing > 0 ? `${lot.closing}s` : 'Afgesloten'}</td>
                                 </tr>
                             ))}
