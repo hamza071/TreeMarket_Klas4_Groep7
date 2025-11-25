@@ -53,6 +53,7 @@ namespace TreeMarket_Klas4_Group7.Controllers
                 return StatusCode(500, new { message = "Databasefout: Kon veilingen niet ophalen.", error = ex.Message });
             }
         }
+
         
         
     }
