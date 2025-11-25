@@ -41,7 +41,7 @@ namespace TreeMarket_Klas4_Groep7.Controllers
         public async Task<IActionResult> CreateUserKlant([FromBody] KlantDto klantToDo)
         {
             //Pas de code van de annotaties binnen de Gebruiker controller toe
-            if (!ModelState.IsValid)  
+            if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
             var emailBestaatAl = _context.Gebruiker
@@ -67,7 +67,7 @@ namespace TreeMarket_Klas4_Groep7.Controllers
                 await _context.Gebruiker.AddAsync(klant);
                 await _context.SaveChangesAsync();
 
-                return (Ok(klant));
+                return Ok(klant);
             }
             catch (Exception ex)
             {
@@ -78,7 +78,7 @@ namespace TreeMarket_Klas4_Groep7.Controllers
 
         //Maakt een leverancier aan
         [HttpPost("Leverancier")]
-        public async Task<IActionResult> CreateUserLeverancier(LeverancierDto leverancierToDo)
+        public async Task<IActionResult> CreateUserLeverancier([FromBody] LeverancierDto leverancierToDo)
         {
             //Pas de code van de annotaties binnen de Gebruiker controller toe
             if (!ModelState.IsValid)
@@ -89,7 +89,6 @@ namespace TreeMarket_Klas4_Groep7.Controllers
 
             if (emailBestaatAl != null)
                 return Conflict("Dit e-mailadres is al in gebruik.");
-
 
             try
             {
@@ -103,24 +102,24 @@ namespace TreeMarket_Klas4_Groep7.Controllers
                     IBANnummer = leverancierToDo.IBANnummer,
                 };
 
+                //Het wachtwoord wordt gehashed en wordt niet letterlijk opgenomen zoals wat er in het veld staat.
                 leverancier.Wachtwoord = _passwordHasher.HashPassword(leverancier, leverancierToDo.Wachtwoord);
-
 
                 await _context.Gebruiker.AddAsync(leverancier);
                 await _context.SaveChangesAsync();
 
                 return Ok(leverancier);
             }
-            catch (Exception ex) {
-                return StatusCode(500, new { message = "Databasefout: Leveerancier kan niet aangemaakt worden.", error = ex.Message });
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Databasefout: Leverancier kan niet aangemaakt worden.", error = ex.Message });
             }
         }
 
         //Maakt een veilingsmeester aan
         [HttpPost("Veilingsmeester")]
-        public async Task<IActionResult> CreateUserVeilingsmeester(VeilingsmeesterDto veilingsmeesterToDo)
+        public async Task<IActionResult> CreateUserVeilingsmeester([FromBody] VeilingsmeesterDto veilingsmeesterToDo)
         {
-
             //Pas de code van de annotaties binnen de Gebruiker controller toe
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
@@ -140,17 +139,57 @@ namespace TreeMarket_Klas4_Groep7.Controllers
                     Telefoonnummer = veilingsmeesterToDo.Telefoonnummer,
                     // Rol wordt automatisch "Veilingsmeester" door constructor in Klant.cs
                 };
+
+                //Het wachtwoord wordt gehashed en wordt niet letterlijk opgenomen zoals wat er in het veld staat.
                 veilingsmeester.Wachtwoord = _passwordHasher.HashPassword(veilingsmeester, veilingsmeesterToDo.Wachtwoord);
-
-
 
                 await _context.Gebruiker.AddAsync(veilingsmeester);
                 await _context.SaveChangesAsync();
 
                 return Ok(veilingsmeester);
             }
-            catch (Exception ex) {
+            catch (Exception ex)
+            {
                 return StatusCode(500, new { message = "Databasefout: Veilingmeester kan niet aangemaakt worden.", error = ex.Message });
+            }
+        }
+
+        //================ LOGIN FUNCTIE =================
+        //Deze functie controleert of de gebruiker kan inloggen op basis van e-mail en wachtwoord
+        [HttpPost("login")]
+        public async Task<IActionResult> Login([FromBody] LoginDto loginDto)
+        {
+            //Validatie van de DTO (Required / EmailAddress uit jouw annotaties)
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            try
+            {
+                //Zoek gebruiker op basis van e-mail (case-insensitive via ToLower)
+                var gebruiker = await _context.Gebruiker
+                    .FirstOrDefaultAsync(g => g.Email.ToLower() == loginDto.Email.ToLower());
+
+                //Als geen gebruiker gevonden is → foutmelding
+                if (gebruiker == null)
+                    return Unauthorized("E-mail of wachtwoord is onjuist.");
+
+                //Vergelijk gehashte wachtwoorden
+                var result = _passwordHasher.VerifyHashedPassword(
+                    gebruiker,
+                    gebruiker.Wachtwoord,    // gehashte wachtwoord uit database
+                    loginDto.Wachtwoord      // plain text uit de login
+                );
+
+                if (result == PasswordVerificationResult.Failed)
+                    return Unauthorized("E-mail of wachtwoord is onjuist.");
+
+                //Als we hier zijn → login is geslaagd
+                //Later kun je hier nog een JWT token of rol-informatie aan toevoegen
+                return Ok(new { message = "Login succesvol.", gebruiker });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Databasefout: Login is mislukt.", error = ex.Message });
             }
         }
 
@@ -167,12 +206,12 @@ namespace TreeMarket_Klas4_Groep7.Controllers
                     return NotFound("Id is not found: " + id);
                 }
                 return Ok(result);
-            } 
+            }
             catch (Exception ex)
             {
                 return StatusCode(500, new { message = "Databasefout: Gebruiker op basis van een ID kan niet opgehaald worden.", error = ex.Message });
             }
-           
+
         }
 
         //Toont alle gebruikers
@@ -184,7 +223,7 @@ namespace TreeMarket_Klas4_Groep7.Controllers
                 var result = await _context.Gebruiker.ToListAsync();
                 return Ok(result);
             }
-            catch (Exception ex) 
+            catch (Exception ex)
             {
                 return StatusCode(500, new { message = "Databasefout: Gebruikers kan niet opgehaald worden.", error = ex.Message });
             }
@@ -212,7 +251,7 @@ namespace TreeMarket_Klas4_Groep7.Controllers
 
                 return NoContent();
             }
-            catch (Exception ex) 
+            catch (Exception ex)
             {
                 return StatusCode(500, new { message = "Databasefout: Gebruiker kan niet verwijderd worden.", error = ex.Message });
             }

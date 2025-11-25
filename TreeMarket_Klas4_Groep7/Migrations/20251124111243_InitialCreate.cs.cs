@@ -21,16 +21,66 @@ namespace TreeMarket_Klas4_Groep7.Migrations
                     Email = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Telefoonnummer = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Wachtwoord = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Rol = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Discriminator = table.Column<string>(type: "nvarchar(21)", maxLength: 21, nullable: false),
-                    bedrijf = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    KvKNummer = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    IBANnummer = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    PlanDatum = table.Column<DateTime>(type: "datetime2", nullable: true)
+                    Rol = table.Column<string>(type: "nvarchar(max)", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Gebruiker", x => x.GebruikerId);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Klant",
+                columns: table => new
+                {
+                    GebruikerId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Klant", x => x.GebruikerId);
+                    table.ForeignKey(
+                        name: "FK_Klant_Gebruiker_GebruikerId",
+                        column: x => x.GebruikerId,
+                        principalTable: "Gebruiker",
+                        principalColumn: "GebruikerId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Leverancier",
+                columns: table => new
+                {
+                    GebruikerId = table.Column<int>(type: "int", nullable: false),
+                    bedrijf = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    KvKNummer = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    IBANnummer = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Leverancier", x => x.GebruikerId);
+                    table.ForeignKey(
+                        name: "FK_Leverancier_Gebruiker_GebruikerId",
+                        column: x => x.GebruikerId,
+                        principalTable: "Gebruiker",
+                        principalColumn: "GebruikerId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Veilingsmeester",
+                columns: table => new
+                {
+                    GebruikerId = table.Column<int>(type: "int", nullable: false),
+                    PlanDatum = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Veilingsmeester", x => x.GebruikerId);
+                    table.ForeignKey(
+                        name: "FK_Veilingsmeester_Gebruiker_GebruikerId",
+                        column: x => x.GebruikerId,
+                        principalTable: "Gebruiker",
+                        principalColumn: "GebruikerId",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -50,9 +100,9 @@ namespace TreeMarket_Klas4_Groep7.Migrations
                 {
                     table.PrimaryKey("PK_Product", x => x.ProductId);
                     table.ForeignKey(
-                        name: "FK_Product_Gebruiker_LeverancierID",
+                        name: "FK_Product_Leverancier_LeverancierID",
                         column: x => x.LeverancierID,
-                        principalTable: "Gebruiker",
+                        principalTable: "Leverancier",
                         principalColumn: "GebruikerId",
                         onDelete: ReferentialAction.Restrict);
                 });
@@ -97,16 +147,16 @@ namespace TreeMarket_Klas4_Groep7.Migrations
                 {
                     table.PrimaryKey("PK_Veiling", x => x.VeilingID);
                     table.ForeignKey(
-                        name: "FK_Veiling_Gebruiker_VeilingsmeesterID",
-                        column: x => x.VeilingsmeesterID,
-                        principalTable: "Gebruiker",
-                        principalColumn: "GebruikerId",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
                         name: "FK_Veiling_Product_ProductID",
                         column: x => x.ProductID,
                         principalTable: "Product",
                         principalColumn: "ProductId",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Veiling_Veilingsmeester_VeilingsmeesterID",
+                        column: x => x.VeilingsmeesterID,
+                        principalTable: "Veilingsmeester",
+                        principalColumn: "GebruikerId",
                         onDelete: ReferentialAction.Restrict);
                 });
 
@@ -124,9 +174,9 @@ namespace TreeMarket_Klas4_Groep7.Migrations
                 {
                     table.PrimaryKey("PK_Claim", x => x.ClaimID);
                     table.ForeignKey(
-                        name: "FK_Claim_Gebruiker_KlantId",
+                        name: "FK_Claim_Klant_KlantId",
                         column: x => x.KlantId,
-                        principalTable: "Gebruiker",
+                        principalTable: "Klant",
                         principalColumn: "GebruikerId",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
@@ -178,10 +228,19 @@ namespace TreeMarket_Klas4_Groep7.Migrations
                 name: "Dashboard");
 
             migrationBuilder.DropTable(
+                name: "Klant");
+
+            migrationBuilder.DropTable(
                 name: "Veiling");
 
             migrationBuilder.DropTable(
                 name: "Product");
+
+            migrationBuilder.DropTable(
+                name: "Veilingsmeester");
+
+            migrationBuilder.DropTable(
+                name: "Leverancier");
 
             migrationBuilder.DropTable(
                 name: "Gebruiker");
