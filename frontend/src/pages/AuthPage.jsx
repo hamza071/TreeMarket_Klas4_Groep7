@@ -260,6 +260,7 @@ function AuthPage() {
                                     name="herhaalWachtwoord"
                                     type="password"
                                     value={formData.herhaalWachtwoord}
+
                                     onChange={handleChange}
                                     placeholder="Nogmaals wachtwoord"
                                     required
