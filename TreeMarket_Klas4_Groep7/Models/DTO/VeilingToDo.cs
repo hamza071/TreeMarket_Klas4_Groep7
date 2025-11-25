@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace TreeMarket_Klas4_Groep7.ToDo
+namespace TreeMarket_Klas4_Groep7.Models.DTO
 {
     public class VeilingToDo
     {
@@ -20,17 +20,17 @@ namespace TreeMarket_Klas4_Groep7.ToDo
 
         [Required]
         public DateTime EindTijd { get; set; }
-        
+
         ///////////////////////////////////////////////////////////
         // ff kijken of we deze later nodig hebben voor validatie//
         ///////////////////////////////////////////////////////////
-        // [Required]
-        // [Range(1, int.MaxValue, ErrorMessage = "Een geldig ProductID is verplicht.")]
-        // public int ProductID { get; set; }
-        //
-        // [Required]
-        // [Range(1, int.MaxValue, ErrorMessage = "Een geldig VeilingsmeesterID is verplicht.")]
-        // public int VeilingsmeesterID { get; set; }
-        
+        [Required]
+        [Range(1, int.MaxValue, ErrorMessage = "Een geldig ProductID is verplicht.")]
+        public int ProductID { get; set; }
+
+        [Required]
+        [Range(1, int.MaxValue, ErrorMessage = "Een geldig VeilingsmeesterID is verplicht.")]
+        public int VeilingsmeesterID { get; set; }
+
     }
 } //
