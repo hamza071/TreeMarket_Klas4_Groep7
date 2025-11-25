@@ -8,5 +8,11 @@
         public string Foto { get; set; }           // Foto van het product
         public decimal MinimumPrijs { get; set; }  // Minimumprijs
         public int Hoeveelheid { get; set; }       // Beschikbare hoeveelheid
+        //public string foto { get; set; }
+        //public string artikelkenmerken { get; set; }
+        //public int hoeveelheid { get; set; }
+        //public decimal minimumPrijs { get; set; }
+        //public DateTime dagdatum { get; set; } = DateTime.Now;
+        //public int leverancierID { get; set; }
     }
 }

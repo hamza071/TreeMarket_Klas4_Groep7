@@ -235,6 +235,24 @@
     color: #4f6059;
 }
 
+.featured-footer {
+    display: flex;
+    justify-content: space-between; /* prijs links, knop rechts */
+    align-items: center; /* mooi verticaal uitlijnen */
+    margin-top: 1rem; /* beetje ruimte boven de footer */
+}
+
+.featured-price {
+    font-size: 2rem; /* grotere prijs */
+    font-weight: 700;
+    color: #2c6046;
+}
+
+.secondary-action {
+    padding: 0.8rem 2rem; /* knop breder zodat het visueel mooi staat */
+}
+
+
 .dashboard-table {
     margin-top: 3rem;
     background: #ffffff;

@@ -1,60 +1,42 @@
-﻿const auctionLots = [
-    {
-        id: 'C45610',
-        title: 'Gerbera Sunshine',
-        description: 'Frisse gele gerbera’s, 60cm stelen',
-        price: '€18,20',
-        bidders: 8,
-    },
-    {
-        id: 'C45611',
-        title: 'Lavendel Provence',
-        description: 'Geurige lavendel, 40 stuks per krat',
-        price: '€14,50',
-        bidders: 5,
-    },
-    {
-        id: 'C45612',
-        title: 'Eucalyptus Silver Dollar',
-        description: 'Vers gesneden groen, bundels van 25',
-        price: '€19,95',
-        bidders: 12,
-    },
-]
+﻿import { Link } from 'react-router-dom';
+import '../assets/css/AuctionPage.css'; // je kunt dezelfde styling als UploadAuctionPage gebruiken of aanpassen
 
-function AuctionPage() {
+function AuctionPage({ lots }) {
+    // Filter alleen pending kavels
+    const pendingLots = lots.filter(lot => lot.status === 'pending');
+
+    if (pendingLots.length === 0) {
+        return <p>Geen kavels beschikbaar om te publiceren.</p>;
+    }
+
     return (
         <div className="auction-page">
             <header className="section-header">
-                <div>
-                    <h1>Veilingoverzicht</h1>
-                    <p>Volg live kavels en bied mee op de populairste producten van vandaag.</p>
-                </div>
-                <button type="button" className="primary-action">
-                    Live klok openen
-                </button>
+                <h1>Te publiceren kavels (veilingmeester)</h1>
+                <p>Bekijk de kavels die door leveranciers zijn toegevoegd en publiceer ze.</p>
             </header>
 
             <div className="auction-grid">
-                {auctionLots.map((lot) => (
-                    <article key={lot.id} className="auction-card">
-                        <div className="auction-card__header">
-                            <span className="lot-number">#{lot.id}</span>
-                            <span className="badge badge-muted">{lot.bidders} bieders</span>
-                        </div>
-                        <h2>{lot.title}</h2>
+                {pendingLots.map(lot => (
+                    <article key={lot.code} className="auction-card">
+                        <h2>{lot.name}</h2>
                         <p>{lot.description}</p>
-                        <div className="auction-card__footer">
-                            <span className="featured-price">{lot.price}</span>
-                            <button type="button" className="secondary-action">
-                                Bied mee
-                            </button>
-                        </div>
+                        <span>{lot.lots} stuks</span>
+                        {lot.image && (
+                            <img
+                                src={lot.image}
+                                alt={lot.name}
+                                className="auction-card-image"
+                            />
+                        )}
+                        <Link to={`/veiling/${lot.code}`} className="primary-action">
+                            Bewerk / Publiceer
+                        </Link>
                     </article>
                 ))}
             </div>
         </div>
-    )
+    );
 }
 
-export default AuctionPage
+export default AuctionPage;
