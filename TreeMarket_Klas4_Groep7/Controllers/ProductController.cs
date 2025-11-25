@@ -1,6 +1,9 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Humanizer;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using TreeMarket_Klas4_Groep7.Data;
 using TreeMarket_Klas4_Groep7.Models;
+using TreeMarket_Klas4_Groep7.Models.DTO;
 using TreeMarket_Klas4_Groep7.Services;
 
 namespace TreeMarket_Klas4_Groep7.Controllers
@@ -11,10 +14,12 @@ namespace TreeMarket_Klas4_Groep7.Controllers
     {
         //Die van productService maakt gebruik van LINQ
         private readonly ProductService _productService;
+        private readonly ApiContext _context;
 
-        public ProductController(ProductService productService)
+        public ProductController(ProductService productService, ApiContext context)
         {
             _productService = productService;
+            _context = context;
         }
 
         // ✅ Haal producten van vandaag op
@@ -112,7 +117,36 @@ namespace TreeMarket_Klas4_Groep7.Controllers
             }
         }
 
-        
+        //ClaimDTO om gewoon Claim aan te maken
+        [HttpPost("CreateProduct")]
+        public async Task<IActionResult> PostProduct([FromBody] ProductDto productDto)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);  
+            
+            try
+            {
+                var product = new Product
+                {
+                    Foto = productDto.Foto,
+                    Artikelkenmerken = productDto.artikelkenmerken,
+                    Hoeveelheid = productDto.Hoeveelheid,
+                    MinimumPrijs = productDto.MinimumPrijs,
+                    Dagdatum = DateTime.UtcNow,   // server bepaalt datum
+                    LeverancierID = productDto.leverancierID
+                };
+
+                await _context.Product.AddAsync(product);
+                await _context.SaveChangesAsync();
+
+                return (Ok(product));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Databasefout: Product kan niet aangemaakt worden.", error = ex.Message });
+            }
+        }
+
     }
 }
 

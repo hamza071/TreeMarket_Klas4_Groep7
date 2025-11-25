@@ -87,30 +87,5 @@ namespace TreeMarket_Klas4_Group7.Controllers
             }
 
         }
-
-        [HttpPost("ShowData")]
-        public async Task<IActionResult> CreateVeiling(Veiling veiling)
-        {
-            try
-            {
-                // Validatie: check dat alle required velden ingevuld zijn
-                if (!ModelState.IsValid)
-                {
-                    return BadRequest(ModelState);
-                }
-
-                // Voeg leverancier toe aan database
-                await _context.Veiling.AddAsync(veiling);
-                await _context.SaveChangesAsync();
-
-                // Return het aangemaakte object (inclusief ID)
-                return Ok(veiling);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = "Databasefout: Kon veilingen niet ophalen.", error = ex.Message });
-            }
-        }
-
     }
 }

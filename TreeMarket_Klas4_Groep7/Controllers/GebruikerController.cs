@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Numerics;
 using TreeMarket_Klas4_Groep7.Data;
 using TreeMarket_Klas4_Groep7.Models;
+using TreeMarket_Klas4_Groep7.Services;
 using TreeMarket_Klas4_Groep7.Models.DTO;
 
 namespace TreeMarket_Klas4_Groep7.Controllers
@@ -19,6 +20,7 @@ namespace TreeMarket_Klas4_Groep7.Controllers
         private readonly ApiContext _context;
         //Deze variabele wordt opgeroepen binnen de Program.cs
         private readonly PasswordHasher<Gebruiker> _passwordHasher;
+
 
         public GebruikerController(ApiContext context, PasswordHasher<Gebruiker> passwordHasher)
         {
@@ -49,7 +51,7 @@ namespace TreeMarket_Klas4_Groep7.Controllers
 
             if (emailBestaatAl != null)
                 return Conflict("Dit e-mailadres is al in gebruik.");
-
+                        
             try
             {
                 var klant = new Klant

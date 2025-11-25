@@ -101,12 +101,12 @@ namespace TreeMarket_Klas4_Groep7.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            // check of Klant en Veiling bestaan
-            var klantBestaat = await _context.Gebruiker.FindAsync(claimDto.klantId);
-            var veilingBestaat = await _context.Veiling.FindAsync(claimDto.veilingId);
+            //// check of Klant en Veiling bestaan
+            //var klantBestaat = await _context.Gebruiker.FindAsync(claimDto.klantId);
+            //var veilingBestaat = await _context.Veiling.FindAsync(claimDto.veilingId);
 
-            if (klantBestaat == null) return BadRequest("Klant bestaat niet.");
-            if (veilingBestaat == null) return BadRequest("Veiling bestaat niet.");
+            //if (klantBestaat == null) return BadRequest("Klant bestaat niet.");
+            //if (veilingBestaat == null) return BadRequest("Veiling bestaat niet.");
 
             try
             {
@@ -126,30 +126,6 @@ namespace TreeMarket_Klas4_Groep7.Controllers
             {
                 return StatusCode(500, new { message = "Databasefout: Claim kan niet aangemaakt worden.", error = ex.Message });
 
-            }
-        }
-
-        [HttpPost("ShowData")]
-        public async Task<IActionResult> CreateClaim(Claim claim)
-        {
-            try
-            {
-                // Validatie: check dat alle required velden ingevuld zijn
-                if (!ModelState.IsValid)
-                {
-                    return BadRequest(ModelState);
-                }
-
-                // Voeg leverancier toe aan database
-                await _context.Claim.AddAsync(claim);
-                await _context.SaveChangesAsync();
-
-                // Return het aangemaakte object (inclusief ID)
-                return Ok(claim);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = "Databasefout: Kon veilingen niet ophalen.", error = ex.Message });
             }
         }
 

@@ -265,7 +265,7 @@ function AuthPage() {
                                         onChange={handleChange}
                                         placeholder="Voornaam en Achternaam"
                                     />
-                                    {errors.naam && <small className="error-text">{errors.naam}</small>}
+                                    {errors.naam && <small className="error-text" style={{ color: "red" }}>{errors.naam}</small>}
                                 </label>
 
                                 {/* Telefoonnummer */}
@@ -279,7 +279,7 @@ function AuthPage() {
                                         placeholder="0612345678"
                                     />
                                     {errors.telefoonnummer && (
-                                        <small className="error-text">{errors.telefoonnummer}</small>
+                                        <small className="error-text" style={{ color: "red" }}>{errors.telefoonnummer}</small>
                                     )}
                                 </label>
 
@@ -296,7 +296,7 @@ function AuthPage() {
                                                 placeholder="Bedrijfsnaam"
                                             />
                                             {errors.bedrijf && (
-                                                <small className="error-text">{errors.bedrijf}</small>
+                                                <small className="error-text" style={{ color: "red" }}>{errors.bedrijf}</small>
                                             )}
                                         </label>
 
@@ -310,7 +310,7 @@ function AuthPage() {
                                                 placeholder="KvK nummer"
                                             />
                                             {errors.KvKNummer && (
-                                                <small className="error-text">{errors.KvKNummer}</small>
+                                                <small className="error-text" style={{ color: "red" }}>{errors.KvKNummer}</small>
                                             )}
                                         </label>
 
@@ -324,7 +324,7 @@ function AuthPage() {
                                                 placeholder="IBAN nummer"
                                             />
                                             {errors.IBANnummer && (
-                                                <small className="error-text">{errors.IBANnummer}</small>
+                                                <small className="error-text" style={{ color: "red" }}>{errors.IBANnummer}</small>
                                             )}
                                         </label>
                                     </>
@@ -342,7 +342,7 @@ function AuthPage() {
                                 onChange={handleChange}
                                 placeholder="naam@voorbeeld.nl"
                             />
-                            {errors.email && <small className="error-text">{errors.email}</small>}
+                            {errors.email && <small className="error-text" style={{ color: "red" }}>{errors.email}</small>}
                         </label>
 
                         {/* Wachtwoord */}
@@ -356,7 +356,7 @@ function AuthPage() {
                                 placeholder="Minimaal 8 tekens"
                             />
                             {errors.wachtwoord && (
-                                <small className="error-text">{errors.wachtwoord}</small>
+                                <small className="error-text" style={{ color: "red" }}>{errors.wachtwoord}</small>
                             )}
                         </label>
 
@@ -372,7 +372,7 @@ function AuthPage() {
                                     placeholder="Nogmaals wachtwoord"
                                 />
                                 {errors.herhaalWachtwoord && (
-                                    <small className="error-text">{errors.herhaalWachtwoord}</small>
+                                    <small className="error-text" style={{ color: "red" }}>{errors.herhaalWachtwoord}</small>
                                 )}
                             </label>
                         )}
