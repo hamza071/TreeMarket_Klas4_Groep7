@@ -62,10 +62,13 @@ function App() {
         );
     }
 
-    // Optioneel: haal kavels op bij load (voor demo/initial state)
+    // Haal kavels op van backend bij load
     useEffect(() => {
-        fetch('/api/auctions')
-            .then(res => res.json())
+        fetch('/api/Veiling') // of volledige URL als CORS/React dev server problemen geeft
+            .then(res => {
+                if (!res.ok) throw new Error('Kon kavels niet ophalen van backend');
+                return res.json();
+            })
             .then(data => setLots(data))
             .catch(err => console.error('Error fetching auctions:', err));
     }, []);
@@ -96,19 +99,11 @@ function App() {
                 <Routes>
                     <Route
                         path="/dashboard"
-                        element={
-                            <DashboardPage
-                                lots={lots.filter(lot => lot.status === 'published')}
-                            />
-                        }
+                        element={<DashboardPage lots={lots.filter(lot => lot.status === 'published')} />}
                     />
                     <Route
                         path="/veiling"
-                        element={
-                            <AuctionPage
-                                lots={lots.filter(lot => lot.status === 'pending')}
-                            />
-                        }
+                        element={<AuctionPage lots={lots.filter(lot => lot.status === 'pending')} />}
                     />
                     <Route
                         path="/veiling/:code"
@@ -124,11 +119,7 @@ function App() {
                     <Route path="/deleteUser" element={<DeleteUser />} />
                     <Route
                         path="*"
-                        element={
-                            <DashboardPage
-                                lots={lots.filter(lot => lot.status === 'published')}
-                            />
-                        }
+                        element={<DashboardPage lots={lots.filter(lot => lot.status === 'published')} />}
                     />
                 </Routes>
             </main>

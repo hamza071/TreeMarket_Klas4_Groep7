@@ -5,7 +5,7 @@ import '../assets/css/AuctionPage.css';
 export default function DashboardPage({ lots }) {
     const [lotsState, setLotsState] = useState([]);
 
-    // Zet initiele lotsState bij props verandering
+    // Zet initial lotsState bij props verandering
     useEffect(() => {
         const now = Date.now();
         setLotsState(
