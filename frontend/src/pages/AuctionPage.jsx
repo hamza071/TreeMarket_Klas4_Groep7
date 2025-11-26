@@ -1,13 +1,11 @@
 ﻿import { Link } from 'react-router-dom';
-import '../assets/css/AuctionPage.css'; // je kunt dezelfde styling als UploadAuctionPage gebruiken of aanpassen
+import '../assets/css/AuctionPage.css';
 
-function AuctionPage({ lots }) {
-    // Filter alleen pending kavels
+export default function AuctionPage({ lots }) {
+    // Filter pending kavels
     const pendingLots = lots.filter(lot => lot.status === 'pending');
 
-    if (pendingLots.length === 0) {
-        return <p>Geen kavels beschikbaar om te publiceren.</p>;
-    }
+    if (pendingLots.length === 0) return <p>Geen kavels beschikbaar om te publiceren.</p>;
 
     return (
         <div className="auction-page">
@@ -18,18 +16,13 @@ function AuctionPage({ lots }) {
 
             <div className="auction-grid">
                 {pendingLots.map(lot => (
-                    <article key={lot.code} className="auction-card">
-                        <h2>{lot.name}</h2>
-                        <p>{lot.description}</p>
-                        <span>{lot.lots} stuks</span>
+                    <article key={lot.id} className="auction-card">
+                        <h2>{lot.titel}</h2>
+                        <p>{lot.beschrijving}</p>
                         {lot.image && (
-                            <img
-                                src={lot.image}
-                                alt={lot.name}
-                                className="auction-card-image"
-                            />
+                            <img src={lot.image} alt={lot.titel} className="auction-card-image" />
                         )}
-                        <Link to={`/veiling/${lot.code}`} className="primary-action">
+                        <Link to={`/veiling/${lot.id}`} className="primary-action">
                             Bewerk / Publiceer
                         </Link>
                     </article>
@@ -38,5 +31,3 @@ function AuctionPage({ lots }) {
         </div>
     );
 }
-
-export default AuctionPage;

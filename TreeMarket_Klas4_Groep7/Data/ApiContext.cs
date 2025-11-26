@@ -14,6 +14,7 @@ namespace TreeMarket_Klas4_Groep7.Data
         public DbSet<Dashboard> Dashboard { get; set; }
         public DbSet<Claim> Claim { get; set; }
         public DbSet<Leverancier> Leverancier { get; set; }
+        public DbSet<Auction> Auctions { get; set; }
 
         public ApiContext(DbContextOptions<ApiContext> options) : base(options)
         {

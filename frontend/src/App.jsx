@@ -1,5 +1,5 @@
 ﻿import { Link, Routes, Route } from "react-router-dom";
-import { useRef, useCallback, useState } from "react";
+import { useRef, useCallback, useState, useEffect } from "react";
 
 // Styling
 import './assets/css/App.css'
@@ -43,22 +43,32 @@ function App() {
         }
     }, [])
 
-    // Alle kavels (status: pending / published)
-    const [lots, setLots] = useState([])
+    // Alle kavels (pending + published)
+    const [lots, setLots] = useState([]);
 
-    // Leverancier voegt nieuwe kavel toe (status: pending)
+    // Leverancier voegt nieuwe kavel toe
     const addNewLot = (newLot) => {
-        setLots(prev => [...prev, { ...newLot, status: 'pending' }])
+        setLots(prev => [...prev, { ...newLot, status: 'pending' }]);
     }
 
-    // Veilingmeester bewerkt kavel (voegt prijs en sluitingstijd toe en publiceert)
+    // Veilingmeester publiceert kavel
     const updateLot = (updatedLot) => {
-        setLots(prev => prev.map(lot =>
-            lot.code === updatedLot.code
-                ? { ...updatedLot, status: 'published' }
-                : lot
-        ))
+        setLots(prev =>
+            prev.map(lot =>
+                lot.id === updatedLot.id
+                    ? { ...updatedLot, status: 'published' }
+                    : lot
+            )
+        );
     }
+
+    // Optioneel: haal kavels op bij load (voor demo/initial state)
+    useEffect(() => {
+        fetch('/api/auctions')
+            .then(res => res.json())
+            .then(data => setLots(data))
+            .catch(err => console.error('Error fetching auctions:', err));
+    }, []);
 
     return (
         <div className="app-shell">
@@ -84,17 +94,27 @@ function App() {
 
             <main className="page-area" id="main-content">
                 <Routes>
-                    {/* Dashboard krijgt alleen gepubliceerde kavels */}
-                    <Route path="/dashboard" element={<DashboardPage lots={lots.filter(lot => lot.status === 'published')} />} />
-
-                    {/* Veiling krijgt alle kavels */}
-                    <Route path="/veiling" element={<AuctionPage lots={lots} />} />
-                    <Route path="/veiling/:code" element={<AuctionDetailPage lots={lots} updateLot={updateLot} />} />
-
-                    {/* Upload voor leverancier */}
+                    <Route
+                        path="/dashboard"
+                        element={
+                            <DashboardPage
+                                lots={lots.filter(lot => lot.status === 'published')}
+                            />
+                        }
+                    />
+                    <Route
+                        path="/veiling"
+                        element={
+                            <AuctionPage
+                                lots={lots.filter(lot => lot.status === 'pending')}
+                            />
+                        }
+                    />
+                    <Route
+                        path="/veiling/:code"
+                        element={<AuctionDetailPage updateLot={updateLot} />}
+                    />
                     <Route path="/upload" element={<UploadAuctionPage addNewLot={addNewLot} />} />
-
-                    {/* Overige pages */}
                     <Route path="/reports" element={<ReportsPage />} />
                     <Route path="/home" element={<HomePage />} />
                     <Route path="/about" element={<AboutUsPage />} />
@@ -102,9 +122,14 @@ function App() {
                     <Route path="/allusers" element={<AllUsers />} />
                     <Route path="/idUser" element={<IdUser />} />
                     <Route path="/deleteUser" element={<DeleteUser />} />
-
-                    {/* Fallback */}
-                    <Route path="*" element={<DashboardPage lots={lots.filter(lot => lot.status === 'published')} />} />
+                    <Route
+                        path="*"
+                        element={
+                            <DashboardPage
+                                lots={lots.filter(lot => lot.status === 'published')}
+                            />
+                        }
+                    />
                 </Routes>
             </main>
         </div>

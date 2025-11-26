@@ -1,58 +1,42 @@
 import { useEffect, useState } from 'react';
+import PlaceBid from '../components/PlaceBid';
+import '../assets/css/AuctionPage.css';
 
-function DashboardPage({ lots }) {
-    // Filter alleen gepubliceerde kavels
-    const publishedLots = lots.filter(lot => lot.status === 'published');
+export default function DashboardPage({ lots }) {
+    const [lotsState, setLotsState] = useState([]);
 
-    // Voeg dynamische velden toe
-    const [lotsState, setLotsState] = useState(() =>
-        publishedLots.map(lot => ({
-            ...lot,
-            startPrice: lot.startPrice ?? lot.price ?? 0,
-            minPrice: lot.minPrice ?? lot.price ?? 0,
-            closingTime: lot.closingTime ?? 0,
-            startTimestamp: lot.startTimestamp ?? Date.now(),
-            currentPrice: lot.startPrice ?? lot.price ?? 0,
-            closing: lot.closingTimestamp
-                ? Math.max(0, Math.ceil((lot.closingTimestamp - Date.now()) / 1000))
-                : 0,
-        }))
-    );
-
-    // Update lotsState bij prop verandering
+    // Zet initiele lotsState bij props verandering
     useEffect(() => {
-        const updatedLots = publishedLots.map(lot => ({
-            ...lot,
-            startPrice: lot.startPrice ?? lot.price ?? 0,
-            minPrice: lot.minPrice ?? lot.price ?? 0,
-            closingTime: lot.closingTime ?? 0,
-            startTimestamp: lot.startTimestamp ?? Date.now(),
-            currentPrice: lot.startPrice ?? lot.price ?? 0,
-            closing: lot.closingTimestamp
-                ? Math.max(0, Math.ceil((lot.closingTimestamp - Date.now()) / 1000))
-                : 0,
-        }));
-        setLotsState(updatedLots);
+        const now = Date.now();
+        setLotsState(
+            lots.map(lot => ({
+                ...lot,
+                startPrice: lot.startPrijs ?? 0,
+                minPrice: lot.startPrijs ?? 0,
+                closingTime: Math.max(0, (new Date(lot.eindDatum) - now) / 1000),
+                startTimestamp: now,
+                currentPrice: lot.startPrijs ?? 0,
+                closing: Math.max(0, Math.ceil((new Date(lot.eindDatum) - now) / 1000)),
+            }))
+        );
     }, [lots]);
 
-    // Timer voor prijs en sluiting
+    // Timer interval voor countdown en actuele prijs
     useEffect(() => {
         const interval = setInterval(() => {
             const now = Date.now();
-            setLotsState(prevLots =>
-                prevLots.map(lot => {
-                    const elapsed = (now - lot.startTimestamp) / 1000;
-                    const remainingTime = Math.max(0, lot.closingTime - elapsed);
-
+            setLotsState(prev =>
+                prev.map(lot => {
+                    const remaining = Math.max(0, (new Date(lot.eindDatum) - now) / 1000);
                     const priceRange = lot.startPrice - lot.minPrice;
                     const currentPrice =
-                        remainingTime > 0
-                            ? Math.max(lot.minPrice, lot.startPrice - (priceRange * (elapsed / lot.closingTime)))
+                        remaining > 0
+                            ? Math.max(lot.minPrice, lot.startPrice - priceRange * (1 - remaining / lot.closingTime))
                             : lot.minPrice;
 
                     return {
                         ...lot,
-                        closing: Math.ceil(remainingTime),
+                        closing: Math.ceil(remaining),
                         currentPrice,
                     };
                 })
@@ -62,44 +46,32 @@ function DashboardPage({ lots }) {
         return () => clearInterval(interval);
     }, []);
 
+    if (lotsState.length === 0) return <p>Geen lopende kavels.</p>;
+
     const featuredLot = lotsState[lotsState.length - 1];
-    const featuredTime = featuredLot?.closing ?? 0;
 
     return (
         <div className="dashboard-page">
             <section className="dashboard-hero">
-                <div className="hero-copy">
-                    <span className="eyebrow">TREE MARKET</span>
-                    <h1>De toekomst van bloemen en plantenveilingen</h1>
-                    <p>
-                        Digitale Veilingklok 2025 brengt kopers en kwekers samen in een moderne, efficiënte online
-                        veilingomgeving.
-                    </p>
-                </div>
-
                 {featuredLot && (
                     <article className="featured-card">
                         <img
                             src={featuredLot.image || '/default-image.jpg'}
-                            alt={featuredLot.name}
+                            alt={featuredLot.titel}
                             className="featured-media"
                         />
                         <div className="featured-body">
                             <div className="featured-meta" aria-live="polite">
-                                <span className="badge badge-live">{featuredTime > 0 ? `${featuredTime}s` : 'Afgesloten'}</span>
-                                <span className="lot-number">#{featuredLot.code}</span>
+                                <span className="badge badge-live">
+                                    {featuredLot.closing > 0 ? `${featuredLot.closing}s` : 'Afgesloten'}
+                                </span>
+                                <span className="lot-number">#{featuredLot.id}</span>
                             </div>
-                            <h2>{featuredLot.name}</h2>
-                            <p className="featured-quantity">{featuredLot.lots} stuks</p>
+                            <h2>{featuredLot.titel}</h2>
+                            <p>{featuredLot.beschrijving}</p>
                             <div className="featured-footer">
                                 <span className="featured-price">€{featuredLot.currentPrice?.toFixed(2)}</span>
-                                <button
-                                    type="button"
-                                    className="secondary-action"
-                                    disabled={featuredTime <= 0}
-                                >
-                                    Bieden
-                                </button>
+                                <PlaceBid auctionId={featuredLot.id} />
                             </div>
                         </div>
                     </article>
@@ -108,35 +80,29 @@ function DashboardPage({ lots }) {
 
             <section className="dashboard-table">
                 <h3>Lopende kavels</h3>
-                <div className="table-wrapper" role="region" aria-live="polite">
-                    <table className="data-table">
-                        <thead>
-                            <tr>
-                                <th>Kavel</th>
-                                <th>Naam</th>
-                                <th>Specificaties</th>
-                                <th>Aantal</th>
-                                <th>Huidige prijs (€)</th>
-                                <th>Sluiting</th>
+                <table className="data-table">
+                    <thead>
+                        <tr>
+                            <th>Kavel</th>
+                            <th>Titel</th>
+                            <th>Omschrijving</th>
+                            <th>Huidige prijs (€)</th>
+                            <th>Sluiting</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {lotsState.map(lot => (
+                            <tr key={lot.id}>
+                                <td>{lot.id}</td>
+                                <td>{lot.titel}</td>
+                                <td>{lot.beschrijving}</td>
+                                <td>€{lot.currentPrice?.toFixed(2)}</td>
+                                <td>{lot.closing > 0 ? `${lot.closing}s` : 'Afgesloten'}</td>
                             </tr>
-                        </thead>
-                        <tbody>
-                            {lotsState.map(lot => (
-                                <tr key={lot.code}>
-                                    <td>{lot.code}</td>
-                                    <td>{lot.name}</td>
-                                    <td>{lot.specs}</td>
-                                    <td>{lot.lots}</td>
-                                    <td>€{lot.currentPrice?.toFixed(2)}</td>
-                                    <td>{lot.closing > 0 ? `${lot.closing}s` : 'Afgesloten'}</td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
+                        ))}
+                    </tbody>
+                </table>
             </section>
         </div>
     );
 }
-
-export default DashboardPage;
