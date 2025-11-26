@@ -19,6 +19,8 @@ namespace TreeMarket_Klas4_Groep7.Models
         [EmailAddress(ErrorMessage = "Een geldig e-mailadres is verplicht.")]
         public string Email { get; set; }
         public string? Telefoonnummer { get; set; }
+
+        //De wachtwoord en rol wordt gebruikt om de UNIT test uit te voeren.
         [Required(ErrorMessage = "Wachtwoord is verplicht.")]
         [MinLength(8, ErrorMessage = "Wachtwoord moet minimaal 8 tekens zijn.")]
         public string Wachtwoord { get; set; }
