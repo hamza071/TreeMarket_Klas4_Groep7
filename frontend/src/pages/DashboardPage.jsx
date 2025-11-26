@@ -93,7 +93,11 @@ function DashboardPage({ lots }) {
                             <p className="featured-quantity">{featuredLot.lots} stuks</p>
                             <div className="featured-footer">
                                 <span className="featured-price">€{featuredLot.currentPrice?.toFixed(2)}</span>
-                                <button type="button" className="secondary-action" disabled={featuredTime <= 0}>
+                                <button
+                                    type="button"
+                                    className="secondary-action"
+                                    disabled={featuredTime <= 0}
+                                >
                                     Bieden
                                 </button>
                             </div>
@@ -103,7 +107,7 @@ function DashboardPage({ lots }) {
             </section>
 
             <section className="dashboard-table">
-                <h3>Komende kavels</h3>
+                <h3>Lopende kavels</h3>
                 <div className="table-wrapper" role="region" aria-live="polite">
                     <table className="data-table">
                         <thead>
