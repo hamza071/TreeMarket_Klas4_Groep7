@@ -15,9 +15,10 @@ namespace TreeMarket_Klas4_Groep7.Models
         public decimal StartPrijs { get; set; }
 
         [Column(TypeName = "decimal(18,2)")]
-        public decimal EindPrijs { get; set; }
 
-        [Column(TypeName = "decimal(18,2)")]
+        //public decimal EindPrijs { get; set; }
+
+        //[Column(TypeName = "decimal(18,2)")]
         public decimal HuidigePrijs { get; set; }
 
         public int PrijsStap { get; set; }

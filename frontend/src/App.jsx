@@ -1,5 +1,5 @@
 ﻿import { Link, Routes, Route } from "react-router-dom";
-import { useRef, useCallback, useState } from "react";
+import { useRef, useCallback, useState, useEffect } from "react";
 
 // Styling
 import './assets/css/App.css'
@@ -29,7 +29,7 @@ const NAVIGATION_ITEMS = [
     { id: 'deleteUser', label: 'DeleteIdGebruiker' },
 ]
 
-function App() {
+function App({ currentUser }) {
     const navigationRefs = useRef([]);
 
     const handleNavKeyDown = useCallback((event, currentIndex) => {
@@ -43,15 +43,46 @@ function App() {
         }
     }, [])
 
-    // Alle kavels (status: pending / published)
+    // ==========================
+    // Kavels state
+    // ==========================
     const [lots, setLots] = useState([])
 
-    // Leverancier voegt nieuwe kavel toe (status: pending)
-    const addNewLot = (newLot) => {
-        setLots(prev => [...prev, { ...newLot, status: 'pending' }])
+    // ==========================
+    // Kavels ophalen bij load
+    // ==========================
+    useEffect(() => {
+        fetch('/api/Product') // backend endpoint die alle kavels terugstuurt
+            .then(res => res.json())
+            .then(data => setLots(data))
+            .catch(err => console.error('Fout bij ophalen kavels:', err))
+    }, [])
+
+    // ==========================
+    // Nieuwe kavel toevoegen (UploadAuctionPage)
+    // ==========================
+    const addNewLot = async (newLot) => {
+        try {
+            const response = await fetch('/api/Product', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newLot)
+            })
+
+            if (response.ok) {
+                const savedLot = await response.json()
+                setLots(prev => [...prev, savedLot]) // direct update frontend
+            } else {
+                console.error('Fout bij toevoegen kavel')
+            }
+        } catch (err) {
+            console.error(err)
+        }
     }
 
-    // Veilingmeester bewerkt kavel (voegt prijs en sluitingstijd toe en publiceert)
+    // ==========================
+    // Kavel bewerken / publiceren (AuctionDetailPage)
+    // ==========================
     const updateLot = (updatedLot) => {
         setLots(prev => prev.map(lot =>
             lot.code === updatedLot.code
@@ -88,7 +119,7 @@ function App() {
                     <Route path="/dashboard" element={<DashboardPage lots={lots.filter(lot => lot.status === 'published')} />} />
 
                     {/* Veiling krijgt alle kavels */}
-                    <Route path="/veiling" element={<AuctionPage lots={lots} />} />
+                    <Route path="/veiling" element={<AuctionPage lots={lots} currentUser={currentUser} />} />
                     <Route path="/veiling/:code" element={<AuctionDetailPage lots={lots} updateLot={updateLot} />} />
 
                     {/* Upload voor leverancier */}

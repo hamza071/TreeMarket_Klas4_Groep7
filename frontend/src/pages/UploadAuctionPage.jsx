@@ -7,7 +7,7 @@ const defaultForm = {
     quantity: '',
     description: '',
     image: null,
-    minPrice: '', // minimumprijs door leverancier
+    minPrice: '',
 };
 
 function UploadAuctionPage({ addNewLot }) {
@@ -22,27 +22,43 @@ function UploadAuctionPage({ addNewLot }) {
         }
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
 
         if (!form.minPrice || Number(form.minPrice) <= 0) {
             return alert('Vul een geldige minimumprijs in.');
         }
 
-        const newLot = {
-            code: 'X' + Math.floor(Math.random() * 100000),
-            name: form.title,
-            specs: form.variety,
-            lots: form.quantity,
-            description: form.description,
-            image: form.image ? URL.createObjectURL(form.image) : null,
-            minPrice: Number(form.minPrice), // minimumprijs ingesteld door leverancier
-            status: 'pending', // verschijnt pas bij veiling na publicatie
-        };
+        const formData = new FormData();
+        formData.append('name', form.title);
+        formData.append('variety', form.variety);
+        formData.append('quantity', form.quantity);
+        formData.append('description', form.description);
+        formData.append('minPrice', Number(form.minPrice));
+        if (form.image) formData.append('image', form.image);
 
-        addNewLot(newLot);
-        setForm(defaultForm);
-        alert('Kavel toegevoegd! Deze verschijnt pas bij de veiling na publicatie door de veilingmeester.');
+        try {
+            const response = await fetch('/api/Product', {
+                method: 'POST',
+                body: formData
+            });
+
+            if (response.ok) {
+                const savedLot = await response.json();
+                // Frontend state bijwerken
+                addNewLot({
+                    ...savedLot,
+                    status: 'pending', // zorg dat het zichtbaar wordt in VeilingPage
+                    image: form.image ? URL.createObjectURL(form.image) : null
+                });
+                setForm(defaultForm);
+                alert('Kavel toegevoegd! Deze verschijnt bij Veiling.');
+            } else {
+                console.error('Fout bij toevoegen kavel');
+            }
+        } catch (err) {
+            console.error(err);
+        }
     };
 
     return (
@@ -122,7 +138,6 @@ function UploadAuctionPage({ addNewLot }) {
                 </fieldset>
 
                 <div className="form-actions">
-                    <button type="button" className="link-button">Opslaan als concept</button>
                     <button type="submit" className="primary-action">Kavel toevoegen</button>
                 </div>
             </form>
