@@ -11,6 +11,7 @@ using TreeMarket_Klas4_Groep7.Data;
 using TreeMarket_Klas4_Groep7.Models;
 using TreeMarket_Klas4_Groep7.Models.DTO;
 using TreeMarket_Klas4_Groep7.Services;
+using static TreeMarket_Klas4_Groep7.Models.DTO.KlantDto;
 using SC = System.Security.Claims;
 
 namespace TreeMarket_Klas4_Groep7.Controllers

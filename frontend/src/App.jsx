@@ -16,6 +16,7 @@ import HomePage from './pages/HomePage'
 import AllUsers from './pages/CRUD/AllUsers'
 import IdUser from './pages/CRUD/IdUser'
 import DeleteUser from './pages/CRUD/DeleteUser'
+import LogOutUser from './pages/Logout'
 
 const NAVIGATION_ITEMS = [
     { id: 'dashboard', label: 'Dashboard' },
@@ -27,6 +28,7 @@ const NAVIGATION_ITEMS = [
     { id: 'allusers', label: 'GetAlleGebruikers' },
     { id: 'idUser', label: 'GetIdGebruiker' },
     { id: 'deleteUser', label: 'DeleteIdGebruiker' },
+    { id: 'logout', label: 'LogOutTheUser' },
 ]
 
 function App() {
@@ -102,6 +104,7 @@ function App() {
                     <Route path="/allusers" element={<AllUsers />} />
                     <Route path="/idUser" element={<IdUser />} />
                     <Route path="/deleteUser" element={<DeleteUser />} />
+                    <Route path="/logout" element={<LogOutUser />} />
 
                     {/* Fallback */}
                     <Route path="*" element={<DashboardPage lots={lots.filter(lot => lot.status === 'published')} />} />

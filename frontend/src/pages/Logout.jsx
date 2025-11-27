@@ -14,6 +14,8 @@ export default function Logout() {
 
             // client-side token verwijderen
             localStorage.removeItem('token');
+            localStorage.removeItem('gebruikerId');
+            localStorage.removeItem('rol');
             localStorage.removeItem('user');
 
             // redirect
