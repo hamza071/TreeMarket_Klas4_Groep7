@@ -29,6 +29,13 @@ function AuthPage() {
     //Deze variabele wordt gebruikt om na het inloggen te navigeren naar de home pagina.
     const navigate = useNavigate();
 
+    const switchTab = (tab) => {
+        setActiveTab(tab);
+        setErrors({});
+        setServerError("");
+        setServerSuccess("");
+    };
+
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -218,6 +225,8 @@ function AuthPage() {
         }
     };
 
+
+
     return (
         <div className="auth-page">
             <section className="auth-card">
@@ -233,14 +242,14 @@ function AuthPage() {
                         <button
                             type="button"
                             className={`auth-tab ${isRegister ? "is-inactive" : "is-active"}`}
-                            onClick={() => setActiveTab("login")}
+                            onClick={() => switchTab("login")}
                         >
                             Aanmelden
                         </button>
                         <button
                             type="button"
                             className={`auth-tab ${isRegister ? "is-active" : "is-inactive"}`}
-                            onClick={() => setActiveTab("register")}
+                            onClick={() => switchTab("register")}
                         >
                             Registreren
                         </button>

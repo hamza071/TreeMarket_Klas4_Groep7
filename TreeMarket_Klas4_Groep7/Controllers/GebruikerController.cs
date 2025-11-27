@@ -54,7 +54,7 @@ namespace TreeMarket_Klas4_Groep7.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var emailBestaatAl = _context.Gebruiker
+            var emailBestaatAl = await _context.Gebruiker
                 .FirstOrDefault(g => g.Email.ToLower() == klantToDo.Email.ToLower());
 
             if (emailBestaatAl != null)
@@ -81,7 +81,11 @@ namespace TreeMarket_Klas4_Groep7.Controllers
             }
             catch (Exception ex)
             {
-                return new JsonResult(StatusCode(500, new { message = "Databasefout: Klant kan niet aangemaakt worden.", error = ex.Message }));
+                return StatusCode(500, new
+                {
+                    message = "Databasefout: Klant kan niet aangemaakt worden.",
+                    error = ex.Message
+                });
             }
 
         }
@@ -94,8 +98,8 @@ namespace TreeMarket_Klas4_Groep7.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var emailBestaatAl = _context.Gebruiker
-                .FirstOrDefault(g => g.Email.ToLower() == leverancierToDo.Email.ToLower());
+            var emailBestaatAl = await _context.Gebruiker
+                .FirstOrDefaultAsync(g => g.Email.ToLower() == leverancierToDo.Email.ToLower());
 
             if (emailBestaatAl != null)
                 return Conflict("Dit e-mailadres is al in gebruik.");
@@ -134,8 +138,8 @@ namespace TreeMarket_Klas4_Groep7.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var emailBestaatAl = _context.Gebruiker
-                .FirstOrDefault(g => g.Email.ToLower() == veilingsmeesterToDo.Email.ToLower());
+            var emailBestaatAl = await _context.Gebruiker
+                .FirstOrDefaultAsync(g => g.Email.ToLower() == veilingsmeesterToDo.Email.ToLower());
 
             if (emailBestaatAl != null)
                 return Conflict("Dit e-mailadres is al in gebruik.");
@@ -197,6 +201,13 @@ namespace TreeMarket_Klas4_Groep7.Controllers
                 //De JWT wordt al opgeroepen in de appsettings.json en Program.cs
                 var jwtSettings = _configuration.GetSection("Jwt"); // Of "JwtSettings" als je dat gebruikt
                 var key = Encoding.UTF8.GetBytes(jwtSettings["Key"]);
+                
+                //Als iemand de appsettings verpest of vergeet, crasht je app nu op een vage error
+                //(bijv. null reference, format exception).
+                //Met expliciete checks is het duidelijker waar het misgaat.
+                
+                if (string.IsNullOrEmpty(jwtSettings["Key"]))
+                    throw new Exception("Jwt Key is niet geconfigureerd.");
 
                 var claims = new List<SC.Claim>
                 {
