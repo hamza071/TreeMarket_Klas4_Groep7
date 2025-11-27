@@ -15,10 +15,6 @@ namespace TreeMarket_Klas4_Groep7.Models
         public decimal StartPrijs { get; set; }
 
         [Column(TypeName = "decimal(18,2)")]
-
-        //public decimal EindPrijs { get; set; }
-
-        //[Column(TypeName = "decimal(18,2)")]
         public decimal HuidigePrijs { get; set; }
 
         public int PrijsStap { get; set; }
@@ -26,7 +22,6 @@ namespace TreeMarket_Klas4_Groep7.Models
         public int PrijsStrategie { get; set; }
 
         public int TimerInSeconden { get; set; } // hoe lang de veiling duurt
-
 
         [ForeignKey(nameof(Product))]
         public int ProductID { get; set; }
