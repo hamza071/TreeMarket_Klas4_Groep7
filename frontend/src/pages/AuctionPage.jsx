@@ -1,42 +1,9 @@
-﻿import { useState, useEffect } from 'react';
-import '../assets/css/AuctionPage.css';
+﻿import { Link } from 'react-router-dom';
+import '../assets/css/AuctionPage.css'; // je kunt dezelfde styling als UploadAuctionPage gebruiken of aanpassen
 
-function AuctionPage({ currentUser }) { // currentUser bevat veilingsmeesterID
-    const [lots, setLots] = useState([]); // kavels van backend
-    const [veilingen, setVeilingen] = useState([]); // actieve veilingen
-    const [timerInput, setTimerInput] = useState(3600); // standaard timer 1 uur
-
-    // Haal kavels op bij mount
-    useEffect(() => {
-        fetch('/api/Veiling')
-            .then(res => res.json())
-            .then(data => setLots(data))
-            .catch(err => console.error(err));
-    }, []);
-
+function AuctionPage({ lots }) {
     // Filter alleen pending kavels
     const pendingLots = lots.filter(lot => lot.status === 'pending');
-
-    const createVeiling = async (lot) => {
-        const response = await fetch('/api/Veiling/CreateVeiling', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                startPrijs: lot.startPrijs,
-                prijsStap: lot.prijsStap,
-                productID: lot.productID,
-                veilingsmeesterID: currentUser.id, // dynamisch
-                timerInSeconden: timerInput
-            })
-        });
-
-        if (response.ok) {
-            const veiling = await response.json();
-            setVeilingen(prev => [...prev, veiling]); // update UI
-        } else {
-            console.error('Fout bij het aanmaken van veiling');
-        }
-    };
 
     if (pendingLots.length === 0) {
         return <p>Geen kavels beschikbaar om te publiceren.</p>;
@@ -61,7 +28,7 @@ function AuctionPage({ currentUser }) { // currentUser bevat veilingsmeesterID
 
             <div className="auction-grid">
                 {pendingLots.map(lot => (
-                    <article key={lot.code} className="auction-card">
+                    <article key={lot.id} className="auction-card">
                         <h2>{lot.name}</h2>
                         <p>{lot.description}</p>
                         <span>{lot.lots} stuks</span>
@@ -72,12 +39,9 @@ function AuctionPage({ currentUser }) { // currentUser bevat veilingsmeesterID
                                 className="auction-card-image"
                             />
                         )}
-                        <button
-                            className="primary-action"
-                            onClick={() => createVeiling(lot)}
-                        >
-                            Start Veiling
-                        </button>
+                        <Link to={`/veiling/${lot.code}`} className="primary-action">
+                            Bewerk / Publiceer
+                        </Link>
                     </article>
                 ))}
             </div>
