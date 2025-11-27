@@ -1,42 +1,33 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.Runtime.CompilerServices;
 
 namespace TreeMarket_Klas4_Groep7.Models
 {
     public class Veiling
     {
         [Key]
-        [Required]
         public int VeilingID { get; set; }
-        //Status is met BIT. IK weet niet welke. Misschien int of bool
-        public bool? Status { get; set; }
 
-        //De decimal geeft hoeveel decimal het minimaal mag
-        //De annotaties wordt ook in de ContextKlasse opgenoemd.
-        [Column(TypeName = "decimal(18,2)")]
+        [Required]
         public decimal StartPrijs { get; set; }
 
-        [Column(TypeName = "decimal(18,2)")]
-        public decimal EindPrijs { get; set; }
-
-        [Column(TypeName = "decimal(18,2)")]
-        public decimal HuidigePrijs { get; set; }
-
+        [Required]
         public int PrijsStap { get; set; }
 
-        public int PrijsStrategie { get; set; }
+        [Required]
+        public int SluitingstijdInSeconden { get; set; }
 
-        public DateTime StartTijd { get; set; }
+        // Extra velden voor frontend
+        public string Code { get; set; }
+        public string Naam { get; set; }
+        public string Beschrijving { get; set; }
+        public int Lots { get; set; }
+        public string Status { get; set; } = "pending";
+        public string Image { get; set; }
 
-        public DateTime EindTijd { get; set; }
-
-        //Is wel een foreignkey
-        [ForeignKey(nameof(Product))]
+        // Relaties
         public int ProductID { get; set; }
         public Product Product { get; set; }
 
-        [ForeignKey(nameof(Veilingsmeester))]
         public int VeilingsmeesterID { get; set; }
         public Veilingsmeester Veilingsmeester { get; set; }
     }
