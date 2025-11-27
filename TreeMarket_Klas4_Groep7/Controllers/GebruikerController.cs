@@ -138,6 +138,7 @@ namespace TreeMarket_Klas4_Groep7.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
+
             var emailBestaatAl = await _context.Gebruiker
                 .FirstOrDefaultAsync(g => g.Email.ToLower() == veilingsmeesterToDo.Email.ToLower());
 
