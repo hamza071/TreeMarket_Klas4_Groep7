@@ -17,7 +17,7 @@ namespace WebAPI.Tests
         //De testfunctie is async, omdat de GetAllUser funcie in de 
         public async Task GetAll_ReturnsOkResult_WithListOfUsers()
         {
-            // Arrange: In-memory database optuigen
+            // Arrange: In-memory database optuigen. In het kort legers ophalen.
             var options = new DbContextOptionsBuilder<ApiContext>()
                 //Maakt een test database gemaakt om te testen of het werkt.
                 .UseInMemoryDatabase(databaseName: "TestDb")
@@ -78,6 +78,7 @@ namespace WebAPI.Tests
         //    var controller = new GebruikerController(context, hasher, mockConfig.Object);
 
         //    // Act: Gaat testen of het wel echt werkt of niet
+        //    // Get ID moet   
         //    var result = await controller.GetUserById();
 
         //    // Assert: controleert of de test werkt of niet

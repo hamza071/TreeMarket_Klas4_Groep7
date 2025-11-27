@@ -210,7 +210,7 @@ namespace TreeMarket_Klas4_Groep7.Controllers
 
         // ================= BEVEILIGDE ROUTES (RBAC) =================
 
-        [Authorize] 
+        [Authorize(Roles = "Admin")] 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetUserById(int id)
         {

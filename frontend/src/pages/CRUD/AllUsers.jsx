@@ -24,7 +24,7 @@ function AllUsers() {
         fetchUsers();
     }, []);
 
-    if (error) return <div style={{color: "red"}}>Error: {error}</div>;
+    if (error) return <div style={{color: "red"}}>Error: 404. U heeft geen rechten tot deze pagina</div>;
 
     return (
         <div>
