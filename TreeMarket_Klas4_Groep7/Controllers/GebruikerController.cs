@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using System;
+using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Text;
 using TreeMarket_Klas4_Groep7.Data;
@@ -29,8 +31,8 @@ namespace TreeMarket_Klas4_Groep7.Controllers
             _configuration = configuration;
         }
 
-        // ================== DTOr-esponse ==================
-        
+        // ================== ENTITY -> RESPONSE DTO ==================
+
         private GebruikerResponseDto MapToGebruikerDto(Gebruiker g)
         {
             if (g == null) return null;
@@ -74,7 +76,6 @@ namespace TreeMarket_Klas4_Groep7.Controllers
                 await _context.Gebruiker.AddAsync(klant);
                 await _context.SaveChangesAsync();
 
-                // Alleen DTO teruggeven
                 return Ok(MapToGebruikerDto(klant));
             }
             catch (Exception ex)
@@ -216,8 +217,6 @@ namespace TreeMarket_Klas4_Groep7.Controllers
 
                 var gebruikerDto = MapToGebruikerDto(gebruiker);
 
-                // Vorm blijft compatibel met jouw frontend (token, rol, gebruikerId),
-                // plus extra veilige gebruiker-object.
                 return Ok(new
                 {
                     message = "Login succesvol.",
