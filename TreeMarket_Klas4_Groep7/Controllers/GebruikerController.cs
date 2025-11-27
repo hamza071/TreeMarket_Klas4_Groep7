@@ -1,16 +1,15 @@
-﻿using Microsoft.AspNetCore.Authorization; // <--- TOEGEVOEGD VOOR BEVEILIGING
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
-using System.Numerics;
 using System.Text;
 using TreeMarket_Klas4_Groep7.Data;
 using TreeMarket_Klas4_Groep7.Models;
 using TreeMarket_Klas4_Groep7.Models.DTO;
-using TreeMarket_Klas4_Groep7.Services;
+using static TreeMarket_Klas4_Groep7.Models.DTO.KlantDto;
 using SC = System.Security.Claims;
 
 namespace TreeMarket_Klas4_Groep7.Controllers
@@ -30,15 +29,35 @@ namespace TreeMarket_Klas4_Groep7.Controllers
             _configuration = configuration;
         }
 
+        // ================== DTOr-esponse ==================
+        
+        private GebruikerResponseDto MapToGebruikerDto(Gebruiker g)
+        {
+            if (g == null) return null;
+
+            return new GebruikerResponseDto
+            {
+                GebruikerId = g.GebruikerId,
+                Naam = g.Naam,
+                Email = g.Email,
+                Rol = g.Rol,
+                Telefoonnummer = g.Telefoonnummer
+            };
+        }
+
         // ================= REGISTRATIE ENDPOINTS =================
 
         [HttpPost("Klant")]
         public async Task<IActionResult> CreateUserKlant([FromBody] KlantDto klantToDo)
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
 
-            var emailBestaatAl = _context.Gebruiker.FirstOrDefault(g => g.Email.ToLower() == klantToDo.Email.ToLower());
-            if (emailBestaatAl != null) return Conflict("Dit e-mailadres is al in gebruik.");
+            var emailBestaatAl = await _context.Gebruiker
+                .FirstOrDefaultAsync(g => g.Email.ToLower() == klantToDo.Email.ToLower());
+
+            if (emailBestaatAl != null)
+                return Conflict("Dit e-mailadres is al in gebruik.");
 
             try
             {
@@ -47,7 +66,7 @@ namespace TreeMarket_Klas4_Groep7.Controllers
                     Naam = klantToDo.Naam,
                     Email = klantToDo.Email,
                     Telefoonnummer = klantToDo.Telefoonnummer,
-                    Rol = "Klant" // Expliciet zetten
+                    Rol = "Klant"
                 };
 
                 klant.Wachtwoord = _passwordHasher.HashPassword(klant, klantToDo.Wachtwoord);
@@ -55,7 +74,8 @@ namespace TreeMarket_Klas4_Groep7.Controllers
                 await _context.Gebruiker.AddAsync(klant);
                 await _context.SaveChangesAsync();
 
-                return Ok(klant);
+                // Alleen DTO teruggeven
+                return Ok(MapToGebruikerDto(klant));
             }
             catch (Exception ex)
             {
@@ -66,10 +86,14 @@ namespace TreeMarket_Klas4_Groep7.Controllers
         [HttpPost("Leverancier")]
         public async Task<IActionResult> CreateUserLeverancier([FromBody] LeverancierDto leverancierToDo)
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
 
-            var emailBestaatAl = _context.Gebruiker.FirstOrDefault(g => g.Email.ToLower() == leverancierToDo.Email.ToLower());
-            if (emailBestaatAl != null) return Conflict("Dit e-mailadres is al in gebruik.");
+            var emailBestaatAl = await _context.Gebruiker
+                .FirstOrDefaultAsync(g => g.Email.ToLower() == leverancierToDo.Email.ToLower());
+
+            if (emailBestaatAl != null)
+                return Conflict("Dit e-mailadres is al in gebruik.");
 
             try
             {
@@ -89,7 +113,7 @@ namespace TreeMarket_Klas4_Groep7.Controllers
                 await _context.Gebruiker.AddAsync(leverancier);
                 await _context.SaveChangesAsync();
 
-                return Ok(leverancier);
+                return Ok(MapToGebruikerDto(leverancier));
             }
             catch (Exception ex)
             {
@@ -100,10 +124,14 @@ namespace TreeMarket_Klas4_Groep7.Controllers
         [HttpPost("Veilingsmeester")]
         public async Task<IActionResult> CreateUserVeilingsmeester([FromBody] VeilingsmeesterDto veilingsmeesterToDo)
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
 
-            var emailBestaatAl = _context.Gebruiker.FirstOrDefault(g => g.Email.ToLower() == veilingsmeesterToDo.Email.ToLower());
-            if (emailBestaatAl != null) return Conflict("Dit e-mailadres is al in gebruik.");
+            var emailBestaatAl = await _context.Gebruiker
+                .FirstOrDefaultAsync(g => g.Email.ToLower() == veilingsmeesterToDo.Email.ToLower());
+
+            if (emailBestaatAl != null)
+                return Conflict("Dit e-mailadres is al in gebruik.");
 
             try
             {
@@ -120,47 +148,52 @@ namespace TreeMarket_Klas4_Groep7.Controllers
                 await _context.Gebruiker.AddAsync(veilingsmeester);
                 await _context.SaveChangesAsync();
 
-                return Ok(veilingsmeester);
+                return Ok(MapToGebruikerDto(veilingsmeester));
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { message = "Databasefout: Veilingmeester kan niet aangemaakt worden.", error = ex.Message });
+                return StatusCode(500, new { message = "Databasefout: Veilingsmeester kan niet aangemaakt worden.", error = ex.Message });
             }
         }
+
+        // ================= LOGIN =================
 
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginDto loginDto)
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
 
             try
             {
                 var gebruiker = await _context.Gebruiker
                     .FirstOrDefaultAsync(g => g.Email.ToLower() == loginDto.Email.ToLower());
 
-                if (gebruiker == null) return Unauthorized("E-mail of wachtwoord is onjuist.");
+                if (gebruiker == null)
+                    return Unauthorized("E-mail of wachtwoord is onjuist.");
 
-                var result = _passwordHasher.VerifyHashedPassword(gebruiker, gebruiker.Wachtwoord, loginDto.Wachtwoord);
+                var result = _passwordHasher.VerifyHashedPassword(
+                    gebruiker,
+                    gebruiker.Wachtwoord,
+                    loginDto.Wachtwoord
+                );
 
-                if (result == PasswordVerificationResult.Failed) return Unauthorized("E-mail of wachtwoord is onjuist.");
+                if (result == PasswordVerificationResult.Failed)
+                    return Unauthorized("E-mail of wachtwoord is onjuist.");
 
-                // --- JWT GENERATIE ---
                 var jwtSettings = _configuration.GetSection("Jwt");
-                var key = Encoding.UTF8.GetBytes(jwtSettings["Key"]);
-                
-                //Als iemand de appsettings verpest of vergeet, crasht je app nu op een vage error
-                //(bijv. null reference, format exception).
-                //Met expliciete checks is het duidelijker waar het misgaat.
-                
+
                 if (string.IsNullOrEmpty(jwtSettings["Key"]))
                     throw new Exception("Jwt Key is niet geconfigureerd.");
+
+                var key = Encoding.UTF8.GetBytes(jwtSettings["Key"]);
 
                 var claims = new List<SC.Claim>
                 {
                     new SC.Claim(JwtRegisteredClaimNames.Sub, gebruiker.Email),
-                    new SC.Claim(SC.ClaimTypes.Role, gebruiker.Rol ?? "Klant"), // Zorgt voor RBAC
+                    new SC.Claim(SC.ClaimTypes.Role, gebruiker.Rol ?? "Klant"),
                     new SC.Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                    new SC.Claim("GebruikerId", gebruiker.GebruikerId.ToString()) // Handig
+                    new SC.Claim("GebruikerId", gebruiker.GebruikerId.ToString())
                 };
 
                 var token = new JwtSecurityToken(
@@ -173,7 +206,6 @@ namespace TreeMarket_Klas4_Groep7.Controllers
 
                 var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
 
-                // Cookie instellen (Veiligheid)
                 Response.Cookies.Append("jwtToken", tokenString, new CookieOptions
                 {
                     HttpOnly = true,
@@ -182,14 +214,17 @@ namespace TreeMarket_Klas4_Groep7.Controllers
                     Expires = DateTime.UtcNow.AddMinutes(int.Parse(jwtSettings["DurationInMinutes"]))
                 });
 
-                // --- AANGEPAST: TOKEN OOK IN BODY ---
-                // Dit zorgt ervoor dat je React frontend het token kan opslaan in localStorage
-                return Ok(new 
-                { 
-                    message = "Login succesvol.", 
-                    token = tokenString, // <--- DIT WAS DE OPLOSSING
+                var gebruikerDto = MapToGebruikerDto(gebruiker);
+
+                // Vorm blijft compatibel met jouw frontend (token, rol, gebruikerId),
+                // plus extra veilige gebruiker-object.
+                return Ok(new
+                {
+                    message = "Login succesvol.",
+                    token = tokenString,
                     rol = gebruiker.Rol,
-                    gebruikerId = gebruiker.GebruikerId
+                    gebruikerId = gebruiker.GebruikerId,
+                    gebruiker = gebruikerDto
                 });
             }
             catch (Exception ex)
@@ -212,17 +247,19 @@ namespace TreeMarket_Klas4_Groep7.Controllers
             return Ok(new { message = "Uitloggen succesvol." });
         }
 
+        // ================= BEVEILIGDE ENDPOINTS =================
 
-        [Authorize] 
+        [Authorize]
         [HttpGet("{id}")]
         public async Task<IActionResult> GetUserById(int id)
         {
             try
             {
                 var result = await _context.Gebruiker.FindAsync(id);
-                if (result == null) return NotFound("Id is not found: " + id);
-                
-                return Ok(result);
+                if (result == null)
+                    return NotFound("Id is not found: " + id);
+
+                return Ok(MapToGebruikerDto(result));
             }
             catch (Exception ex)
             {
@@ -230,14 +267,15 @@ namespace TreeMarket_Klas4_Groep7.Controllers
             }
         }
 
-        [Authorize(Roles = "Admin")] 
+        [Authorize(Roles = "Admin")]
         [HttpGet("GetAllUsers")]
         public async Task<IActionResult> GetAllUsers()
         {
             try
             {
                 var result = await _context.Gebruiker.ToListAsync();
-                return Ok(result);
+                var dtoList = result.Select(g => MapToGebruikerDto(g));
+                return Ok(dtoList);
             }
             catch (Exception ex)
             {
@@ -252,7 +290,8 @@ namespace TreeMarket_Klas4_Groep7.Controllers
             try
             {
                 var result = await _context.Gebruiker.FindAsync(id);
-                if (result == null) return NotFound();
+                if (result == null)
+                    return NotFound();
 
                 _context.Gebruiker.Remove(result);
                 await _context.SaveChangesAsync();
