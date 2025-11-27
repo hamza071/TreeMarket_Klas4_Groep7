@@ -29,13 +29,6 @@ function AuthPage() {
     //Deze variabele wordt gebruikt om na het inloggen te navigeren naar de home pagina.
     const navigate = useNavigate();
 
-    const switchTab = (tab) => {
-        setActiveTab(tab);
-        setErrors({});
-        setServerError("");
-        setServerSuccess("");
-    };
-
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -212,219 +205,228 @@ function AuthPage() {
                     return;
                 }
 
-                console.log("Login response:", data);
-                setServerSuccess("Succesvol ingelogd!");
+                    console.log("Login response:", data);
 
-                // Navigeren naar home
-                navigate("/home");
+                    // === HIER MOET JE HET TOKEN OPSLAAN ===
+                    if (data.token) {
+                        localStorage.setItem("token", data.token);
 
-            } catch (err) {
-                console.error(err);
-                setServerError("Er ging iets mis bij het inloggen (server niet bereikbaar).");
+                        // Optioneel: Sla ook rol en ID op als je die nodig hebt voor menu's etc.
+                        if (data.rol) localStorage.setItem("rol", data.rol);
+                        if (data.gebruikerId) localStorage.setItem("gebruikerId", data.gebruikerId);
+                    }
+                    // ======================================
+
+                    setServerSuccess("Succesvol ingelogd!");
+
+                    // Navigeren naar home
+                    navigate("/home");
+    
+                } catch (err) {
+                    console.error(err);
+                    setServerError("Er ging iets mis bij het inloggen (server niet bereikbaar).");
+                }
             }
-        }
-    };
-
-
-
-    return (
-        <div className="auth-page">
-            <section className="auth-card">
-                <div className="auth-card__form">
-                    <header className="auth-header">
-                        <h1>{isRegister ? "Registreren bij TreeMarket" : "Aanmelden bij TreeMarket"}</h1>
-                        <p>
-                            Voordat u doorgaat, moet u zich aanmelden of registreren als u nog geen account heeft.
-                        </p>
-                    </header>
-
-                    <div className="auth-tabs">
-                        <button
-                            type="button"
-                            className={`auth-tab ${isRegister ? "is-inactive" : "is-active"}`}
-                            onClick={() => switchTab("login")}
-                        >
-                            Aanmelden
-                        </button>
-                        <button
-                            type="button"
-                            className={`auth-tab ${isRegister ? "is-active" : "is-inactive"}`}
-                            onClick={() => switchTab("register")}
-                        >
-                            Registreren
-                        </button>
-                    </div>
-
-                    <form className="auth-form" onSubmit={handleSubmit}>
-                        {isRegister && (
-                            <>
-                                {/* Rol */}
-                                <label className="form-field">
-                                    <span>Rol</span>
-                                    <select
-                                        name="rol"
-                                        value={formData.rol}
-                                        onChange={handleChange}
-                                        className="input-field"
-                                    >
-                                        <option value="">-- Selecteer rol --</option>
-                                        <option value="klant">Klant</option>
-                                        <option value="leverancier">Leverancier</option>
-                                        <option value="veilingsmeester">Veilingsmeester</option>
-                                    </select>
-                                    {errors.rol && <small className="error-text">{errors.rol}</small>}
-                                </label>
-
-                                {/* Naam */}
-                                <label className="form-field">
-                                    <span>Naam</span>
-                                    <input
-                                        name="naam"
-                                        type="text"
-                                        value={formData.naam}
-                                        onChange={handleChange}
-                                        placeholder="Voornaam en Achternaam"
-                                    />
-                                    {errors.naam && <small className="error-text" style={{ color: "red" }}>{errors.naam}</small>}
-                                </label>
-
-                                {/* Telefoonnummer */}
-                                <label className="form-field">
-                                    <span>Telefoonnummer</span>
-                                    <input
-                                        name="telefoonnummer"
-                                        type="tel"
-                                        value={formData.telefoonnummer}
-                                        onChange={handleChange}
-                                        placeholder="0612345678"
-                                    />
-                                    {errors.telefoonnummer && (
-                                        <small className="error-text" style={{ color: "red" }}>{errors.telefoonnummer}</small>
+        };
+    
+        return (
+            <div className="auth-page">
+                <section className="auth-card">
+                    <div className="auth-card__form">
+                        <header className="auth-header">
+                            <h1>{isRegister ? "Registreren bij TreeMarket" : "Aanmelden bij TreeMarket"}</h1>
+                            <p>
+                                Voordat u doorgaat, moet u zich aanmelden of registreren als u nog geen account heeft.
+                            </p>
+                        </header>
+    
+                        <div className="auth-tabs">
+                            <button
+                                type="button"
+                                className={`auth-tab ${isRegister ? "is-inactive" : "is-active"}`}
+                                onClick={() => setActiveTab("login")}
+                            >
+                                Aanmelden
+                            </button>
+                            <button
+                                type="button"
+                                className={`auth-tab ${isRegister ? "is-active" : "is-inactive"}`}
+                                onClick={() => setActiveTab("register")}
+                            >
+                                Registreren
+                            </button>
+                        </div>
+    
+                        <form className="auth-form" onSubmit={handleSubmit}>
+                            {isRegister && (
+                                <>
+                                    {/* Rol */}
+                                    <label className="form-field">
+                                        <span>Rol</span>
+                                        <select
+                                            name="rol"
+                                            value={formData.rol}
+                                            onChange={handleChange}
+                                            className="input-field"
+                                        >
+                                            <option value="">-- Selecteer rol --</option>
+                                            <option value="klant">Klant</option>
+                                            <option value="leverancier">Leverancier</option>
+                                            <option value="veilingsmeester">Veilingsmeester</option>
+                                        </select>
+                                        {errors.rol && <small className="error-text">{errors.rol}</small>}
+                                    </label>
+    
+                                    {/* Naam */}
+                                    <label className="form-field">
+                                        <span>Naam</span>
+                                        <input
+                                            name="naam"
+                                            type="text"
+                                            value={formData.naam}
+                                            onChange={handleChange}
+                                            placeholder="Voornaam en Achternaam"
+                                        />
+                                        {errors.naam && <small className="error-text" style={{ color: "red" }}>{errors.naam}</small>}
+                                    </label>
+    
+                                    {/* Telefoonnummer */}
+                                    <label className="form-field">
+                                        <span>Telefoonnummer</span>
+                                        <input
+                                            name="telefoonnummer"
+                                            type="tel"
+                                            value={formData.telefoonnummer}
+                                            onChange={handleChange}
+                                            placeholder="0612345678"
+                                        />
+                                        {errors.telefoonnummer && (
+                                            <small className="error-text" style={{ color: "red" }}>{errors.telefoonnummer}</small>
+                                        )}
+                                    </label>
+    
+                                    {/* Extra velden voor Leverancier */}
+                                    {formData.rol === "leverancier" && (
+                                        <>
+                                            <label className="form-field">
+                                                <span>Bedrijf</span>
+                                                <input
+                                                    name="bedrijf"
+                                                    type="text"
+                                                    value={formData.bedrijf || ""}
+                                                    onChange={handleChange}
+                                                    placeholder="Bedrijfsnaam"
+                                                />
+                                                {errors.bedrijf && (
+                                                    <small className="error-text" style={{ color: "red" }}>{errors.bedrijf}</small>
+                                                )}
+                                            </label>
+    
+                                            <label className="form-field">
+                                                <span>KvK Nummer</span>
+                                                <input
+                                                    name="KvKNummer"
+                                                    type="text"
+                                                    value={formData.KvKNummer || ""}
+                                                    onChange={handleChange}
+                                                    placeholder="KvK nummer"
+                                                />
+                                                {errors.KvKNummer && (
+                                                    <small className="error-text" style={{ color: "red" }}>{errors.KvKNummer}</small>
+                                                )}
+                                            </label>
+    
+                                            <label className="form-field">
+                                                <span>IBAN</span>
+                                                <input
+                                                    name="IBANnummer"
+                                                    type="text"
+                                                    value={formData.IBANnummer || ""}
+                                                    onChange={handleChange}
+                                                    placeholder="IBAN nummer"
+                                                />
+                                                {errors.IBANnummer && (
+                                                    <small className="error-text" style={{ color: "red" }}>{errors.IBANnummer}</small>
+                                                )}
+                                            </label>
+                                        </>
                                     )}
-                                </label>
-
-                                {/* Extra velden voor Leverancier */}
-                                {formData.rol === "leverancier" && (
-                                    <>
-                                        <label className="form-field">
-                                            <span>Bedrijf</span>
-                                            <input
-                                                name="bedrijf"
-                                                type="text"
-                                                value={formData.bedrijf || ""}
-                                                onChange={handleChange}
-                                                placeholder="Bedrijfsnaam"
-                                            />
-                                            {errors.bedrijf && (
-                                                <small className="error-text" style={{ color: "red" }}>{errors.bedrijf}</small>
-                                            )}
-                                        </label>
-
-                                        <label className="form-field">
-                                            <span>KvK Nummer</span>
-                                            <input
-                                                name="KvKNummer"
-                                                type="text"
-                                                value={formData.KvKNummer || ""}
-                                                onChange={handleChange}
-                                                placeholder="KvK nummer"
-                                            />
-                                            {errors.KvKNummer && (
-                                                <small className="error-text" style={{ color: "red" }}>{errors.KvKNummer}</small>
-                                            )}
-                                        </label>
-
-                                        <label className="form-field">
-                                            <span>IBAN</span>
-                                            <input
-                                                name="IBANnummer"
-                                                type="text"
-                                                value={formData.IBANnummer || ""}
-                                                onChange={handleChange}
-                                                placeholder="IBAN nummer"
-                                            />
-                                            {errors.IBANnummer && (
-                                                <small className="error-text" style={{ color: "red" }}>{errors.IBANnummer}</small>
-                                            )}
-                                        </label>
-                                    </>
-                                )}
-                            </>
-                        )}
-
-                        {/* E-mail (voor login én registratie) */}
-                        <label className="form-field">
-                            <span>E-mailadres</span>
-                            <input
-                                name="email"
-                                type="email"
-                                value={formData.email}
-                                onChange={handleChange}
-                                placeholder="naam@voorbeeld.nl"
-                            />
-                            {errors.email && <small className="error-text" style={{ color: "red" }}>{errors.email}</small>}
-                        </label>
-
-                        {/* Wachtwoord */}
-                        <label className="form-field">
-                            <span>Wachtwoord</span>
-                            <input
-                                name="wachtwoord"
-                                type="password"
-                                value={formData.wachtwoord}
-                                onChange={handleChange}
-                                placeholder="Minimaal 8 tekens"
-                            />
-                            {errors.wachtwoord && (
-                                <small className="error-text" style={{ color: "red" }}>{errors.wachtwoord}</small>
+                                </>
                             )}
-                        </label>
-
-                        {/* Bevestig wachtwoord (alleen bij registratie) */}
-                        {isRegister && (
+    
+                            {/* E-mail (voor login én registratie) */}
                             <label className="form-field">
-                                <span>Bevestig wachtwoord</span>
+                                <span>E-mailadres</span>
                                 <input
-                                    name="herhaalWachtwoord"
-                                    type="password"
-                                    value={formData.herhaalWachtwoord}
+                                    name="email"
+                                    type="email"
+                                    value={formData.email}
                                     onChange={handleChange}
-                                    placeholder="Nogmaals wachtwoord"
+                                    placeholder="naam@voorbeeld.nl"
                                 />
-                                {errors.herhaalWachtwoord && (
-                                    <small className="error-text" style={{ color: "red" }}>{errors.herhaalWachtwoord}</small>
+                                {errors.email && <small className="error-text" style={{ color: "red" }}>{errors.email}</small>}
+                            </label>
+    
+                            {/* Wachtwoord */}
+                            <label className="form-field">
+                                <span>Wachtwoord</span>
+                                <input
+                                    name="wachtwoord"
+                                    type="password"
+                                    value={formData.wachtwoord}
+                                    onChange={handleChange}
+                                    placeholder="Minimaal 8 tekens"
+                                />
+                                {errors.wachtwoord && (
+                                    <small className="error-text" style={{ color: "red" }}>{errors.wachtwoord}</small>
                                 )}
                             </label>
-                        )}
-
-                        <button type="submit" className="primary-action full-width">
-                            {isRegister ? "Registreren" : "Aanmelden"}
-                        </button>
-
-                        {/* Algemene meldingen zoals op andere sites */}
-                        {serverError && (
-                            <p className="form-message form-message--error">{serverError}</p>
-                        )}
-                        {serverSuccess && (
-                            <p className="form-message form-message--success">{serverSuccess}</p>
-                        )}
-                    </form>
-                </div>
-
-                <div className="auth-card__media">
-                    <img
-                        src={
-                            isRegister
-                                ? "https://images.unsplash.com/photo-1545243424-0ce743321e11?auto=format&fit=crop&w=800&q=80"
-                                : "https://images.unsplash.com/photo-1517427294546-5aaefec2b2bb?auto=format&fit=crop&w=800&q=80"
-                        }
-                        alt={isRegister ? "Bloemenkweker in het veld" : "Bloemenverzorger met tulpen"}
-                    />
-                </div>
-            </section>
-            <footer className="auth-footer">© Royal Flora 2025</footer>
-        </div>
-    );
-}
-
-export default AuthPage;
+    
+                            {/* Bevestig wachtwoord (alleen bij registratie) */}
+                            {isRegister && (
+                                <label className="form-field">
+                                    <span>Bevestig wachtwoord</span>
+                                    <input
+                                        name="herhaalWachtwoord"
+                                        type="password"
+                                        value={formData.herhaalWachtwoord}
+                                        onChange={handleChange}
+                                        placeholder="Nogmaals wachtwoord"
+                                    />
+                                    {errors.herhaalWachtwoord && (
+                                        <small className="error-text" style={{ color: "red" }}>{errors.herhaalWachtwoord}</small>
+                                    )}
+                                </label>
+                            )}
+    
+                            <button type="submit" className="primary-action full-width">
+                                {isRegister ? "Registreren" : "Aanmelden"}
+                            </button>
+    
+                            {/* Algemene meldingen zoals op andere sites */}
+                            {serverError && (
+                                <p className="form-message form-message--error">{serverError}</p>
+                            )}
+                            {serverSuccess && (
+                                <p className="form-message form-message--success">{serverSuccess}</p>
+                            )}
+                        </form>
+                    </div>
+    
+                    <div className="auth-card__media">
+                        <img
+                            src={
+                                isRegister
+                                    ? "https://images.unsplash.com/photo-1545243424-0ce743321e11?auto=format&fit=crop&w=800&q=80"
+                                    : "https://images.unsplash.com/photo-1517427294546-5aaefec2b2bb?auto=format&fit=crop&w=800&q=80"
+                            }
+                            alt={isRegister ? "Bloemenkweker in het veld" : "Bloemenverzorger met tulpen"}
+                        />
+                    </div>
+                </section>
+                <footer className="auth-footer">© Royal Flora 2025</footer>
+            </div>
+        );
+    }
+    
+    export default AuthPage;
