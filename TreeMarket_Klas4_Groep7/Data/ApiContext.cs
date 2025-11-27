@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Cryptography;
 using TreeMarket_Klas4_Groep7.Models;
 using TreeMarket_Klas4_Groep7.Models.DTO;
 
@@ -14,6 +15,8 @@ namespace TreeMarket_Klas4_Groep7.Data
         public DbSet<Dashboard> Dashboard { get; set; }
         public DbSet<Claim> Claim { get; set; }
         public DbSet<Leverancier> Leverancier { get; set; }
+        public DbSet<Bid> Bids { get; set; }
+
 
         public ApiContext(DbContextOptions<ApiContext> options) : base(options)
         {
@@ -68,9 +71,9 @@ namespace TreeMarket_Klas4_Groep7.Data
             modelBuilder.Entity<Veiling>()
                 .Property(v => v.StartPrijs)
                 .HasColumnType("decimal(18,2)");
-            modelBuilder.Entity<Veiling>()
-                .Property(v => v.EindPrijs)
-                .HasColumnType("decimal(18,2)");
+            //modelBuilder.Entity<Veiling>()
+            //    .Property(v => v.EindPrijs)
+            //    .HasColumnType("decimal(18,2)");
 
             // LET OP: Ik heb HuidigePrijs hier weggehaald, want die had je ook uit je SQL script gehaald!
             // Als je die laat staan, crasht hij straks weer.
