@@ -20,5 +20,15 @@ namespace TreeMarket_Klas4_Groep7.Models.DTO
         [RegularExpression(@"^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).+$",
              ErrorMessage = "Wachtwoord moet minstens één hoofdletter, één cijfer en één speciaal teken bevatten.")]
         public string Wachtwoord { get; set; }
+
+        // DTO die veilig is om naar de frontend te sturen
+        public class GebruikerResponseDto
+        {
+            public int GebruikerId { get; set; }
+            public string Naam { get; set; }
+            public string Email { get; set; }
+            public string Rol { get; set; }
+            public string? Telefoonnummer { get; set; }
+        }
     }
 }
