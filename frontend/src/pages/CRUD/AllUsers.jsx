@@ -1,44 +1,54 @@
 import { useEffect, useState } from "react";
-
+// 1. Importeer je slimme functie
+import { authFetch } from "../../apiClient";
 function AllUsers() {
     const [users, setUsers] = useState([]);
+    const [error, setError] = useState("");
 
     useEffect(() => {
-        try {
-            //Fetch van alle gebruikers die er bestaat
-            fetch("https://localhost:7054/api/Gebruiker/GetAllUsers")
-                .then(res => res.json())
-                .then(data => setUsers(data.value || data)) // data.value als je JsonResult gebruikt
-                .catch(err => console.error(err));
-        } catch (error) {
-            console.error("Fout bij ophalen gebruikers:", error);
-        }
+        // We maken een async functie voor de aanroep
+        const fetchUsers = async () => {
+            try {
+             
+                const data = await authFetch("/Gebruiker/GetAllUsers", {
+                    method: "GET"
+                });
+
+                setUsers(data);
+            } catch (err) {
+                console.error("Fout:", err);
+                setError(err.message); // Bijv: "Niet geautoriseerd"
+            }
+        };
+
+        fetchUsers();
     }, []);
+
+    if (error) return <div style={{color: "red"}}>Error: {error}</div>;
 
     return (
         <div>
             <h2>Alle Gebruikers</h2>
             <table border="5" cellPadding="5" cellSpacing="5">
                 <thead>
-                    <tr>
-                        <th>Gebruikers ID</th>
-                        <th>Gebruikersnaam</th>
-                        <th>Emailadres</th>
-                        <th>Rol</th>
-                    </tr>
+                <tr>
+                    <th>ID</th>
+                    <th>Naam</th>
+                    <th>Email</th>
+                    <th>Rol</th>
+                </tr>
                 </thead>
                 <tbody>
-                    {users.map(user => (
-                        <tr key={user.gebruikerId}>
-                            <td>{user.gebruikerId}</td>
-                            <td> {user.naam} </td>
-                            <td>{user.email}</td>
-                            <td>{user.rol}</td>
-                        </tr>
-                    ))}
+                {users.map(user => (
+                    <tr key={user.gebruikerId}>
+                        <td>{user.gebruikerId}</td>
+                        <td>{user.naam}</td>
+                        <td>{user.email}</td>
+                        <td>{user.rol}</td>
+                    </tr>
+                ))}
                 </tbody>
             </table>
-
         </div>
     );
 }

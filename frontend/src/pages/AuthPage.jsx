@@ -206,8 +206,8 @@ function AuthPage() {
                 }
 
                     console.log("Login response:", data);
-
-                    // === HIER MOET JE HET TOKEN OPSLAAN ===
+                    
+                    
                     if (data.token) {
                         localStorage.setItem("token", data.token);
 
@@ -215,7 +215,7 @@ function AuthPage() {
                         if (data.rol) localStorage.setItem("rol", data.rol);
                         if (data.gebruikerId) localStorage.setItem("gebruikerId", data.gebruikerId);
                     }
-                    // ======================================
+                    
 
                     setServerSuccess("Succesvol ingelogd!");
 
