@@ -206,8 +206,8 @@
                     }
 
                     console.log("Login response:", data);
-
-                    // === HIER MOET JE HET TOKEN OPSLAAN ===
+                    
+                    
                     if (data.token) {
                         localStorage.setItem("token", data.token);
 
@@ -215,7 +215,7 @@
                         if (data.rol) localStorage.setItem("rol", data.rol);
                         if (data.gebruikerId) localStorage.setItem("gebruikerId", data.gebruikerId);
                     }
-                    // ======================================
+                    
 
                     setServerSuccess("Succesvol ingelogd!");
 

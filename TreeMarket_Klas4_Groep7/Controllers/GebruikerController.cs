@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization; // <--- TOEGEVOEGD VOOR BEVEILIGING
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -47,7 +47,7 @@ namespace TreeMarket_Klas4_Groep7.Controllers
                     Naam = klantToDo.Naam,
                     Email = klantToDo.Email,
                     Telefoonnummer = klantToDo.Telefoonnummer,
-                    Rol = "Klant" // Expliciet zetten
+                    Rol = "Klant"
                 };
 
                 klant.Wachtwoord = _passwordHasher.HashPassword(klant, klantToDo.Wachtwoord);
@@ -128,6 +128,7 @@ namespace TreeMarket_Klas4_Groep7.Controllers
             }
         }
 
+        // ================= LOGIN FUNCTIE =================
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginDto loginDto)
         {
@@ -151,9 +152,10 @@ namespace TreeMarket_Klas4_Groep7.Controllers
                 var claims = new List<SC.Claim>
                 {
                     new SC.Claim(JwtRegisteredClaimNames.Sub, gebruiker.Email),
-                    new SC.Claim(SC.ClaimTypes.Role, gebruiker.Rol ?? "Klant"), // Zorgt voor RBAC
+                    new SC.Claim("rol", gebruiker.Rol),
+                    new SC.Claim(SC.ClaimTypes.Role, gebruiker.Rol ?? "Klant"), // RBAC
                     new SC.Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                    new SC.Claim("GebruikerId", gebruiker.GebruikerId.ToString()) // Handig
+                    new SC.Claim("GebruikerId", gebruiker.GebruikerId.ToString())
                 };
 
                 var token = new JwtSecurityToken(
@@ -166,7 +168,7 @@ namespace TreeMarket_Klas4_Groep7.Controllers
 
                 var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
 
-                // Cookie instellen (Veiligheid)
+                // Cookie (Veiligheid)
                 Response.Cookies.Append("jwtToken", tokenString, new CookieOptions
                 {
                     HttpOnly = true,
@@ -175,15 +177,16 @@ namespace TreeMarket_Klas4_Groep7.Controllers
                     Expires = DateTime.UtcNow.AddMinutes(int.Parse(jwtSettings["DurationInMinutes"]))
                 });
 
-                // --- AANGEPAST: TOKEN OOK IN BODY ---
-                // Dit zorgt ervoor dat je React frontend het token kan opslaan in localStorage
+                // === DE AANPASSING ZIT HIER ===
+                // We sturen het token nu mee in de JSON body, zodat React het kan opslaan!
                 return Ok(new 
                 { 
                     message = "Login succesvol.", 
-                    token = tokenString, // <--- DIT WAS DE OPLOSSING
+                    token = tokenString, // <--- DIT IS WAT JE MISTE
                     rol = gebruiker.Rol,
                     gebruikerId = gebruiker.GebruikerId
                 });
+                // ==============================
             }
             catch (Exception ex)
             {
@@ -205,6 +208,7 @@ namespace TreeMarket_Klas4_Groep7.Controllers
             return Ok(new { message = "Uitloggen succesvol." });
         }
 
+        // ================= BEVEILIGDE ROUTES (RBAC) =================
 
         [Authorize] 
         [HttpGet("{id}")]
@@ -214,7 +218,6 @@ namespace TreeMarket_Klas4_Groep7.Controllers
             {
                 var result = await _context.Gebruiker.FindAsync(id);
                 if (result == null) return NotFound("Id is not found: " + id);
-                
                 return Ok(result);
             }
             catch (Exception ex)
@@ -223,7 +226,7 @@ namespace TreeMarket_Klas4_Groep7.Controllers
             }
         }
 
-        [Authorize(Roles = "Admin")] 
+        [Authorize(Roles = "Admin")] // Alleen Admin mag alles zien
         [HttpGet("GetAllUsers")]
         public async Task<IActionResult> GetAllUsers()
         {
@@ -238,7 +241,7 @@ namespace TreeMarket_Klas4_Groep7.Controllers
             }
         }
 
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin")] // Alleen Admin mag verwijderen
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteUser(int id)
         {
