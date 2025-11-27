@@ -1,209 +1,209 @@
-﻿    import { useState } from "react";
-    //Importeren zodat je het kunt gebruiken om te navigeren.
-    import { useNavigate } from "react-router-dom";
-    
-    
-    function AuthPage() {
-        const [activeTab, setActiveTab] = useState("register");
-    
-        const [formData, setFormData] = useState({
-            naam: "",
-            email: "",
-            telefoonnummer: "",
-            wachtwoord: "",
-            herhaalWachtwoord: "",
-            rol: "",
-            bedrijf: "",
-            KvKNummer: "",
-            IBANnummer: "",
-        });
-    
-        // Frontend fouten per veld
-        const [errors, setErrors] = useState({});
-        // Meldingen (zoals andere sites: algemene fout of succes)
-        const [serverError, setServerError] = useState("");
-        const [serverSuccess, setServerSuccess] = useState("");
-    
-        const isRegister = activeTab === "register";
-    
-        //Deze variabele wordt gebruikt om na het inloggen te navigeren naar de home pagina.
-        const navigate = useNavigate();
-    
-    
-        const handleChange = (e) => {
-            const { name, value } = e.target;
-    
-            setFormData((prev) => ({
-                ...prev,
-                [name]: value,
-            }));
-    
-            // zodra gebruiker typt, foutmelding van dat veld weghalen
-            setErrors((prev) => ({
-                ...prev,
-                [name]: "",
-            }));
-        };
-    
-        // ===== LOGISCHE VALIDATIE ZOALS ANDERE SITES =====
-        const validateForm = () => {
-            const newErrors = {};
-    
-            // E-mail
-            if (!formData.email.trim()) {
-                newErrors.email = "Vul uw e-mailadres in.";
-            } else {
-                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                if (!emailRegex.test(formData.email)) {
-                    newErrors.email = "Vul een geldig e-mailadres in.";
+﻿import { useState } from "react";
+//Importeren zodat je het kunt gebruiken om te navigeren.
+import { useNavigate } from "react-router-dom";
+
+
+function AuthPage() {
+    const [activeTab, setActiveTab] = useState("register");
+
+    const [formData, setFormData] = useState({
+        naam: "",
+        email: "",
+        telefoonnummer: "",
+        wachtwoord: "",
+        herhaalWachtwoord: "",
+        rol: "",
+        bedrijf: "",
+        KvKNummer: "",
+        IBANnummer: "",
+    });
+
+    // Frontend fouten per veld
+    const [errors, setErrors] = useState({});
+    // Meldingen (zoals andere sites: algemene fout of succes)
+    const [serverError, setServerError] = useState("");
+    const [serverSuccess, setServerSuccess] = useState("");
+
+    const isRegister = activeTab === "register";
+
+    //Deze variabele wordt gebruikt om na het inloggen te navigeren naar de home pagina.
+    const navigate = useNavigate();
+
+
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+
+        setFormData((prev) => ({
+            ...prev,
+            [name]: value,
+        }));
+
+        // zodra gebruiker typt, foutmelding van dat veld weghalen
+        setErrors((prev) => ({
+            ...prev,
+            [name]: "",
+        }));
+    };
+
+    // ===== LOGISCHE VALIDATIE ZOALS ANDERE SITES =====
+    const validateForm = () => {
+        const newErrors = {};
+
+        // E-mail
+        if (!formData.email.trim()) {
+            newErrors.email = "Vul uw e-mailadres in.";
+        } else {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(formData.email)) {
+                newErrors.email = "Vul een geldig e-mailadres in.";
+            }
+        }
+
+        // Wachtwoord
+        if (!formData.wachtwoord) {
+            newErrors.wachtwoord = "Vul een wachtwoord in.";
+        } else if (formData.wachtwoord.length < 8) {
+            newErrors.wachtwoord = "Wachtwoord moet minimaal 8 tekens bevatten.";
+        }
+
+        if (isRegister) {
+            // Rol
+            if (!formData.rol) {
+                newErrors.rol = "Selecteer een rol.";
+            }
+
+            // Naam
+            if (!formData.naam.trim()) {
+                newErrors.naam = "Vul uw naam in.";
+            } else if (formData.naam.trim().length < 2) {
+                newErrors.naam = "Naam is te kort.";
+            }
+
+            // Telefoon (optioneel, maar als ingevuld dan check)
+            if (formData.telefoonnummer.trim()) {
+                const phoneRegex = /^0[0-9]{9}$/; // NL 10 cijfers beginnend met 0
+                if (!phoneRegex.test(formData.telefoonnummer.trim())) {
+                    newErrors.telefoonnummer = "Vul een geldig Nederlands telefoonnummer in (10 cijfers).";
                 }
             }
-    
-            // Wachtwoord
-            if (!formData.wachtwoord) {
-                newErrors.wachtwoord = "Vul een wachtwoord in.";
-            } else if (formData.wachtwoord.length < 8) {
-                newErrors.wachtwoord = "Wachtwoord moet minimaal 8 tekens bevatten.";
+
+            // Bevestig wachtwoord
+            if (!formData.herhaalWachtwoord) {
+                newErrors.herhaalWachtwoord = "Bevestig uw wachtwoord.";
+            } else if (formData.wachtwoord !== formData.herhaalWachtwoord) {
+                newErrors.herhaalWachtwoord = "Wachtwoorden komen niet overeen.";
             }
-    
-            if (isRegister) {
-                // Rol
-                if (!formData.rol) {
-                    newErrors.rol = "Selecteer een rol.";
+
+            // Extra checks voor leverancier
+            if (formData.rol === "leverancier") {
+                if (!formData.bedrijf.trim()) {
+                    newErrors.bedrijf = "Vul de bedrijfsnaam in.";
                 }
-    
-                // Naam
-                if (!formData.naam.trim()) {
-                    newErrors.naam = "Vul uw naam in.";
-                } else if (formData.naam.trim().length < 2) {
-                    newErrors.naam = "Naam is te kort.";
+                if (!formData.KvKNummer.trim()) {
+                    newErrors.KvKNummer = "Vul een KvK-nummer in.";
                 }
-    
-                // Telefoon (optioneel, maar als ingevuld dan check)
-                if (formData.telefoonnummer.trim()) {
-                    const phoneRegex = /^0[0-9]{9}$/; // NL 10 cijfers beginnend met 0
-                    if (!phoneRegex.test(formData.telefoonnummer.trim())) {
-                        newErrors.telefoonnummer = "Vul een geldig Nederlands telefoonnummer in (10 cijfers).";
-                    }
-                }
-    
-                // Bevestig wachtwoord
-                if (!formData.herhaalWachtwoord) {
-                    newErrors.herhaalWachtwoord = "Bevestig uw wachtwoord.";
-                } else if (formData.wachtwoord !== formData.herhaalWachtwoord) {
-                    newErrors.herhaalWachtwoord = "Wachtwoorden komen niet overeen.";
-                }
-    
-                // Extra checks voor leverancier
-                if (formData.rol === "leverancier") {
-                    if (!formData.bedrijf.trim()) {
-                        newErrors.bedrijf = "Vul de bedrijfsnaam in.";
-                    }
-                    if (!formData.KvKNummer.trim()) {
-                        newErrors.KvKNummer = "Vul een KvK-nummer in.";
-                    }
-                    if (!formData.IBANnummer.trim()) {
-                        newErrors.IBANnummer = "Vul een IBAN in.";
-                    }
+                if (!formData.IBANnummer.trim()) {
+                    newErrors.IBANnummer = "Vul een IBAN in.";
                 }
             }
-    
-            return newErrors;
-        };
-    
-        const handleSubmit = async (e) => {
-            e.preventDefault();
-    
-            setErrors({});
-            setServerError("");
-            setServerSuccess("");
-    
-            const newErrors = validateForm();
-    
-            if (Object.keys(newErrors).length > 0) {
-                setErrors(newErrors);
-                setServerError("Controleer de gemarkeerde velden en probeer het opnieuw.");
-                return;
+        }
+
+        return newErrors;
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+
+        setErrors({});
+        setServerError("");
+        setServerSuccess("");
+
+        const newErrors = validateForm();
+
+        if (Object.keys(newErrors).length > 0) {
+            setErrors(newErrors);
+            setServerError("Controleer de gemarkeerde velden en probeer het opnieuw.");
+            return;
+        }
+
+        if (isRegister) {
+            // ========== REGISTREREN ==========
+            let endpoint = "";
+
+            switch (formData.rol) {
+                case "klant":
+                    endpoint = "https://localhost:7054/api/Gebruiker/Klant";
+                    break;
+                case "leverancier":
+                    endpoint = "https://localhost:7054/api/Gebruiker/Leverancier";
+                    break;
+                case "veilingsmeester":
+                    endpoint = "https://localhost:7054/api/Gebruiker/Veilingsmeester";
+                    break;
+                default:
+                    setErrors({ rol: "Selecteer een rol." });
+                    return;
             }
-    
-            if (isRegister) {
-                // ========== REGISTREREN ==========
-                let endpoint = "";
-    
-                switch (formData.rol) {
-                    case "klant":
-                        endpoint = "https://localhost:7054/api/Gebruiker/Klant";
-                        break;
-                    case "leverancier":
-                        endpoint = "https://localhost:7054/api/Gebruiker/Leverancier";
-                        break;
-                    case "veilingsmeester":
-                        endpoint = "https://localhost:7054/api/Gebruiker/Veilingsmeester";
-                        break;
-                    default:
-                        setErrors({ rol: "Selecteer een rol." });
-                        return;
-                }
-    
-                try {
-                    const response = await fetch(endpoint, {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify(formData),
-                    });
-    
-                    if (!response.ok) {
-                        const errorBody = await response.json().catch(() => null);
-    
-                        if (response.status === 400 && errorBody?.errors) {
-                            setServerError("Registratie mislukt door ongeldige invoer.");
-                        } else {
-                            setServerError(
-                                errorBody?.message ||
-                                "Registratie mislukt. Probeer het later opnieuw."
-                            );
-                        }
-                        return;
-                    }
-    
-                    setServerSuccess("Registratie succesvol! U kunt nu inloggen.");
-                    setFormData({
-                        naam: "",
-                        email: "",
-                        telefoonnummer: "",
-                        wachtwoord: "",
-                        herhaalWachtwoord: "",
-                        rol: "",
-                        bedrijf: "",
-                        KvKNummer: "",
-                        IBANnummer: "",
-                    });
-                } catch (err) {
-                    console.error(err);
-                    setServerError("Er ging iets mis bij het registreren (server niet bereikbaar).");
-                }
-            } else {
-                // ========== INLOGGEN ==========
-                try {
-                    const response = await fetch("https://localhost:7054/api/Gebruiker/login", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                            email: formData.email,
-                            wachtwoord: formData.wachtwoord,
-                        }),
-                    });
-    
-                    const data = await response.json().catch(() => null);
-                    console.log("Login response:", response, data);
-    
-                    //Controlleert of de gegevens wel overeenkomen (wordt al in de gebruikerscontroller gedaan)
-                    if (!response.ok) {
+
+            try {
+                const response = await fetch(endpoint, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(formData),
+                });
+
+                if (!response.ok) {
+                    const errorBody = await response.json().catch(() => null);
+
+                    if (response.status === 400 && errorBody?.errors) {
+                        setServerError("Registratie mislukt door ongeldige invoer.");
+                    } else {
                         setServerError(
-                            data?.message || "E-mailadres of wachtwoord is onjuist."
+                            errorBody?.message ||
+                            "Registratie mislukt. Probeer het later opnieuw."
                         );
-                        return;
                     }
+                    return;
+                }
+
+                setServerSuccess("Registratie succesvol! U kunt nu inloggen.");
+                setFormData({
+                    naam: "",
+                    email: "",
+                    telefoonnummer: "",
+                    wachtwoord: "",
+                    herhaalWachtwoord: "",
+                    rol: "",
+                    bedrijf: "",
+                    KvKNummer: "",
+                    IBANnummer: "",
+                });
+            } catch (err) {
+                console.error(err);
+                setServerError("Er ging iets mis bij het registreren (server niet bereikbaar).");
+            }
+        } else {
+            // ========== INLOGGEN ==========
+            try {
+                const response = await fetch("https://localhost:7054/api/Gebruiker/login", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        email: formData.email,
+                        wachtwoord: formData.wachtwoord,
+                    }),
+                });
+
+                const data = await response.json().catch(() => null);
+                console.log("Login response:", response, data);
+
+                //Controlleert of de gegevens wel overeenkomen (wordt al in de gebruikerscontroller gedaan)
+                if (!response.ok) {
+                    setServerError(
+                        data?.message || "E-mailadres of wachtwoord is onjuist."
+                    );
+                    return;
+                }
 
                     console.log("Login response:", data);
                     
