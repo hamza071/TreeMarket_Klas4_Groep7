@@ -47,7 +47,7 @@ namespace TreeMarket_Klas4_Group7.Controllers
                 ProductID = dto.ProductID,
                 VeilingsmeesterID = dto.VeilingsmeesterID,
                 Status = true,
-                TimerInSeconden = dto.TimerInSeconden,
+                TimerInSeconden = dto.TimerInSeconden
             };
 
             _context.Veiling.Add(veiling);

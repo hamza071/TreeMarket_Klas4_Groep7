@@ -71,9 +71,9 @@ namespace TreeMarket_Klas4_Groep7.Data
             modelBuilder.Entity<Veiling>()
                 .Property(v => v.StartPrijs)
                 .HasColumnType("decimal(18,2)");
-            modelBuilder.Entity<Veiling>()
-                .Property(v => v.EindPrijs)
-                .HasColumnType("decimal(18,2)");
+            //modelBuilder.Entity<Veiling>()
+            //    .Property(v => v.EindPrijs)
+            //    .HasColumnType("decimal(18,2)");
 
             // LET OP: Ik heb HuidigePrijs hier weggehaald, want die had je ook uit je SQL script gehaald!
             // Als je die laat staan, crasht hij straks weer.
