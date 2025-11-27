@@ -100,16 +100,28 @@ builder.Services.AddScoped<PasswordHasher<Gebruiker>>();
 // CORS gebruikt ook de Grand Cross om met andere domeinen te mogen communiceren via een server.
 // ===========
 
+// Tijdelijk voor testen
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowReactDev", policy =>
-    {
-        //De nummer van de localhost staat op basis van hoe wij npm run dev starten.
-        policy.WithOrigins("http://localhost:55125")
-              .AllowAnyHeader()
-              .AllowAnyMethod();
-    });
+    options.AddPolicy("AllowAll",
+        policy =>
+        {
+            policy.AllowAnyOrigin()
+                  .AllowAnyHeader()
+                  .AllowAnyMethod();
+        });
 });
+
+//builder.Services.AddCors(options =>
+//{
+//    options.AddPolicy("AllowReactDev", policy =>
+//    {
+//        //De nummer van de localhost staat op basis van hoe wij npm run dev starten.
+//        policy.WithOrigins("http://localhost:55125")
+//              .AllowAnyHeader()
+//              .AllowAnyMethod();
+//    });
+//});
 
 //=====De builder voor de JWT token.=====
 builder.Services.AddAuthentication(options =>
@@ -158,7 +170,8 @@ app.UseRouting();
 
 //CORS wordt opgeroepen.
 //Dit zorgt ervoor dat de localhost binnen
-app.UseCors("AllowReactDev");
+//tijdelijk
+app.UseCors("AllowAll"); //app.UseCors("AllowReactDev");
 app.UseAuthentication();
 //Wordt waarschijnlijk gebruikt voor rechten en rollen
 app.UseAuthorization();

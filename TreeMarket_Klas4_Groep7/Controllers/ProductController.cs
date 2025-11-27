@@ -22,7 +22,7 @@ namespace TreeMarket_Klas4_Groep7.Controllers
             _context = context;
         }
 
-        // ✅ Haal producten van vandaag op
+        // Haal producten van vandaag op
         [HttpGet("vandaag")]
         public async Task<IActionResult> GetVandaag()
         {
