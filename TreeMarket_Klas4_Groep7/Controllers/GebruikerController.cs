@@ -1,17 +1,10 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
-using System.Numerics;
-using System.Text;
 using TreeMarket_Klas4_Groep7.Data;
 using TreeMarket_Klas4_Groep7.Models;
 using TreeMarket_Klas4_Groep7.Models.DTO;
-using TreeMarket_Klas4_Groep7.Services;
-using SC = System.Security.Claims;
 
 namespace TreeMarket_Klas4_Groep7.Controllers
 {
@@ -19,246 +12,138 @@ namespace TreeMarket_Klas4_Groep7.Controllers
     [ApiController]
     public class GebruikerController : ControllerBase
     {
+        private readonly UserManager<Gebruiker> _userManager;
         private readonly ApiContext _context;
-        private readonly PasswordHasher<Gebruiker> _passwordHasher;
-        private readonly IConfiguration _configuration;
 
-        public GebruikerController(ApiContext context, PasswordHasher<Gebruiker> passwordHasher, IConfiguration configuration)
+        // We injecteren UserManager (voor logica) en ApiContext (voor lijstjes ophalen)
+        public GebruikerController(UserManager<Gebruiker> userManager, ApiContext context)
         {
+            _userManager = userManager;
             _context = context;
-            _passwordHasher = passwordHasher;
-            _configuration = configuration;
         }
 
         // ================= REGISTRATIE ENDPOINTS =================
 
         [HttpPost("Klant")]
-        public async Task<IActionResult> CreateUserKlant([FromBody] KlantDto klantToDo)
+        public async Task<IActionResult> CreateUserKlant([FromBody] KlantDto dto)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            var emailBestaatAl = _context.Gebruiker.FirstOrDefault(g => g.Email.ToLower() == klantToDo.Email.ToLower());
-            if (emailBestaatAl != null) return Conflict("Dit e-mailadres is al in gebruik.");
-
-            try
+            // Identity vereist een UserName. We gebruiken hiervoor het Email adres.
+            var klant = new Klant
             {
-                var klant = new Klant
-                {
-                    Naam = klantToDo.Naam,
-                    Email = klantToDo.Email,
-                    Telefoonnummer = klantToDo.Telefoonnummer,
-                    Rol = "Klant"
-                };
+                UserName = dto.Email, 
+                Email = dto.Email,
+                Naam = dto.Naam,
+                PhoneNumber = dto.Telefoonnummer,
+                EmailConfirmed = true // Zetten we op true zodat ze direct kunnen inloggen
+            };
 
-                klant.Wachtwoord = _passwordHasher.HashPassword(klant, klantToDo.Wachtwoord);
+            // 1. Maak gebruiker aan (Wachtwoord wordt hier automatisch gehasht!)
+            var result = await _userManager.CreateAsync(klant, dto.Wachtwoord);
 
-                await _context.Gebruiker.AddAsync(klant);
-                await _context.SaveChangesAsync();
-
-                return Ok(klant);
-            }
-            catch (Exception ex)
+            if (result.Succeeded)
             {
-                return StatusCode(500, new { message = "Databasefout: Klant kan niet aangemaakt worden.", error = ex.Message });
+                // 2. Rol toewijzen
+                await _userManager.AddToRoleAsync(klant, "Klant");
+                return Ok(new { message = "Klant succesvol geregistreerd!" });
             }
+            
+            // Als het mislukt (bijv. wachtwoord te zwak), stuur fouten terug
+            return BadRequest(result.Errors);
         }
 
         [HttpPost("Leverancier")]
-        public async Task<IActionResult> CreateUserLeverancier([FromBody] LeverancierDto leverancierToDo)
+        public async Task<IActionResult> CreateUserLeverancier([FromBody] LeverancierDto dto)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            var emailBestaatAl = _context.Gebruiker.FirstOrDefault(g => g.Email.ToLower() == leverancierToDo.Email.ToLower());
-            if (emailBestaatAl != null) return Conflict("Dit e-mailadres is al in gebruik.");
-
-            try
+            var leverancier = new Leverancier
             {
-                var leverancier = new Leverancier
-                {
-                    Naam = leverancierToDo.Naam,
-                    Email = leverancierToDo.Email,
-                    Telefoonnummer = leverancierToDo.Telefoonnummer,
-                    bedrijf = leverancierToDo.Bedrijf,
-                    KvKNummer = leverancierToDo.KvKNummer,
-                    IBANnummer = leverancierToDo.IBANnummer,
-                    Rol = "Leverancier"
-                };
+                UserName = dto.Email,
+                Email = dto.Email,
+                Naam = dto.Naam,
+                PhoneNumber = dto.Telefoonnummer,
+                Bedrijf = dto.Bedrijf,
+                KvKNummer = dto.KvKNummer,
+                IBANnummer = dto.IBANnummer,
+                EmailConfirmed = true
+            };
 
-                leverancier.Wachtwoord = _passwordHasher.HashPassword(leverancier, leverancierToDo.Wachtwoord);
+            var result = await _userManager.CreateAsync(leverancier, dto.Wachtwoord);
 
-                await _context.Gebruiker.AddAsync(leverancier);
-                await _context.SaveChangesAsync();
-
-                return Ok(leverancier);
-            }
-            catch (Exception ex)
+            if (result.Succeeded)
             {
-                return StatusCode(500, new { message = "Databasefout: Leverancier kan niet aangemaakt worden.", error = ex.Message });
+                await _userManager.AddToRoleAsync(leverancier, "Leverancier");
+                return Ok(new { message = "Leverancier succesvol geregistreerd!" });
             }
+
+            return BadRequest(result.Errors);
         }
 
         [HttpPost("Veilingsmeester")]
-        public async Task<IActionResult> CreateUserVeilingsmeester([FromBody] VeilingsmeesterDto veilingsmeesterToDo)
+        public async Task<IActionResult> CreateUserVeilingsmeester([FromBody] VeilingsmeesterDto dto)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            var emailBestaatAl = _context.Gebruiker.FirstOrDefault(g => g.Email.ToLower() == veilingsmeesterToDo.Email.ToLower());
-            if (emailBestaatAl != null) return Conflict("Dit e-mailadres is al in gebruik.");
-
-            try
+            var vm = new Veilingsmeester
             {
-                var veilingsmeester = new Veilingsmeester
-                {
-                    Naam = veilingsmeesterToDo.Naam,
-                    Email = veilingsmeesterToDo.Email,
-                    Telefoonnummer = veilingsmeesterToDo.Telefoonnummer,
-                    Rol = "Veilingsmeester"
-                };
+                UserName = dto.Email,
+                Email = dto.Email,
+                Naam = dto.Naam,
+                PhoneNumber = dto.Telefoonnummer,
+                EmailConfirmed = true
+            };
 
-                veilingsmeester.Wachtwoord = _passwordHasher.HashPassword(veilingsmeester, veilingsmeesterToDo.Wachtwoord);
+            var result = await _userManager.CreateAsync(vm, dto.Wachtwoord);
 
-                await _context.Gebruiker.AddAsync(veilingsmeester);
-                await _context.SaveChangesAsync();
-
-                return Ok(veilingsmeester);
-            }
-            catch (Exception ex)
+            if (result.Succeeded)
             {
-                return StatusCode(500, new { message = "Databasefout: Veilingmeester kan niet aangemaakt worden.", error = ex.Message });
+                await _userManager.AddToRoleAsync(vm, "Veilingsmeester");
+                return Ok(new { message = "Veilingsmeester succesvol geregistreerd!" });
             }
+
+            return BadRequest(result.Errors);
         }
 
-        // ================= LOGIN FUNCTIE =================
-        [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] LoginDto loginDto)
-        {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
+        // ================= BEHEER FUNCTIES (Alleen voor Admin) =================
 
-            try
-            {
-                var gebruiker = await _context.Gebruiker
-                    .FirstOrDefaultAsync(g => g.Email.ToLower() == loginDto.Email.ToLower());
-
-                if (gebruiker == null) return Unauthorized("E-mail of wachtwoord is onjuist.");
-
-                var result = _passwordHasher.VerifyHashedPassword(gebruiker, gebruiker.Wachtwoord, loginDto.Wachtwoord);
-
-                if (result == PasswordVerificationResult.Failed) return Unauthorized("E-mail of wachtwoord is onjuist.");
-
-                // --- JWT GENERATIE ---
-                var jwtSettings = _configuration.GetSection("Jwt");
-                var key = Encoding.UTF8.GetBytes(jwtSettings["Key"]);
-
-                var claims = new List<SC.Claim>
-                {
-                    new SC.Claim(JwtRegisteredClaimNames.Sub, gebruiker.Email),
-                    new SC.Claim("rol", gebruiker.Rol),
-                    new SC.Claim(SC.ClaimTypes.Role, gebruiker.Rol ?? "Klant"), // RBAC
-                    new SC.Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                    new SC.Claim("GebruikerId", gebruiker.GebruikerId.ToString())
-                };
-
-                var token = new JwtSecurityToken(
-                    issuer: jwtSettings["Issuer"],
-                    audience: jwtSettings["Audience"],
-                    claims: claims,
-                    expires: DateTime.UtcNow.AddMinutes(int.Parse(jwtSettings["DurationInMinutes"])),
-                    signingCredentials: new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256)
-                );
-
-                var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
-
-                // Cookie (Veiligheid)
-                Response.Cookies.Append("jwtToken", tokenString, new CookieOptions
-                {
-                    HttpOnly = true,
-                    Secure = true,
-                    SameSite = SameSiteMode.Strict,
-                    Expires = DateTime.UtcNow.AddMinutes(int.Parse(jwtSettings["DurationInMinutes"]))
-                });
-
-                // === DE AANPASSING ZIT HIER ===
-                // We sturen het token nu mee in de JSON body, zodat React het kan opslaan!
-                return Ok(new 
-                { 
-                    message = "Login succesvol.", 
-                    token = tokenString, // <--- DIT IS WAT JE MISTE
-                    rol = gebruiker.Rol,
-                    gebruikerId = gebruiker.GebruikerId
-                });
-                // ==============================
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = "Databasefout: Login is mislukt.", error = ex.Message });
-            }
-        }
-
-        [HttpPost("logout")]
-        public IActionResult Logout()
-        {
-            Response.Cookies.Append("jwtToken", "", new CookieOptions
-            {
-                HttpOnly = true,
-                Secure = true,
-                SameSite = SameSiteMode.Strict,
-                Expires = DateTime.UtcNow.AddDays(-1)
-            });
-
-            return Ok(new { message = "Uitloggen succesvol." });
-        }
-
-        // ================= BEVEILIGDE ROUTES (RBAC) =================
-
-        [Authorize(Roles = "Admin")] // Alleen Admin mag alles zien
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetUserById(int id)
-        {
-            try
-            {
-                var result = await _context.Gebruiker.FindAsync(id);
-                if (result == null) return NotFound("Id is not found: " + id);
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = "Databasefout.", error = ex.Message });
-            }
-        }
-
-        [Authorize(Roles = "Admin")] // Alleen Admin mag alles zien
+        // GET: api/Gebruiker/GetAllUsers
+        [Authorize(Roles = "Admin")] // Beveiligd met Identity Roles
         [HttpGet("GetAllUsers")]
         public async Task<IActionResult> GetAllUsers()
         {
-            try
-            {
-                var result = await _context.Gebruiker.ToListAsync();
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = "Databasefout.", error = ex.Message });
-            }
+            // We gebruiken _context.Users omdat UserManager geen simpele "ToList" heeft voor alle types
+            var users = await _context.Users.ToListAsync();
+            return Ok(users);
         }
 
-        [Authorize(Roles = "Admin")] // Alleen Admin mag verwijderen
+        // DELETE: api/Gebruiker/{id}
+        [Authorize(Roles = "Admin")]
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteUser(int id)
+        public async Task<IActionResult> DeleteUser(string id) // Let op: ID is nu een string!
         {
-            try
+            var user = await _userManager.FindByIdAsync(id);
+            if (user == null) return NotFound("Gebruiker niet gevonden.");
+
+            var result = await _userManager.DeleteAsync(user);
+            
+            if (result.Succeeded)
             {
-                var result = await _context.Gebruiker.FindAsync(id);
-                if (result == null) return NotFound();
-
-                _context.Gebruiker.Remove(result);
-                await _context.SaveChangesAsync();
-
                 return NoContent();
             }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = "Databasefout.", error = ex.Message });
-            }
+
+            return BadRequest(result.Errors);
+        }
+
+  
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetUserById(string id) // Let op: ID is nu een string!
+        {
+            var user = await _userManager.FindByIdAsync(id);
+            if (user == null) return NotFound("Gebruiker niet gevonden.");
+            
+            return Ok(user);
         }
     }
 }

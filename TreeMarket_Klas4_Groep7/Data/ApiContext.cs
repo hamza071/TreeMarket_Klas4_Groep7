@@ -1,21 +1,30 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore; // <--- NIEUW: Deze moet erbij!
 using System.Security.Cryptography;
 using TreeMarket_Klas4_Groep7.Models;
 using TreeMarket_Klas4_Groep7.Models.DTO;
 
 namespace TreeMarket_Klas4_Groep7.Data
 {
-    public class ApiContext : DbContext
+    // AANGEPAST: Erft nu van IdentityDbContext<Gebruiker> in plaats van DbContext
+    public class ApiContext : IdentityDbContext<Gebruiker>
     {
         public DbSet<Product> Product { get; set; }
-        public DbSet<Gebruiker> Gebruiker { get; set; }
+        // DbSet<Gebruiker> hoeft eigenlijk niet meer (zit in IdentityDbContext als 'Users'), 
+        // maar je mag hem laten staan als je oude code 'context.Gebruiker' gebruikt.
+        // public DbSet<Gebruiker> Gebruiker { get; set; } 
+
         public DbSet<Veiling> Veiling { get; set; }
         public DbSet<Dashboard> Dashboard { get; set; }
         public DbSet<Claim> Claim { get; set; }
         public DbSet<Leverancier> Leverancier { get; set; }
         public DbSet<Bid> Bids { get; set; }
+        
+        // Vergeet de andere sub-types niet als je die apart wilt kunnen aanroepen!
+        public DbSet<Klant> Klant { get; set; }
+        public DbSet<Veilingsmeester> Veilingsmeester { get; set; }
 
 
         public ApiContext(DbContextOptions<ApiContext> options) : base(options)
@@ -24,11 +33,14 @@ namespace TreeMarket_Klas4_Groep7.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            // BELANGRIJK: Deze 'base' call moet als EERSTE staan.
+            // Dit zorgt ervoor dat Identity alle tabellen (AspNetRoles, etc.) aanmaakt.
             base.OnModelCreating(modelBuilder);
 
-            // === HIER ZAT HET PROBLEEM ===
-            // Gebruik ToTable("Naam") om aan te geven dat het aparte tabellen zijn in SQL
-            modelBuilder.Entity<Gebruiker>().ToTable("Gebruiker");
+            // === JOUW TABEL NAMEN ===
+            // Hiermee overschrijf je de standaard Identity namen (zoals AspNetUsers)
+            // naar je eigen namen. Dit is goed!
+            modelBuilder.Entity<Gebruiker>().ToTable("");
             modelBuilder.Entity<Klant>().ToTable("Klant");
             modelBuilder.Entity<Leverancier>().ToTable("Leverancier");
             modelBuilder.Entity<Veilingsmeester>().ToTable("Veilingsmeester");
@@ -71,12 +83,8 @@ namespace TreeMarket_Klas4_Groep7.Data
             modelBuilder.Entity<Veiling>()
                 .Property(v => v.StartPrijs)
                 .HasColumnType("decimal(18,2)");
-            //modelBuilder.Entity<Veiling>()
-            //    .Property(v => v.EindPrijs)
-            //    .HasColumnType("decimal(18,2)");
-
-            // LET OP: Ik heb HuidigePrijs hier weggehaald, want die had je ook uit je SQL script gehaald!
-            // Als je die laat staan, crasht hij straks weer.
+                
+            // (Je had HuidigePrijs uitgecommentarieerd, die laat ik hier ook weg)
         }
     }
 }

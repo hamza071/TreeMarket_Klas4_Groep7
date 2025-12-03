@@ -183,51 +183,50 @@ function AuthPage() {
                 setServerError("Er ging iets mis bij het registreren (server niet bereikbaar).");
             }
         } else {
-            // ========== INLOGGEN ==========
+            // ========== INLOGGEN (AANGEPAST VOOR IDENTITY) ==========
             try {
-                const response = await fetch("https://localhost:7054/api/Gebruiker/login", {
+                // 1. URL AANGEPAST: De standaard Identity URL is /login
+                const response = await fetch("https://localhost:7054/login", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
                         email: formData.email,
-                        wachtwoord: formData.wachtwoord,
+                        password: formData.wachtwoord, // 2. VELDNAAM AANGEPAST: Identity verwacht 'password'
                     }),
                 });
 
                 const data = await response.json().catch(() => null);
                 console.log("Login response:", response, data);
 
-                //Controlleert of de gegevens wel overeenkomen (wordt al in de gebruikerscontroller gedaan)
                 if (!response.ok) {
+                    // Identity stuurt vaak fouten in 'detail' veld bij standaard endpoints
                     setServerError(
-                        data?.message || "E-mailadres of wachtwoord is onjuist."
+                        data?.detail || "E-mailadres of wachtwoord is onjuist."
                     );
                     return;
                 }
 
-                    console.log("Login response:", data);
-                    
-                    
-                    if (data.token) {
-                        localStorage.setItem("token", data.token);
+                // 3. TOKEN OPSLAAN (AANGEPAST: accessToken)
+                if (data.accessToken) {
+                    localStorage.setItem("token", data.accessToken); // Identity noemt het 'accessToken'
 
-                        // Optioneel: Sla ook rol en ID op als je die nodig hebt voor menu's etc.
-                        if (data.rol) localStorage.setItem("rol", data.rol);
-                        if (data.gebruikerId) localStorage.setItem("gebruikerId", data.gebruikerId);
-                    }
-                    
-
-                    setServerSuccess("Succesvol ingelogd!");
-
-                    // Navigeren naar home
-                    navigate("/home");
-    
-                } catch (err) {
-                    console.error(err);
-                    setServerError("Er ging iets mis bij het inloggen (server niet bereikbaar).");
+                    // LET OP: Standaard Identity stuurt GEEN rol of ID terug in de platte tekst.
+                    // Die zitten nu VERSTOPPT in het token. 
+                    // Je kunt ze hier niet zomaar opslaan zonder 'jwt-decode' te gebruiken.
+                    // Voor nu laten we dat even weg zodat je inlogt werkt.
                 }
+
+                setServerSuccess("Succesvol ingelogd!");
+
+                // Navigeren naar home
+                navigate("/home");
+
+            } catch (err) {
+                console.error(err);
+                setServerError("Er ging iets mis bij het inloggen (server niet bereikbaar).");
             }
-        };
+        }
+    };
     
         return (
             <div className="auth-page">

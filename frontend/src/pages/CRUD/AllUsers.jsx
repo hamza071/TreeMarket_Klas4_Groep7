@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-// 1. Importeer je slimme functie
+// We importeren de authFetch zodat we de token mee kunnen geven 
 import { authFetch } from "../../apiClient";
 function AllUsers() {
     const [users, setUsers] = useState([]);
