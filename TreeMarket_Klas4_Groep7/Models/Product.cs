@@ -8,8 +8,7 @@ namespace TreeMarket_Klas4_Groep7.Models
         [Key]
         public int ProductId { get; set; }
         [Required]
-        public string Foto { get; set; }
-        [Required]
+        public string? Foto { get; set; }
         public string Artikelkenmerken { get; set; }
         [Required]
         public int Hoeveelheid { get; set; }

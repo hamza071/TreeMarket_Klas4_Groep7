@@ -7,7 +7,7 @@ const defaultForm = {
     quantity: '',
     description: '',
     image: null,
-    minPrice: '', // minimumprijs door leverancier
+    minPrice: '',
 };
 
 function UploadAuctionPage({ addNewLot }) {
@@ -22,27 +22,88 @@ function UploadAuctionPage({ addNewLot }) {
         }
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
 
         if (!form.minPrice || Number(form.minPrice) <= 0) {
             return alert('Vul een geldige minimumprijs in.');
         }
 
-        const newLot = {
-            code: 'X' + Math.floor(Math.random() * 100000),
-            name: form.title,
-            specs: form.variety,
-            lots: form.quantity,
-            description: form.description,
-            image: form.image ? URL.createObjectURL(form.image) : null,
-            minPrice: Number(form.minPrice), // minimumprijs ingesteld door leverancier
-            status: 'pending', // verschijnt pas bij veiling na publicatie
+        // Product payload voor backend
+        const productPayload = {
+            Foto: form.image
+                ? URL.createObjectURL(form.image)
+                : "https://dummyimage.com/600x400/000/fff.png&text=Placeholder",
+            Artikelkenmerken: form.variety || form.title,
+            Hoeveelheid: Number(form.quantity) || 1,
+            MinimumPrijs: Number(form.minPrice),
+            Dagdatum: new Date().toISOString(),
+            LeverancierID: 2 // PAS AAN: echte leverancier id
         };
 
-        addNewLot(newLot);
-        setForm(defaultForm);
-        alert('Kavel toegevoegd! Deze verschijnt pas bij de veiling na publicatie door de veilingmeester.');
+        try {
+            // POST naar backend via proxy
+            const productResp = await fetch('/api/product', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(productPayload)
+            });
+
+            if (!productResp.ok) {
+                const err = await productResp.json().catch(() => null);
+                return alert('Kon product niet aanmaken: ' + (err?.message || productResp.statusText));
+            }
+
+            const createdProduct = await productResp.json();
+            const productId = createdProduct?.productId ?? createdProduct?.ProductId;
+
+            if (!productId) {
+                return alert('Geen productId ontvangen van backend.');
+            }
+
+            // Maak nieuwe veiling
+            const newLot = {
+                Code: 'X' + Math.floor(Math.random() * 100000),
+                Naam: form.title,
+                Beschrijving: form.description,
+                Lots: Number(form.quantity) || 1,
+                Image: productPayload.Foto,
+                Status: 'pending',
+                ProductID: productId
+            };
+
+            const veilingResp = await fetch('/api/veiling', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newLot)
+            });
+
+            if (!veilingResp.ok) {
+                const err = await veilingResp.json().catch(() => null);
+                return alert('Kon veiling niet aanmaken: ' + (err?.message || veilingResp.statusText));
+            }
+
+            const createdVeiling = await veilingResp.json();
+
+            // Update parent state
+            addNewLot({
+                code: createdVeiling.code ?? newLot.Code,
+                name: createdVeiling.naam ?? newLot.Naam,
+                specs: productPayload.Artikelkenmerken,
+                lots: createdVeiling.lots ?? newLot.Lots,
+                description: createdVeiling.beschrijving ?? newLot.Beschrijving,
+                image: productPayload.Foto,
+                minPrice: productPayload.MinimumPrijs,
+                status: createdVeiling.status ?? newLot.Status,
+                productId: productId
+            });
+
+            setForm(defaultForm);
+            alert('Kavel toegevoegd en opgeslagen in database!');
+        } catch (err) {
+            console.error(err);
+            alert('Er ging iets mis bij het aanmaken van de kavel.');
+        }
     };
 
     return (

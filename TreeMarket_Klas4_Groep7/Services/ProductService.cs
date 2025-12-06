@@ -75,5 +75,12 @@ namespace TreeMarket_Klas4_Groep7.Services
             await _context.SaveChangesAsync();
             return product;
         }
+
+        public async Task<Product> GetProductById(int id)
+        {
+            return await _context.Product
+                .Include(p => p.Leverancier) // optioneel, als je leverancier info wilt
+                .FirstOrDefaultAsync(p => p.ProductId == id);
+        }
     }
 }
