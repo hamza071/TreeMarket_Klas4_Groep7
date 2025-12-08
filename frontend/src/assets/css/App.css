@@ -1,4 +1,8 @@
 ﻿/*De styling voor de applicatie zelf*/
+body, html {
+    overflow-x: hidden;
+}
+
 .app-shell {
     min-height: 100vh;
     display: flex;
@@ -46,8 +50,7 @@
 
 .main-nav {
     display: flex;
-    gap: 1rem;
-    align-items: center;
+    gap: 1.5rem;
 }
 
 .nav-link {
@@ -185,6 +188,8 @@
     padding: 2.5rem;
     border-radius: 32px;
     box-shadow: 0 25px 45px rgba(16, 35, 31, 0.08);
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .hero-copy {
@@ -216,7 +221,8 @@
 
 .featured-media {
     width: 100%;
-    height: 100%;
+    height: auto;
+    display: block;
     object-fit: cover;
 }
     
@@ -275,6 +281,7 @@
 
 .table-wrapper {
     border-radius: 16px;
+    width: 100%;
     overflow-x: auto;
 }
 
@@ -526,21 +533,31 @@
     gap: 1rem;
 }
 
+/* De auth (registratie en login) scherm */
 .auth-card {
     display: grid;
-    grid-template-columns: minmax(280px, 400px) 320px;
-    gap: 0;
+    grid-template-columns: 1fr 1fr;
+    max-width: 900px;
+    margin: 2rem auto;
     background: #ffffff;
-    border-radius: 32px;
+    border-radius: 12px;
     overflow: hidden;
-    box-shadow: 0 28px 46px rgba(16, 35, 31, 0.12);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
 }
 
 .auth-card__form {
-    padding: 3rem;
+    padding: 2rem;
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
+}
+
+/* Afbeelding */
+.auth-card__media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
 }
 
 @@ -450,50 +637,65 @@ justify-content: center;
@@ -648,36 +665,64 @@
 
     /*  Hamburgermenu stukje  */
     .main-nav {
-        display: flex;
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 0.8rem;
         position: absolute;
-        top: 80px;
-        left: 20px;
-        right: 20px;
+        margin-top: 20px;
+        top: 60px;
+        left: 0;
+        width: 100%;
         background: white;
-        padding: 1.25rem;
-        border-radius: 20px;
-        box-shadow: 0 15px 35px rgba(16, 35, 31, 0.12);
-        opacity: 0;
-        pointer-events: none;
-        transform: translateY(-10px);
-        transition: all 0.25s ease;
-        z-index: 100;
+        flex-direction: column;
+        padding: 1rem;
+        display: none; /* <-- menu dicht */
+        border-bottom: 1px solid #ddd;
     }
 
-    .main-nav.is-open {
-        opacity: 1;
-        pointer-events: auto;
-        transform: translateY(0);
-    }
+
+     .main-nav.is-open {
+        display: flex; /* <-- menu open */
+     }
 
     /* Zet user-chip apart */
     .main-nav .user-chip {
         margin-top: 1rem; /* beetje ruimte boven */
         align-self: flex-end; /* rechts in de kolom */
     }
+
+    /*========Begin Dashboard======*/
+
+    /* Hero altijd in het midden op mobiel */
+    .dashboard-hero {
+        display: grid;
+        grid-template-columns: 1fr;
+        text-align: center;
+        gap: 0.6rem;
+        padding: 0.5rem 0;
+    }
+
+    .hero-copy {
+        text-align: center;
+        padding: 0 0.5rem;
+    }
+
+    /*Deze klasse zorgt ervoor dat de kopjes kleiner worden */
+    .hero-copy h1 {
+        font-size: 1.4rem;
+        line-height: 1.2;
+        margin-bottom: 0.5rem;
+    }
+
+    .hero-copy p {
+        font-size: 0.85rem;
+        opacity: 0.85;
+        margin-bottom: 0.4rem;
+    }
+
+    /* Featured card onder de tekst */
+    .featured-card {
+        margin-top: 0.5rem;
+        width: 100%;
+    }
+    /*===Einde van de dashboard===*/
 
     .hamburger {
         display: flex;
@@ -693,9 +738,9 @@
     /*  De styling voor de mobiele applicatie */
 
     .app-header {
-        flex-direction: row;
-        justify-content: space-between;
-        padding: 1rem 1.25rem;
+        min-height: 70px; /* consistent met je hamburger + brand */
+        position: relative; /* verplicht voor absolute nav */
+        align-items: center;
     }
 
     .page-area {
@@ -750,8 +795,19 @@
         grid-template-columns: 1fr;
     }
 
+    .auth-card__media {
+        order: -1; 
+        height: 150px; 
+        overflow: hidden;
+    }
+
+    .auth-card__media img {
+        height: 100%;
+        object-fit: cover;
+    }
+
     .auth-card__form {
-        padding: 2rem;
+        padding: 1.5rem;
     }
 }
 

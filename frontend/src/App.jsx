@@ -86,7 +86,7 @@ function App() {
                 <div className="brand">TREE MARKET</div>
 
                 {/* Nav menu */}
-                <nav className="main-nav" aria-label="Primaire navigatie">
+                <nav className={`main-nav ${menuOpen ? "is-open" : ""}`} aria-label="Primaire navigatie">
                     {NAVIGATION_ITEMS.map((item, index) => (
                         <Link
                             key={item.id}
@@ -94,6 +94,7 @@ function App() {
                             className="nav-link"
                             ref={el => (navigationRefs.current[index] = el)}
                             onKeyDown={e => handleNavKeyDown(e, index)}
+                            onClick={() => setMenuOpen(false)} 
                         >
                             {item.label}
                         </Link>
