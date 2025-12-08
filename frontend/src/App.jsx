@@ -33,6 +33,8 @@ const NAVIGATION_ITEMS = [
 
 function App() {
     const navigationRefs = useRef([]);
+    const [menuOpen, setMenuOpen] = useState(false);
+    const toggleMenu = () => setMenuOpen(prev => !prev);
 
     const handleNavKeyDown = useCallback((event, currentIndex) => {
         if (event.key === "ArrowRight") {
@@ -67,7 +69,23 @@ function App() {
             <a className="skip-link" href="#main-content">Ga direct naar de hoofdinhoud</a>
 
             <header className="app-header">
+
+                {/* Hamburger links (alleen zichtbaar op mobiel) */}
+                <button
+                    className={`hamburger ${menuOpen ? "is-active" : ""}`}
+                    onClick={toggleMenu}
+                    aria-label="Menu openen/sluiten">
+
+                    {/*Voor de hamburger menu*/}
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+
+                {/* Brand gecentreerd */}
                 <div className="brand">TREE MARKET</div>
+
+                {/* Nav menu */}
                 <nav className="main-nav" aria-label="Primaire navigatie">
                     {NAVIGATION_ITEMS.map((item, index) => (
                         <Link
@@ -81,8 +99,15 @@ function App() {
                         </Link>
                     ))}
                 </nav>
+
+                {/* User-chip rechts */}
                 <Link className="user-chip" to="/auth">User</Link>
+
             </header>
+
+
+
+
 
             <main className="page-area" id="main-content">
                 <Routes>
