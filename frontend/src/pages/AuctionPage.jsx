@@ -1,46 +1,62 @@
 ﻿import { useState, useEffect } from 'react';
 import '../assets/css/AuctionPage.css';
 
-function AuctionPage({ currentUser }) { // currentUser bevat veilingsmeesterID
+function AuctionPage({ currentUser }) {
     const [lots, setLots] = useState([]); // kavels van backend
     const [veilingen, setVeilingen] = useState([]); // actieve veilingen
-    const [timerInput, setTimerInput] = useState(3600); // standaard timer 1 uur
+    const [loading, setLoading] = useState(true);
 
-    // Haal kavels op bij mount
     useEffect(() => {
-        fetch('/api/Veiling')
-            .then(res => res.json())
-            .then(data => setLots(data))
-            .catch(err => console.error(err));
+        const fetchLots = async () => {
+            try {
+                const response = await fetch('https://localhost:7054/api/Product/pending');
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const data = await response.json();
+                setLots(data);
+            } catch (err) {
+                console.error("Fout bij ophalen pending kavels:", err);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchLots();
     }, []);
 
-    // Filter alleen pending kavels
+    if (!currentUser) return <p>Even wachten, gebruiker wordt geladen...</p>;
+    if (loading) return <p>Even wachten, kavels worden geladen...</p>;
+
     const pendingLots = lots.filter(lot => lot.status === 'pending');
+    if (pendingLots.length === 0) return <p>Geen kavels beschikbaar om te publiceren.</p>;
 
     const createVeiling = async (lot) => {
-        const response = await fetch('/api/Veiling/CreateVeiling', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                startPrijs: lot.startPrijs,
-                prijsStap: lot.prijsStap,
-                productID: lot.productID,
-                veilingsmeesterID: currentUser.id, // dynamisch
-                timerInSeconden: timerInput
-            })
-        });
+        try {
+            const response = await fetch('https://localhost:7054/api/Veiling/CreateVeiling', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    startPrijs: lot.minPrice + 1, // bv startprijs iets hoger dan minPrice
+                    prijsStap: 1,
+                    productID: lot.productID,
+                    veilingsmeesterID: currentUser.id,
+                    timerInSeconden: 3600
+                })
+            });
 
-        if (response.ok) {
+            if (!response.ok) {
+                const errorText = await response.text();
+                return alert("Fout bij het aanmaken van veiling: " + errorText);
+            }
+
             const veiling = await response.json();
-            setVeilingen(prev => [...prev, veiling]); // update UI
-        } else {
-            console.error('Fout bij het aanmaken van veiling');
+            setVeilingen(prev => [...prev, veiling]);
+
+            // **Verwijder de kavel uit pending list**
+            setLots(prev => prev.filter(l => l.productID !== lot.productID));
+        } catch (error) {
+            console.error("Fout bij het publiceren van kavel:", error);
+            alert("Er ging iets mis bij het publiceren van de kavel.");
         }
     };
-
-    if (pendingLots.length === 0) {
-        return <p>Geen kavels beschikbaar om te publiceren.</p>;
-    }
 
     return (
         <div className="auction-page">
@@ -49,35 +65,14 @@ function AuctionPage({ currentUser }) { // currentUser bevat veilingsmeesterID
                 <p>Bekijk de kavels die door leveranciers zijn toegevoegd en publiceer ze.</p>
             </header>
 
-            <div className="timer-input">
-                <label>Timer (seconden): </label>
-                <input
-                    type="number"
-                    value={timerInput}
-                    onChange={(e) => setTimerInput(Number(e.target.value))}
-                    min={60}
-                />
-            </div>
-
             <div className="auction-grid">
                 {pendingLots.map(lot => (
                     <article key={lot.code} className="auction-card">
                         <h2>{lot.name}</h2>
                         <p>{lot.description}</p>
                         <span>{lot.lots} stuks</span>
-                        {lot.image && (
-                            <img
-                                src={lot.image}
-                                alt={lot.name}
-                                className="auction-card-image"
-                            />
-                        )}
-                        <button
-                            className="primary-action"
-                            onClick={() => createVeiling(lot)}
-                        >
-                            Start Veiling
-                        </button>
+                        {lot.image && <img src={lot.image} alt={lot.name} className="auction-card-image" />}
+                        <button className="primary-action" onClick={() => createVeiling(lot)}>Start Veiling</button>
                     </article>
                 ))}
             </div>

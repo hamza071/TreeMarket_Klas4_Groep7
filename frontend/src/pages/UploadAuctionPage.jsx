@@ -7,14 +7,15 @@ const defaultForm = {
     quantity: '',
     description: '',
     image: null,
-    minPrice: '', // minimumprijs door leverancier
+    minPrice: '',
 };
 
-function UploadAuctionPage({ addNewLot }) {
+function UploadAuctionPage() {
     const [form, setForm] = useState(defaultForm);
 
     const handleChange = (e) => {
         const { name, value, files } = e.target;
+
         if (name === 'image') {
             setForm(prev => ({ ...prev, image: files[0] }));
         } else {
@@ -22,27 +23,43 @@ function UploadAuctionPage({ addNewLot }) {
         }
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
 
         if (!form.minPrice || Number(form.minPrice) <= 0) {
-            return alert('Vul een geldige minimumprijs in.');
+            return alert("Vul een geldige minimumprijs in.");
         }
 
-        const newLot = {
-            code: 'X' + Math.floor(Math.random() * 100000),
-            name: form.title,
-            specs: form.variety,
-            lots: form.quantity,
-            description: form.description,
-            image: form.image ? URL.createObjectURL(form.image) : null,
-            minPrice: Number(form.minPrice), // minimumprijs ingesteld door leverancier
-            status: 'pending', // verschijnt pas bij veiling na publicatie
-        };
+        if (!form.title.trim() || !form.quantity) {
+            return alert("Productnaam en aantal stuks zijn verplicht.");
+        }
 
-        addNewLot(newLot);
-        setForm(defaultForm);
-        alert('Kavel toegevoegd! Deze verschijnt pas bij de veiling na publicatie door de veilingmeester.');
+        const formData = new FormData();
+        formData.append("Title", form.title);
+        if (form.variety) formData.append("Variety", form.variety);
+        formData.append("Quantity", form.quantity);
+        if (form.description) formData.append("Description", form.description);
+        formData.append("MinPrice", form.minPrice);
+        if (form.image) formData.append("Image", form.image);
+        formData.append("LeverancierID", 2); // tijdelijk, vervang met dynamisch ID indien nodig
+
+        try {
+            const response = await fetch("https://localhost:7054/api/Product/upload", {
+                method: "POST",
+                body: formData
+            });
+
+            if (!response.ok) {
+                const err = await response.text();
+                return alert("Fout vanuit server: " + err);
+            }
+
+            alert("Kavel is succesvol geüpload!");
+            setForm(defaultForm);
+
+        } catch (error) {
+            alert("Er ging iets mis: " + error.message);
+        }
     };
 
     return (
@@ -50,7 +67,7 @@ function UploadAuctionPage({ addNewLot }) {
             <header className="section-header">
                 <h1>Upload nieuwe veiling (leverancier)</h1>
                 <p id="upload-intro">
-                    Voer je kavelgegevens in. Minimumprijs wordt door jou ingesteld, beginprijs en sluitingstijd later door de veilingmeester.
+                    Voer je kavelgegevens in. Minimumprijs wordt door jou ingesteld.
                 </p>
             </header>
 
@@ -98,7 +115,6 @@ function UploadAuctionPage({ addNewLot }) {
                             value={form.description}
                             onChange={handleChange}
                             rows="4"
-                            placeholder="Beschrijf kwaliteit, verpakking en keurmerken"
                         />
                     </label>
 

@@ -1,5 +1,5 @@
 ﻿import { Link, Routes, Route } from "react-router-dom";
-import { useRef, useCallback, useState } from "react";
+import { useRef, useCallback, useState, useEffect } from "react";
 
 // Styling
 import './assets/css/App.css'
@@ -62,6 +62,30 @@ function App() {
         ))
     }
 
+    // ---------- NIEUW: currentUser ophalen ----------
+    const [currentUser, setCurrentUser] = useState(null);
+    const [loadingUser, setLoadingUser] = useState(true);
+
+    useEffect(() => {
+        const fetchCurrentUser = async () => {
+            try {
+                const res = await fetch('https://localhost:7054/api/User/me'); // endpoint dat ingelogde gebruiker teruggeeft
+                if (!res.ok) throw new Error('Kon gebruiker niet ophalen');
+                const data = await res.json();
+                setCurrentUser(data);
+            } catch (err) {
+                console.error("Fout bij ophalen gebruiker:", err);
+            } finally {
+                setLoadingUser(false);
+            }
+        };
+        fetchCurrentUser();
+    }, []);
+
+    if (loadingUser) return <p>Even wachten, gebruiker wordt geladen...</p>;
+
+    // ------------------------------------------------
+
     return (
         <div className="app-shell">
             <a className="skip-link" href="#main-content">Ga direct naar de hoofdinhoud</a>
@@ -89,9 +113,9 @@ function App() {
                     {/* Dashboard krijgt alleen gepubliceerde kavels */}
                     <Route path="/dashboard" element={<DashboardPage lots={lots.filter(lot => lot.status === 'published')} />} />
 
-                    {/* Veiling krijgt alle kavels */}
-                    <Route path="/veiling" element={<AuctionPage lots={lots} />} />
-                    <Route path="/veiling/:code" element={<AuctionDetailPage lots={lots} updateLot={updateLot} />} />
+                    {/* Veiling krijgt alle kavels + currentUser */}
+                    <Route path="/veiling" element={<AuctionPage lots={lots} currentUser={currentUser} />} />
+                    <Route path="/veiling/:code" element={<AuctionDetailPage lots={lots} updateLot={updateLot} currentUser={currentUser} />} />
 
                     {/* Upload voor leverancier */}
                     <Route path="/upload" element={<UploadAuctionPage addNewLot={addNewLot} />} />

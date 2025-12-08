@@ -101,27 +101,27 @@ builder.Services.AddScoped<PasswordHasher<Gebruiker>>();
 // ===========
 
 // Tijdelijk voor testen
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowAll",
-        policy =>
-        {
-            policy.AllowAnyOrigin()
-                  .AllowAnyHeader()
-                  .AllowAnyMethod();
-        });
-});
-
 //builder.Services.AddCors(options =>
 //{
-//    options.AddPolicy("AllowReactDev", policy =>
-//    {
-//        //De nummer van de localhost staat op basis van hoe wij npm run dev starten.
-//        policy.WithOrigins("http://localhost:55125")
-//              .AllowAnyHeader()
-//              .AllowAnyMethod();
-//    });
+//    options.AddPolicy("AllowAll",
+//        policy =>
+//        {
+//            policy.AllowAnyOrigin()
+//                  .AllowAnyHeader()
+//                  .AllowAnyMethod();
+//        });
 //});
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowReactDev", policy =>
+    {
+        //De nummer van de localhost staat op basis van hoe wij npm run dev starten.
+        policy.WithOrigins("http://localhost:55125")
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
 
 //=====De builder voor de JWT token.=====
 builder.Services.AddAuthentication(options =>
@@ -171,7 +171,7 @@ app.UseRouting();
 //CORS wordt opgeroepen.
 //Dit zorgt ervoor dat de localhost binnen
 //tijdelijk
-app.UseCors("AllowAll"); //app.UseCors("AllowReactDev");
+app.UseCors("AllowReactDev"); //app.UseCors("AllowAll");
 app.UseAuthentication();
 //Wordt waarschijnlijk gebruikt voor rechten en rollen
 app.UseAuthorization();
