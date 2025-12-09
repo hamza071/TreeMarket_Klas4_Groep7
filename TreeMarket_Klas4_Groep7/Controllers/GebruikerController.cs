@@ -145,5 +145,40 @@ namespace TreeMarket_Klas4_Groep7.Controllers
             
             return Ok(user);
         }
+
+        // ================= BEVEILIGDE ROUTE: Huidige ingelogde gebruiker =================
+        [Authorize]
+        [HttpGet("me")]
+        public async Task<IActionResult> GetCurrentUser()
+        {
+            try
+            {
+                // Haal GebruikerId uit de JWT claims
+                var userIdClaim = User.FindFirst("GebruikerId")?.Value;
+                if (userIdClaim == null) return Unauthorized("Gebruiker niet gevonden in token.");
+
+                int userId = int.Parse(userIdClaim);
+
+                var gebruiker = await _context.Gebruiker
+                    .Where(g => g.GebruikerId == userId)
+                    .Select(g => new
+                    {
+                        g.GebruikerId,
+                        g.Naam,
+                        g.Email,
+                        g.Rol,
+                        g.Telefoonnummer
+                    })
+                    .FirstOrDefaultAsync();
+
+                if (gebruiker == null) return NotFound("Gebruiker niet gevonden.");
+
+                return Ok(gebruiker);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Databasefout bij ophalen huidige gebruiker.", error = ex.Message });
+            }
+        }
     }
 }
