@@ -1,4 +1,4 @@
-﻿import { Link, Routes, Route } from "react-router-dom";
+﻿import { Link, Routes, Route, Navigate } from "react-router-dom";
 import { useRef, useCallback, useState, useEffect } from "react";
 
 // Styling
@@ -59,66 +59,43 @@ function App() {
         ))
     }
 
- ///*   // ---------- currentUser ophalen ----------
- //   const [currentUser, setCurrentUser] = useState(null);
- //   const [loadingUser, setLoadingUser] = useState(true);
- //   const [userError, setUserError] = useState(null);
-
- //   useEffect(() => {
- //       const fetchCurrentUser = async () => {
- //           const url = 'https://localhost:7054/api/User/me'; // pas aan indien endpoint anders
- //           console.log("Fetching current user vanaf:", url);
-
- //           try {
- //               const res = await fetch(url, { credentials: 'include' });
- //               if (!res.ok) {
- //                   const text = await res.text();
- //                   throw new Error(`Kon gebruiker niet ophalen: ${text}`);
- //               }
- //               const data = await res.json();
- //               console.log("Current user:", data);
- //               setCurrentUser(data);
- //           } catch (err) {
- //               console.error("Fout bij ophalen gebruiker:", err);
- //               setUserError(err.message);
- //           } finally {
- //               setLoadingUser(false);
- //           }
- //       };
- //       fetchCurrentUser();
- //   }, []);
-
- //   if (loadingUser) return <p>Even wachten, gebruiker wordt geladen...</p>;
- //   if (userError) return <p>{userError}</p>; */
-
-    // ---------- NIEUW: currentUser ophalen ----------
+    // ---------- currentUser ophalen ----------
     const [currentUser, setCurrentUser] = useState(null);
     const [loadingUser, setLoadingUser] = useState(true);
 
     useEffect(() => {
         const fetchCurrentUser = async () => {
-            try {
-                // Optie 1: JWT token in localStorage (na login)
-                const token = localStorage.getItem("jwtToken");
+            const token = localStorage.getItem("jwtToken");
+            if (!token) {
+                console.error("Geen JWT token gevonden. Log in a.u.b.");
+                setLoadingUser(false);
+                return;
+            }
 
+            try {
                 const res = await fetch('https://localhost:7054/api/Gebruiker/me', {
                     method: "GET",
-                    headers: token ? {
+                    headers: {
                         "Authorization": `Bearer ${token}`,
                         "Content-Type": "application/json"
-                    } : undefined,
-                    credentials: 'include' // Als je HttpOnly cookie gebruikt
+                    }
                 });
 
                 if (!res.ok) {
-                    throw new Error(`Kon gebruiker niet ophalen: ${res.status} ${res.statusText}`);
+                    if (res.status === 401) {
+                        throw new Error("Niet ingelogd of token ongeldig. Log in a.u.b.");
+                    } else {
+                        throw new Error(`Kon gebruiker niet ophalen: ${res.status} ${res.statusText}`);
+                    }
                 }
 
                 const data = await res.json();
                 setCurrentUser(data);
+                console.log("Current user:", data);
 
             } catch (err) {
                 console.error("Fout bij ophalen gebruiker:", err);
+                setCurrentUser(null);
             } finally {
                 setLoadingUser(false);
             }
@@ -127,7 +104,20 @@ function App() {
         fetchCurrentUser();
     }, []);
 
+    const handleLogout = () => {
+        localStorage.removeItem("jwtToken");
+        setCurrentUser(null);
+    };
+
     if (loadingUser) return <p>Even wachten, gebruiker wordt geladen...</p>;
+
+    // ---------- ProtectedRoute component ----------
+    const ProtectedRoute = ({ children }) => {
+        if (!currentUser) {
+            return <Navigate to="/auth" replace />
+        }
+        return children;
+    };
 
     return (
         <div className="app-shell">
@@ -148,7 +138,10 @@ function App() {
                         </Link>
                     ))}
                 </nav>
-                <Link className="user-chip" to="/auth">User</Link>
+                {currentUser
+                    ? <button className="user-chip" onClick={handleLogout}>Uitloggen</button>
+                    : <Link className="user-chip" to="/auth">Login</Link>
+                }
             </header>
 
             <main className="page-area" id="main-content">
@@ -156,15 +149,31 @@ function App() {
                     <Route path="/dashboard" element={<DashboardPage lots={lots.filter(lot => lot.status === 'published')} />} />
                     <Route path="/veiling" element={<AuctionPage lots={lots} currentUser={currentUser} />} />
                     <Route path="/veiling/:code" element={<AuctionDetailPage lots={lots} updateLot={updateLot} currentUser={currentUser} />} />
-                    <Route path="/upload" element={<UploadAuctionPage addNewLot={addNewLot} />} />
+                    <Route path="/upload" element={
+                        <ProtectedRoute>
+                            <UploadAuctionPage addNewLot={addNewLot} />
+                        </ProtectedRoute>
+                    } />
                     <Route path="/reports" element={<ReportsPage />} />
-                    <Route path="/home" element={<HomePage />} />
+                    <Route path="/home" element={<DashboardPage lots={lots.filter(lot => lot.status === 'published')} />} />
                     <Route path="/about" element={<AboutUsPage />} />
-                    <Route path="/auth" element={<AuthPage />} />
-                    <Route path="/allusers" element={<AllUsers />} />
-                    <Route path="/idUser" element={<IdUser />} />
-                    <Route path="/deleteUser" element={<DeleteUser />} />
-                    <Route path="/logout" element={<LogOutUser />} />
+                    <Route path="/auth" element={<AuthPage setCurrentUser={setCurrentUser} />} />
+                    <Route path="/allusers" element={
+                        <ProtectedRoute>
+                            <AllUsers />
+                        </ProtectedRoute>
+                    } />
+                    <Route path="/idUser" element={
+                        <ProtectedRoute>
+                            <IdUser />
+                        </ProtectedRoute>
+                    } />
+                    <Route path="/deleteUser" element={
+                        <ProtectedRoute>
+                            <DeleteUser />
+                        </ProtectedRoute>
+                    } />
+                    <Route path="/logout" element={<LogOutUser handleLogout={handleLogout} />} />
                     <Route path="*" element={<DashboardPage lots={lots.filter(lot => lot.status === 'published')} />} />
                 </Routes>
             </main>
