@@ -15,7 +15,6 @@ function UploadAuctionPage() {
 
     const handleChange = (e) => {
         const { name, value, files } = e.target;
-
         if (name === 'image') {
             setForm(prev => ({ ...prev, image: files[0] }));
         } else {
@@ -44,20 +43,23 @@ function UploadAuctionPage() {
         formData.append("LeverancierID", 2); // tijdelijk, vervang met dynamisch ID indien nodig
 
         try {
-            const response = await fetch("https://localhost:7054/api/Product/upload", {
+            const response = await fetch("https://localhost:7054/api/Product/Upload", { // let op hoofdletter
                 method: "POST",
                 body: formData
             });
 
+            const text = await response.text();
+            console.log("Server response:", text);
+
             if (!response.ok) {
-                const err = await response.text();
-                return alert("Fout vanuit server: " + err);
+                return alert("Fout vanuit server: " + text);
             }
 
             alert("Kavel is succesvol geüpload!");
             setForm(defaultForm);
 
         } catch (error) {
+            console.error("Fout bij upload:", error);
             alert("Er ging iets mis: " + error.message);
         }
     };

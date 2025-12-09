@@ -12,7 +12,6 @@ import UploadAuctionPage from './pages/UploadAuctionPage'
 import ReportsPage from './pages/ReportsPage'
 import AuthPage from './pages/AuthPage'
 import AboutUsPage from './pages/AboutUsPage'
-import HomePage from './pages/HomePage'
 import AllUsers from './pages/CRUD/AllUsers'
 import IdUser from './pages/CRUD/IdUser'
 import DeleteUser from './pages/CRUD/DeleteUser'
@@ -48,12 +47,10 @@ function App() {
     // Alle kavels (status: pending / published)
     const [lots, setLots] = useState([])
 
-    // Leverancier voegt nieuwe kavel toe (status: pending)
     const addNewLot = (newLot) => {
         setLots(prev => [...prev, { ...newLot, status: 'pending' }])
     }
 
-    // Veilingmeester bewerkt kavel (voegt prijs en sluitingstijd toe en publiceert)
     const updateLot = (updatedLot) => {
         setLots(prev => prev.map(lot =>
             lot.code === updatedLot.code
@@ -62,6 +59,38 @@ function App() {
         ))
     }
 
+ ///*   // ---------- currentUser ophalen ----------
+ //   const [currentUser, setCurrentUser] = useState(null);
+ //   const [loadingUser, setLoadingUser] = useState(true);
+ //   const [userError, setUserError] = useState(null);
+
+ //   useEffect(() => {
+ //       const fetchCurrentUser = async () => {
+ //           const url = 'https://localhost:7054/api/User/me'; // pas aan indien endpoint anders
+ //           console.log("Fetching current user vanaf:", url);
+
+ //           try {
+ //               const res = await fetch(url, { credentials: 'include' });
+ //               if (!res.ok) {
+ //                   const text = await res.text();
+ //                   throw new Error(`Kon gebruiker niet ophalen: ${text}`);
+ //               }
+ //               const data = await res.json();
+ //               console.log("Current user:", data);
+ //               setCurrentUser(data);
+ //           } catch (err) {
+ //               console.error("Fout bij ophalen gebruiker:", err);
+ //               setUserError(err.message);
+ //           } finally {
+ //               setLoadingUser(false);
+ //           }
+ //       };
+ //       fetchCurrentUser();
+ //   }, []);
+
+ //   if (loadingUser) return <p>Even wachten, gebruiker wordt geladen...</p>;
+ //   if (userError) return <p>{userError}</p>; */
+
     // ---------- NIEUW: currentUser ophalen ----------
     const [currentUser, setCurrentUser] = useState(null);
     const [loadingUser, setLoadingUser] = useState(true);
@@ -69,22 +98,36 @@ function App() {
     useEffect(() => {
         const fetchCurrentUser = async () => {
             try {
-                const res = await fetch('https://localhost:7054/api/User/me'); // endpoint dat ingelogde gebruiker teruggeeft
-                if (!res.ok) throw new Error('Kon gebruiker niet ophalen');
+                // Optie 1: JWT token in localStorage (na login)
+                const token = localStorage.getItem("jwtToken");
+
+                const res = await fetch('https://localhost:7054/api/Gebruiker/me', {
+                    method: "GET",
+                    headers: token ? {
+                        "Authorization": `Bearer ${token}`,
+                        "Content-Type": "application/json"
+                    } : undefined,
+                    credentials: 'include' // Als je HttpOnly cookie gebruikt
+                });
+
+                if (!res.ok) {
+                    throw new Error(`Kon gebruiker niet ophalen: ${res.status} ${res.statusText}`);
+                }
+
                 const data = await res.json();
                 setCurrentUser(data);
+
             } catch (err) {
                 console.error("Fout bij ophalen gebruiker:", err);
             } finally {
                 setLoadingUser(false);
             }
         };
+
         fetchCurrentUser();
     }, []);
 
     if (loadingUser) return <p>Even wachten, gebruiker wordt geladen...</p>;
-
-    // ------------------------------------------------
 
     return (
         <div className="app-shell">
@@ -110,17 +153,10 @@ function App() {
 
             <main className="page-area" id="main-content">
                 <Routes>
-                    {/* Dashboard krijgt alleen gepubliceerde kavels */}
                     <Route path="/dashboard" element={<DashboardPage lots={lots.filter(lot => lot.status === 'published')} />} />
-
-                    {/* Veiling krijgt alle kavels + currentUser */}
                     <Route path="/veiling" element={<AuctionPage lots={lots} currentUser={currentUser} />} />
                     <Route path="/veiling/:code" element={<AuctionDetailPage lots={lots} updateLot={updateLot} currentUser={currentUser} />} />
-
-                    {/* Upload voor leverancier */}
                     <Route path="/upload" element={<UploadAuctionPage addNewLot={addNewLot} />} />
-
-                    {/* Overige pages */}
                     <Route path="/reports" element={<ReportsPage />} />
                     <Route path="/home" element={<HomePage />} />
                     <Route path="/about" element={<AboutUsPage />} />
@@ -129,8 +165,6 @@ function App() {
                     <Route path="/idUser" element={<IdUser />} />
                     <Route path="/deleteUser" element={<DeleteUser />} />
                     <Route path="/logout" element={<LogOutUser />} />
-
-                    {/* Fallback */}
                     <Route path="*" element={<DashboardPage lots={lots.filter(lot => lot.status === 'published')} />} />
                 </Routes>
             </main>
