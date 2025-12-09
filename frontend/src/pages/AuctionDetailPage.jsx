@@ -2,22 +2,34 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import '../assets/css/UploadAuctionPage.css';
 
-function AuctionDetailPage({ lots, updateLot }) {
+function AuctionDetailPage({ updateLot }) {
     const { code } = useParams();
     const navigate = useNavigate();
 
-    const lot = lots.find(l => l.code === code);
-
+    const [lot, setLot] = useState(null);
+    const [loading, setLoading] = useState(true);
     const [startPrice, setStartPrice] = useState('');
     const [closingTime, setClosingTime] = useState('');
 
     useEffect(() => {
-        if (!lot) {
-            alert('Kavel niet gevonden');
-            navigate('/veiling');
-        }
-    }, [lot, navigate]);
+        const fetchLot = async () => {
+            try {
+                const response = await fetch(`https://localhost:7054/api/Product/pending/${code}`);
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const data = await response.json();
+                setLot(data);
+            } catch (error) {
+                console.error("Fout bij het ophalen van kavel:", error);
+                alert("Kavel niet gevonden");
+                navigate('/veiling');
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchLot();
+    }, [code, navigate]);
 
+    if (loading) return <p>Gebruiker wordt geladen...</p>;
     if (!lot) return null;
 
     const handlePublish = () => {
@@ -32,8 +44,8 @@ function AuctionDetailPage({ lots, updateLot }) {
             closingTime: Number(closingTime),
             status: 'published',
             closingTimestamp,
-            startTimestamp: Date.now(), // start van veiling nu
-            currentPrice: Number(startPrice), // beginprijs voor dashboard
+            startTimestamp: Date.now(),
+            currentPrice: Number(startPrice),
         };
 
         updateLot(updatedLot);
@@ -52,16 +64,9 @@ function AuctionDetailPage({ lots, updateLot }) {
 
             <form className="upload-form" onSubmit={e => e.preventDefault()}>
                 <fieldset className="form-grid">
-                    <legend className="sr-only">Kavelgegevens</legend>
-
                     <label className="form-field">
                         <span className="form-label">Productnaam</span>
                         <input value={lot.name} disabled />
-                    </label>
-
-                    <label className="form-field">
-                        <span className="form-label">Variëteit</span>
-                        <input value={lot.specs} disabled />
                     </label>
 
                     <label className="form-field">
@@ -70,12 +75,7 @@ function AuctionDetailPage({ lots, updateLot }) {
                     </label>
 
                     <label className="form-field full-width">
-                        <span className="form-label">Omschrijving</span>
-                        <textarea value={lot.description} disabled rows="4" />
-                    </label>
-
-                    <label className="form-field full-width">
-                        <span className="form-label">Upload afbeelding</span>
+                        <span className="form-label">Afbeelding</span>
                         {lot.image && (
                             <img
                                 src={lot.image}
@@ -85,7 +85,6 @@ function AuctionDetailPage({ lots, updateLot }) {
                         )}
                     </label>
 
-                    {/* Veilingmeester velden */}
                     <label className="form-field">
                         <span className="form-label">Beginprijs (€)</span>
                         <input
