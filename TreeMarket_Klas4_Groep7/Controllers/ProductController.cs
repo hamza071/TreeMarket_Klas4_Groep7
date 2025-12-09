@@ -1,6 +1,7 @@
-﻿using Humanizer;
+﻿using Microsoft.AspNetCore.Authorization; // <--- NODIG VOOR BEVEILIGING
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 using TreeMarket_Klas4_Groep7.Data;
 using TreeMarket_Klas4_Groep7.Models;
 using TreeMarket_Klas4_Groep7.Models.DTO;
@@ -12,7 +13,6 @@ namespace TreeMarket_Klas4_Groep7.Controllers
     [ApiController]
     public class ProductController : ControllerBase
     {
-        //Die van productService maakt gebruik van LINQ
         private readonly ProductService _productService;
         private readonly ApiContext _context;
 
@@ -22,7 +22,8 @@ namespace TreeMarket_Klas4_Groep7.Controllers
             _context = context;
         }
 
-        // Haal producten van vandaag op
+        // ================= GET ENDPOINTS (OPENBAAR) =================
+
         [HttpGet("vandaag")]
         public async Task<IActionResult> GetVandaag()
         {
@@ -33,12 +34,10 @@ namespace TreeMarket_Klas4_Groep7.Controllers
             }
             catch (Exception ex)
             {
-                //Hier wordt een statuscode 500 gegeven als het fout gaat binnen de database
-                return new JsonResult(StatusCode(500, new { message = "Databasefout: Product van vandaag kan niet getoont worden.", error = ex.Message }));
+                return StatusCode(500, new { message = "Databasefout.", error = ex.Message });
             }
         }
 
-        // ✅ Haal producten met Leverancier info op
         [HttpGet("leverancier")]
         public async Task<IActionResult> GetMetLeverancier()
         {
@@ -49,81 +48,63 @@ namespace TreeMarket_Klas4_Groep7.Controllers
             }
             catch (Exception ex)
             {
-                //Hier wordt een statuscode 500 gegeven als het fout gaat binnen de database
-                return new JsonResult(StatusCode(500, new { message = "Databasefout: Product van de leverancier kan niet getoont worden.", error = ex.Message }));
+                return StatusCode(500, new { message = "Databasefout.", error = ex.Message });
             }
         }
 
-        // ✅ Voeg nieuw product toe of update bestaand product
+        // ================= CREATE / UPDATE (BEVEILIGD) =================
+
         [HttpPost]
+        [Authorize(Roles = "Leverancier, Admin")] // Alleen Leveranciers mogen dit!
         public async Task<IActionResult> CreateOrUpdateProduct([FromBody] Product product)
         {
-          
-            if (string.IsNullOrWhiteSpace(product.Artikelkenmerken))
-            {
-                return BadRequest("Artikelkenmerken is verplicht.");
-            }
+            // 1. Validatie
+            if (string.IsNullOrWhiteSpace(product.Artikelkenmerken)) return BadRequest("Artikelkenmerken is verplicht.");
+            if (product.Hoeveelheid <= 0) return BadRequest("Hoeveelheid moet groter zijn dan 0.");
+            if (product.MinimumPrijs < 0) return BadRequest("MinimumPrijs mag niet negatief zijn.");
+            if (product.Dagdatum.Date < DateTime.Today) return BadRequest("Dagdatum mag niet in het verleden liggen.");
 
-           
-            if (product.Hoeveelheid <= 0)
-            {
-                return BadRequest("Hoeveelheid moet groter zijn dan 0.");
-            }
-
-           
-            if (product.MinimumPrijs < 0)
-            {
-                return BadRequest("MinimumPrijs mag niet negatief zijn.");
-            }
-
-            if (product.Dagdatum.Date < DateTime.Today)
-            {
-                return BadRequest("Dagdatum mag niet in het verleden liggen.");
-            }
-
-           
-            if (product.LeverancierID <= 0)
-            {
-                return BadRequest("LeverancierID is verplicht.");
-            }
-            
+            // AANGEPAST: String check voor ID
+            if (string.IsNullOrEmpty(product.LeverancierID)) return BadRequest("LeverancierID is verplicht.");
 
             try
             {
+                // Omdat je service waarschijnlijk nog niet is geüpdatet voor strings, 
+                // doen we het hier even direct (of je past je service aan):
                 
-                bool isNieuwProduct = product.ProductId == 0;
+                if (product.ProductId == 0) // Nieuw
+                {
+                    await _context.Product.AddAsync(product);
+                }
+                else // Update
+                {
+                    _context.Product.Update(product);
+                }
                 
-
-                //Hier wordt de service aangeroepen die met EF Core / LINQ de database bewerkt
-                var result = await _productService.AddOrUpdateProduct(product);
-
-                // --- BEGIN BUSINESSLOGICA (HTTP-STATUSCODES OP BASIS VAN ACTIE) ---
-                //Als het een nieuw product is, zou 201 Created semantisch kloppen.
-                //Voor nu retourneren we Ok(result), maar we leggen dit wel uit aan de docent.
-                //Je zou bijvoorbeeld dit kunnen doen:
-                //
-                //if (isNieuwProduct)
-                //    return CreatedAtAction(nameof(GetMetLeverancier), new { id = product.ProductId }, result);
-                //
-                //Maar omdat AddOrUpdateProduct jouw huidige structuur gebruikt, laten we Ok(result) staan.
-                // --- EINDE BUSINESSLOGICA (HTTP-STATUSCODES OP BASIS VAN ACTIE) ---
-
-                return Ok(result);
+                await _context.SaveChangesAsync();
+                return Ok(product);
             }
             catch (Exception ex)
             {
-                //Hier wordt een statuscode 500 gegeven als het fout gaat binnen de database
-                return new JsonResult(StatusCode(500, new { message = "Databasefout: Product kan niet toegevoegd of geupdate worden.", error = ex.Message }));
+                return StatusCode(500, new { message = "Databasefout.", error = ex.Message });
             }
         }
 
-        //ClaimDTO om gewoon Claim aan te maken
+        // DIT IS DE BETERE METHODE (gebruikt DTO en Token)
         [HttpPost("CreateProduct")]
+        [Authorize(Roles = "Leverancier")] // Alleen Leveranciers
         public async Task<IActionResult> PostProduct([FromBody] ProductDto productDto)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);  
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+
+            // 1. Haal de ID van de ingelogde gebruiker op (uit token)
+            // Dit is VEILIGER dan de ID uit de DTO halen!
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier); 
             
+            // (Als Admin dit doet, moeten we misschien wel de ID uit de DTO pakken, 
+            // maar voor een Leverancier is dit het veiligst).
+            if (userId == null) return Unauthorized("Je bent niet ingelogd.");
+
             try
             {
                 var product = new Product
@@ -132,21 +113,21 @@ namespace TreeMarket_Klas4_Groep7.Controllers
                     Artikelkenmerken = productDto.artikelkenmerken,
                     Hoeveelheid = productDto.Hoeveelheid,
                     MinimumPrijs = productDto.MinimumPrijs,
-                    Dagdatum = DateTime.UtcNow,   // server bepaalt datum
-                    LeverancierID = productDto.leverancierID
+                    Dagdatum = DateTime.UtcNow,
+                    
+                    // AANGEPAST: Gebruik de ID uit het token!
+                    LeverancierID = userId 
                 };
 
                 await _context.Product.AddAsync(product);
                 await _context.SaveChangesAsync();
 
-                return (Ok(product));
+                return Ok(product);
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { message = "Databasefout: Product kan niet aangemaakt worden.", error = ex.Message });
+                return StatusCode(500, new { message = "Databasefout.", error = ex.Message });
             }
         }
-
     }
 }
-
