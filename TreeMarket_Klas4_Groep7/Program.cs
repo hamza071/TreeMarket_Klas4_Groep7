@@ -4,185 +4,149 @@ using Microsoft.OpenApi.Models;
 using TreeMarket_Klas4_Groep7.Data;
 using TreeMarket_Klas4_Groep7.Models;
 using TreeMarket_Klas4_Groep7.Services;
-//Deze code wordt gebruikt om tokens te generen voor de login. 
-//Dit is ook in de appsettings.json gezet :)
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
-using System.Text;
-
 
 var builder = WebApplication.CreateBuilder(args);
 
-// JWT-config ophalen
-var jwtSettings = builder.Configuration.GetSection("Jwt");
-var secretKey = jwtSettings.GetValue<string>("Key"); // Let op: Key, niet SecretKey
+// 1. Database configuratie
+// Zorg dat je connection string in appsettings.json klopt!
+var connectionString = builder.Configuration.GetConnectionString("LocalExpress") 
+    ?? throw new InvalidOperationException("Connection string not found.");
 
-
-// EF Core
 builder.Services.AddDbContext<ApiContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("LocalExpress")));
+    options.UseSqlServer(connectionString));
 
-// REST API Controllers
-//Voor nu controllers zonder views. Later kunnen we met views gebruiken zodien dat nodig is.
-builder.Services.AddControllers();
+// ============================================================
+// 2. IDENTITY CONFIGURATIE (Volgens de Slides)
+// ============================================================
 
-//EF Core Test of de controller wel de database pakt binnen de appsettings.json
-Console.WriteLine("==== Active Connection ====");
-Console.WriteLine(builder.Configuration.GetConnectionString("LocalExpress"));
+// Slide 3: AddIdentity vervangt je handmatige configuratie
+builder.Services.AddIdentity<Gebruiker, IdentityRole>()
+    .AddEntityFrameworkStores<ApiContext>()
+    .AddDefaultTokenProviders();
 
-// ✅ Voeg controllers + views toe (voor MVC + Razor)
-builder.Services.AddControllersWithViews();
+// Slide 5: Extra services toevoegen
+builder.Services.AddScoped<RoleManager<IdentityRole>>();
+builder.Services.AddTransient<IEmailSender<Gebruiker>, DummyEmailSender>();
 
-// =======================
-// Swagger (voor API testing / documentation)
-// =======================
-builder.Services.AddEndpointsApiExplorer();
-// =======================
-// Swagger met JWT Support
-// =======================
-builder.Services.AddSwaggerGen(c =>
+// Slide 11: Authenticatie instellen op Bearer Token
+builder.Services.AddAuthentication(options =>
 {
-    c.SwaggerDoc("v1", new OpenApiInfo { Title = "TreeMarket API", Version = "v1" });
+    options.DefaultAuthenticateScheme = IdentityConstants.BearerScheme;
+    options.DefaultChallengeScheme = IdentityConstants.BearerScheme;
+})
+.AddBearerToken(IdentityConstants.BearerScheme, options =>
+{
+    options.BearerTokenExpiration = TimeSpan.FromMinutes(60.0);
+});
 
-    // Voeg de "Authorize" knop toe
-    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+// Authorization aanzetten
+builder.Services.AddAuthorization();
+
+// ============================================================
+
+// Services toevoegen
+builder.Services.AddControllersWithViews();
+builder.Services.AddEndpointsApiExplorer();
+
+// Swagger instellen (Slide 11)
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new OpenApiInfo { Title = "TreeMarket API", Version = "v1" });
+    
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
-        Description = "JWT Authorization header using the Bearer scheme. \r\n\r\n Enter 'Bearer' [space] and then your token in the text input below.\r\n\r\nExample: \"Bearer 12345abcdef\"",
         Name = "Authorization",
+        Description = "Vul hier je token in (alleen de code)",
         In = ParameterLocation.Header,
-        Type = SecuritySchemeType.ApiKey,
+        Type = SecuritySchemeType.Http,
         Scheme = "Bearer"
     });
-
-    c.AddSecurityRequirement(new OpenApiSecurityRequirement()
+    
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
         {
             new OpenApiSecurityScheme
             {
-                Reference = new OpenApiReference
-                {
-                    Type = ReferenceType.SecurityScheme,
-                    Id = "Bearer"
-                },
-                Scheme = "oauth2",
-                Name = "Bearer",
-                In = ParameterLocation.Header,
+                Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" }
             },
             new List<string>()
         }
     });
 });
-//builder.Services.AddSwaggerGen(c =>
-//{
-//    c.SwaggerDoc("v1", new OpenApiInfo
-//    {
-//        Title = "TreeMarket API",
-//        Version = "v1"
-//    });
-//});       
 
-// =======================
-// Dependency Injection
-// =======================
-
-// ProductService kan nu via constructor in controllers worden gebruikt
+// Je eigen services
 builder.Services.AddScoped<ProductService>();
 
-// De PasswordHasher zorgt ervoor dat het wachtwoord gehashed is.
-//Dit wordt alleen gebruik voor het tabel Gebruiker en zijn kinderen (sub klasses).
-builder.Services.AddScoped<PasswordHasher<Gebruiker>>();
-
-
-
-// ===============
-// CORS = Cross-Origin Resource Sharing
-// Het regelt en webpagina die geladen wordt vanaf een domein zoals http://localhost:55125
-// CORS gebruikt ook de Grand Cross om met andere domeinen te mogen communiceren via een server.
-// ===========
-
-// Tijdelijk voor testen
+// CORS beleid
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll",
-        policy =>
-        {
-            policy.AllowAnyOrigin()
-                  .AllowAnyHeader()
-                  .AllowAnyMethod();
-        });
-});
-
-//builder.Services.AddCors(options =>
-//{
-//    options.AddPolicy("AllowReactDev", policy =>
-//    {
-//        //De nummer van de localhost staat op basis van hoe wij npm run dev starten.
-//        policy.WithOrigins("http://localhost:55125")
-//              .AllowAnyHeader()
-//              .AllowAnyMethod();
-//    });
-//});
-
-//=====De builder voor de JWT token.=====
-builder.Services.AddAuthentication(options =>
-{
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-})
-.AddJwtBearer(options =>
-{
-    options.TokenValidationParameters = new TokenValidationParameters
+    options.AddPolicy("AllowAll", policy =>
     {
-        ValidateIssuer = true,
-        ValidateAudience = true,
-        ValidateLifetime = true,
-        ValidateIssuerSigningKey = true,
-        ValidIssuer = jwtSettings["Issuer"],
-        ValidAudience = jwtSettings["Audience"],
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey))
-    };
+        policy.AllowAnyOrigin()
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
 });
 
-// De jwt wordt geautoriseerd.
-builder.Services.AddAuthorization();
-
-
-// =======================
-// Build the app
-// =======================
 var app = builder.Build();
 
-// =======================
-// Configure middleware
-// =======================
+// ============================================================
+// 3. SEEDING: Admin en Rollen aanmaken bij opstarten
+// (Slide 6 & 8)
+// ============================================================
+using (var scope = app.Services.CreateScope())
+{
+    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<Gebruiker>>();
+
+    // Rollen aanmaken
+    string[] roles = ["Admin", "Klant", "Leverancier", "Veilingsmeester"];
+    foreach (var role in roles)
+    {
+        if (!await roleManager.RoleExistsAsync(role))
+        {
+            await roleManager.CreateAsync(new IdentityRole(role));
+        }
+    }
+
+    // Admin aanmaken
+    var adminEmail = "admin@treemarket.nl";
+    if (await userManager.FindByEmailAsync(adminEmail) == null)
+    {
+        var user = new Gebruiker
+        {
+            UserName = adminEmail,
+            Email = adminEmail,
+            EmailConfirmed = true,
+            Naam = "Super Admin"
+        };
+        
+        // Identity hasht het wachtwoord automatisch
+        var result = await userManager.CreateAsync(user, "AppelKruimel1234!");
+        
+        if (result.Succeeded)
+        {
+            await userManager.AddToRoleAsync(user, "Admin");
+        }
+    }
+}
+// ============================================================
 
 if (app.Environment.IsDevelopment())
 {
-    // Swagger UI alleen in development
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
 app.UseHttpsRedirection();
+app.UseCors("AllowAll");
 
-// Routing en Authorization
-app.UseRouting();
+// ZET DEZE AAN: Dit maakt de /login en /register endpoints
+app.MapIdentityApi<Gebruiker>();
 
-//CORS wordt opgeroepen.
-//Dit zorgt ervoor dat de localhost binnen
-//tijdelijk
-app.UseCors("AllowAll"); //app.UseCors("AllowReactDev");
 app.UseAuthentication();
-//Wordt waarschijnlijk gebruikt voor rechten en rollen
 app.UseAuthorization();
 
-// Map alle controllers
 app.MapControllers();
 
-////De app runt via een localhost
-//app.Run();
-
-// =======================
-// Run the app
-// =======================
 app.Run();
