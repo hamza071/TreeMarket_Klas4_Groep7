@@ -3,6 +3,7 @@ using TreeMarket_Klas4_Groep7.Data;
 using TreeMarket_Klas4_Groep7.Models;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity; // Nodig voor UserManager
 
 namespace TreeMarket_Klas4_Groep7.Controllers
 {
@@ -11,75 +12,45 @@ namespace TreeMarket_Klas4_Groep7.Controllers
     public class LeverancierController : ControllerBase
     {
         private readonly ApiContext _context;
+        private readonly UserManager<Gebruiker> _userManager; // Toevoegen voor veiligheid
 
-        //  Constructor: krijgt de databasecontext via Dependency Injection
-        public LeverancierController(ApiContext context)
+        public LeverancierController(ApiContext context, UserManager<Gebruiker> userManager)
         {
             _context = context;
-        }
-
-        // ===============================
-        // POST: Voeg een nieuwe leverancier toe
-        // Bij deze methode wordt letterlijk alles verwacht ingevuld te worden. Niet hetzelfde als bij de GebruikersController.
-        // Endpoint: POST /api/Leverancier
-        // ===============================
-        [HttpPost]
-        public async Task<IActionResult> CreateLeverancier(Leverancier leverancier)
-        {
-            try
-            {
-                // Validatie: check dat alle required velden ingevuld zijn
-                if (!ModelState.IsValid)
-                {
-                    return BadRequest(ModelState);
-                }
-
-                // Voeg leverancier toe aan database
-                await _context.Leverancier.AddAsync(leverancier);
-                await _context.SaveChangesAsync();
-
-                // Return het aangemaakte object (inclusief ID)
-                return Ok(leverancier);
-            } 
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = "Databasefout: Kon veilingen niet ophalen.", error = ex.Message });
-            }
-            
+            _userManager = userManager;
         }
 
         // ===============================
         // GET: Haal alle leveranciers op
-        // Endpoint: GET /api/Leverancier
         // ===============================
         [HttpGet]
         public async Task<IActionResult> GetAllLeveranciers()
         {
             try
             {
+                // We halen specifiek de Leveranciers op uit de context
                 var leveranciers = await _context.Leverancier.ToListAsync();
                 return Ok(leveranciers);
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { message = "Databasefout: Kon leverancier niet ophalen.", error = ex.Message });
+                return StatusCode(500, new { message = "Databasefout: Kon leveranciers niet ophalen.", error = ex.Message });
             }
-            
         }
 
         // ===============================
         // GET: Haal leverancier op basis van ID
-        // Endpoint: GET /api/Leverancier/{id}
+        // LET OP: ID is nu een STRING (vanwege Identity)
         // ===============================
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetLeverancierById(int id)
+        public async Task<IActionResult> GetLeverancierById(string id) // <--- AANGEPAST: int naar string
         {
             try
             {
                 var leverancier = await _context.Leverancier.FindAsync(id);
 
                 if (leverancier == null)
-                    return NotFound("Leverancier niet gevonden met ID: " + id);
+                    return NotFound(new { message = $"Leverancier niet gevonden met ID: {id}" });
 
                 return Ok(leverancier);
             } 
@@ -87,7 +58,23 @@ namespace TreeMarket_Klas4_Groep7.Controllers
             {
                 return StatusCode(500, new { message = "Databasefout: Leverancier Id kon niet opgehaald worden.", error = ex.Message });
             }
+        }
 
+        // ===============================
+        // POST: Voeg een nieuwe leverancier toe
+        // LET OP: Dit zit eigenlijk al in je GebruikerController (RegisterLeverancier)!
+        // ===============================
+        [HttpPost]
+        public async Task<IActionResult> CreateLeverancier([FromBody] Leverancier leverancier)
+        {
+            // WAARSCHUWING: 
+            // Omdat 'Leverancier' erft van IdentityUser, heeft het geen simpel 'Wachtwoord' veld dat je kunt invullen.
+            // Je hebt hier écht een DTO voor nodig (met een wachtwoord string) en de UserManager.
+            
+            // Mijn advies: Gebruik de endpoint '/api/Gebruiker/Leverancier' die je al hebt gemaakt.
+            // Die doet namelijk precies dit: DTO ontvangen -> Wachtwoord Hashen -> Opslaan.
+            
+            return BadRequest(new { message = "Gebruik het endpoint '/api/Gebruiker/Leverancier' om een account aan te maken." });
         }
     }
 }

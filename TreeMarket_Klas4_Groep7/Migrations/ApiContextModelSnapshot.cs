@@ -17,10 +17,173 @@ namespace TreeMarket_Klas4_Groep7.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.9")
+                .HasAnnotation("ProductVersion", "9.0.0")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("ConcurrencyStamp")
+                        .IsConcurrencyToken()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("NormalizedName")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NormalizedName")
+                        .IsUnique()
+                        .HasDatabaseName("RoleNameIndex")
+                        .HasFilter("[NormalizedName] IS NOT NULL");
+
+                    b.ToTable("AspNetRoles", (string)null);
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ClaimType")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ClaimValue")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RoleId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RoleId");
+
+                    b.ToTable("AspNetRoleClaims", (string)null);
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ClaimType")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ClaimValue")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("AspNetUserClaims", (string)null);
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
+                {
+                    b.Property<string>("LoginProvider")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("ProviderKey")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("ProviderDisplayName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("LoginProvider", "ProviderKey");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("AspNetUserLogins", (string)null);
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<string>", b =>
+                {
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("RoleId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("UserId", "RoleId");
+
+                    b.HasIndex("RoleId");
+
+                    b.ToTable("AspNetUserRoles", (string)null);
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
+                {
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("LoginProvider")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Value")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("UserId", "LoginProvider", "Name");
+
+                    b.ToTable("AspNetUserTokens", (string)null);
+                });
+
+            modelBuilder.Entity("TreeMarket_Klas4_Groep7.Models.Bid", b =>
+                {
+                    b.Property<int>("BidID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("BidID"));
+
+                    b.Property<decimal>("Bedrag")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("KlantId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("Tijdstip")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("VeilingID")
+                        .HasColumnType("int");
+
+                    b.HasKey("BidID");
+
+                    b.HasIndex("KlantId");
+
+                    b.HasIndex("VeilingID");
+
+                    b.ToTable("Bids");
+                });
 
             modelBuilder.Entity("TreeMarket_Klas4_Groep7.Models.Claim", b =>
                 {
@@ -30,8 +193,9 @@ namespace TreeMarket_Klas4_Groep7.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ClaimID"));
 
-                    b.Property<int>("KlantId")
-                        .HasColumnType("int");
+                    b.Property<string>("KlantId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<decimal>("Prijs")
                         .HasColumnType("decimal(18,2)");
@@ -68,32 +232,74 @@ namespace TreeMarket_Klas4_Groep7.Migrations
 
             modelBuilder.Entity("TreeMarket_Klas4_Groep7.Models.Gebruiker", b =>
                 {
-                    b.Property<int>("GebruikerId")
-                        .ValueGeneratedOnAdd()
+                    b.Property<string>("Id")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("AccessFailedCount")
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("GebruikerId"));
+                    b.Property<string>("ConcurrencyStamp")
+                        .IsConcurrencyToken()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Discriminator")
+                        .HasMaxLength(21)
+                        .HasColumnType("nvarchar(21)");
 
                     b.Property<string>("Email")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<bool>("EmailConfirmed")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("LockoutEnabled")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTimeOffset?>("LockoutEnd")
+                        .HasColumnType("datetimeoffset");
 
                     b.Property<string>("Naam")
                         .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("NormalizedEmail")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("NormalizedUserName")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("PasswordHash")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Rol")
-                        .IsRequired()
+                    b.Property<string>("PhoneNumber")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Telefoonnummer")
+                    b.Property<bool>("PhoneNumberConfirmed")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("SecurityStamp")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Wachtwoord")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<bool>("TwoFactorEnabled")
+                        .HasColumnType("bit");
 
-                    b.HasKey("GebruikerId");
+                    b.Property<string>("UserName")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NormalizedEmail")
+                        .HasDatabaseName("EmailIndex");
+
+                    b.HasIndex("NormalizedUserName")
+                        .IsUnique()
+                        .HasDatabaseName("UserNameIndex")
+                        .HasFilter("[NormalizedUserName] IS NOT NULL");
 
                     b.ToTable("Gebruiker", (string)null);
 
@@ -122,8 +328,9 @@ namespace TreeMarket_Klas4_Groep7.Migrations
                     b.Property<int>("Hoeveelheid")
                         .HasColumnType("int");
 
-                    b.Property<int>("LeverancierID")
-                        .HasColumnType("int");
+                    b.Property<string>("LeverancierID")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<decimal>("MinimumPrijs")
                         .HasColumnType("decimal(18,2)");
@@ -143,17 +350,11 @@ namespace TreeMarket_Klas4_Groep7.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("VeilingID"));
 
-                    b.Property<decimal>("EindPrijs")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<DateTime>("EindTijd")
-                        .HasColumnType("datetime2");
-
                     b.Property<decimal>("HuidigePrijs")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<int>("PrijsStap")
-                        .HasColumnType("int");
+                    b.Property<decimal>("PrijsStap")
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<int>("PrijsStrategie")
                         .HasColumnType("int");
@@ -164,14 +365,15 @@ namespace TreeMarket_Klas4_Groep7.Migrations
                     b.Property<decimal>("StartPrijs")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<DateTime>("StartTijd")
-                        .HasColumnType("datetime2");
-
                     b.Property<bool?>("Status")
                         .HasColumnType("bit");
 
-                    b.Property<int>("VeilingsmeesterID")
+                    b.Property<int>("TimerInSeconden")
                         .HasColumnType("int");
+
+                    b.Property<string>("VeilingsmeesterID")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
 
                     b.HasKey("VeilingID");
 
@@ -193,15 +395,15 @@ namespace TreeMarket_Klas4_Groep7.Migrations
                 {
                     b.HasBaseType("TreeMarket_Klas4_Groep7.Models.Gebruiker");
 
+                    b.Property<string>("Bedrijf")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("IBANnummer")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("KvKNummer")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("bedrijf")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -216,6 +418,76 @@ namespace TreeMarket_Klas4_Groep7.Migrations
                         .HasColumnType("datetime2");
 
                     b.ToTable("Veilingsmeester", (string)null);
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
+                {
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
+                        .WithMany()
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
+                {
+                    b.HasOne("TreeMarket_Klas4_Groep7.Models.Gebruiker", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
+                {
+                    b.HasOne("TreeMarket_Klas4_Groep7.Models.Gebruiker", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<string>", b =>
+                {
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
+                        .WithMany()
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("TreeMarket_Klas4_Groep7.Models.Gebruiker", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
+                {
+                    b.HasOne("TreeMarket_Klas4_Groep7.Models.Gebruiker", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("TreeMarket_Klas4_Groep7.Models.Bid", b =>
+                {
+                    b.HasOne("TreeMarket_Klas4_Groep7.Models.Klant", "Klant")
+                        .WithMany()
+                        .HasForeignKey("KlantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("TreeMarket_Klas4_Groep7.Models.Veiling", "Veiling")
+                        .WithMany()
+                        .HasForeignKey("VeilingID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Klant");
+
+                    b.Navigation("Veiling");
                 });
 
             modelBuilder.Entity("TreeMarket_Klas4_Groep7.Models.Claim", b =>
@@ -282,7 +554,7 @@ namespace TreeMarket_Klas4_Groep7.Migrations
                 {
                     b.HasOne("TreeMarket_Klas4_Groep7.Models.Gebruiker", null)
                         .WithOne()
-                        .HasForeignKey("TreeMarket_Klas4_Groep7.Models.Klant", "GebruikerId")
+                        .HasForeignKey("TreeMarket_Klas4_Groep7.Models.Klant", "Id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
@@ -291,7 +563,7 @@ namespace TreeMarket_Klas4_Groep7.Migrations
                 {
                     b.HasOne("TreeMarket_Klas4_Groep7.Models.Gebruiker", null)
                         .WithOne()
-                        .HasForeignKey("TreeMarket_Klas4_Groep7.Models.Leverancier", "GebruikerId")
+                        .HasForeignKey("TreeMarket_Klas4_Groep7.Models.Leverancier", "Id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
@@ -300,7 +572,7 @@ namespace TreeMarket_Klas4_Groep7.Migrations
                 {
                     b.HasOne("TreeMarket_Klas4_Groep7.Models.Gebruiker", null)
                         .WithOne()
-                        .HasForeignKey("TreeMarket_Klas4_Groep7.Models.Veilingsmeester", "GebruikerId")
+                        .HasForeignKey("TreeMarket_Klas4_Groep7.Models.Veilingsmeester", "Id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
