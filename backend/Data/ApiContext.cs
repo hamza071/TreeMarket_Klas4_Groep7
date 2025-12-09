@@ -40,7 +40,7 @@ namespace TreeMarket_Klas4_Groep7.Data
             // === JOUW TABEL NAMEN ===
             // Hiermee overschrijf je de standaard Identity namen (zoals AspNetUsers)
             // naar je eigen namen. Dit is goed!
-            modelBuilder.Entity<Gebruiker>().ToTable("");
+            modelBuilder.Entity<Gebruiker>().ToTable("Gebruiker");
             modelBuilder.Entity<Klant>().ToTable("Klant");
             modelBuilder.Entity<Leverancier>().ToTable("Leverancier");
             modelBuilder.Entity<Veilingsmeester>().ToTable("Veilingsmeester");
