@@ -43,6 +43,7 @@ namespace TreeMarket_Klas4_Groep7.Models
     }
 
 
+
     //De child (sub) klasses worden hier toegevoegd.
     //Klant, Leverancier en Veilingsmeester
 

@@ -18,7 +18,8 @@ import IdUser from './pages/CRUD/IdUser'
 import DeleteUser from './pages/CRUD/DeleteUser'
 import LogOutUser from './pages/Logout'
 
-const NAVIGATION_ITEMS = [
+// Navigatie voor ingelogde gebruikers
+const NAVIGATION_ITEMS_AUTHENTICATED = [
     { id: 'dashboard', label: 'Dashboard' },
     { id: 'veiling', label: 'Veiling' },
     { id: 'upload', label: 'Upload Veiling' },
@@ -31,19 +32,35 @@ const NAVIGATION_ITEMS = [
     { id: 'logout', label: 'LogOutTheUser' },
 ]
 
+// Navigatie voor anonieme gebruikers (alleen publieke pagina's)
+const NAVIGATION_ITEMS_ANONYMOUS = [
+    { id: 'home', label: 'Home' },
+    { id: 'about', label: 'About' },
+]
+
 function App() {
     const navigationRefs = useRef([]);
 
+    // Check of de gebruiker is ingelogd (op basis van JWT in localStorage)
+    const isLoggedIn = !!localStorage.getItem('token');
+
+    // Kies de juiste navigatiestructuur op basis van login status
+    const NAVIGATION_ITEMS = isLoggedIn
+        ? NAVIGATION_ITEMS_AUTHENTICATED
+        : NAVIGATION_ITEMS_ANONYMOUS;
+
     const handleNavKeyDown = useCallback((event, currentIndex) => {
+        const navLength = NAVIGATION_ITEMS.length;
+
         if (event.key === "ArrowRight") {
-            const nextIndex = (currentIndex + 1) % NAVIGATION_ITEMS.length
-            navigationRefs.current[nextIndex]?.focus()
+            const nextIndex = (currentIndex + 1) % navLength;
+            navigationRefs.current[nextIndex]?.focus();
         }
         if (event.key === "ArrowLeft") {
-            const prevIndex = (currentIndex - 1 + NAVIGATION_ITEMS.length) % NAVIGATION_ITEMS.length
-            navigationRefs.current[prevIndex]?.focus()
+            const prevIndex = (currentIndex - 1 + navLength) % navLength;
+            navigationRefs.current[prevIndex]?.focus();
         }
-    }, [])
+    }, [NAVIGATION_ITEMS]);
 
     // Alle kavels (status: pending / published)
     const [lots, setLots] = useState([])
@@ -68,6 +85,8 @@ function App() {
 
             <header className="app-header">
                 <div className="brand">TREE MARKET</div>
+
+                {/* Navigatie past zich aan op basis van ingelogde / anonieme gebruiker */}
                 <nav className="main-nav" aria-label="Primaire navigatie">
                     {NAVIGATION_ITEMS.map((item, index) => (
                         <Link
@@ -81,11 +100,17 @@ function App() {
                         </Link>
                     ))}
                 </nav>
+
+                {/* Voor anonieme gebruiker: User linkt naar registreren/inloggen (AuthPage) */}
+                {/* Voor ingelogde gebruiker kun je deze eventueel later aanpassen naar profiel / uitloggen */}
                 <Link className="user-chip" to="/auth">User</Link>
             </header>
 
             <main className="page-area" id="main-content">
                 <Routes>
+                    {/* Extra: root route naar Home */}
+                    <Route path="/" element={<HomePage />} />
+
                     {/* Dashboard krijgt alleen gepubliceerde kavels */}
                     <Route path="/dashboard" element={<DashboardPage lots={lots.filter(lot => lot.status === 'published')} />} />
 
