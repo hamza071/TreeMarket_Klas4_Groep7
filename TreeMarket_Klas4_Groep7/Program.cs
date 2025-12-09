@@ -1,14 +1,15 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿//Deze code wordt gebruikt om tokens te generen voor de login. 
+//Dit is ook in de appsettings.json gezet :)
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using System.Text;
+using TreeMarket_Klas4_Groep7.Controllers.Interfaces;
 using TreeMarket_Klas4_Groep7.Data;
 using TreeMarket_Klas4_Groep7.Models;
 using TreeMarket_Klas4_Groep7.Services;
-//Deze code wordt gebruikt om tokens te generen voor de login. 
-//Dit is ook in de appsettings.json gezet :)
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
-using System.Text;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -87,6 +88,10 @@ builder.Services.AddSwaggerGen(c =>
 
 // ProductService kan nu via constructor in controllers worden gebruikt
 builder.Services.AddScoped<ProductService>();
+
+// De gebruiker klasse maakt gebruik van een interface :)
+builder.Services.AddScoped<IGebruikerController, GebruikerService>();
+
 
 // De PasswordHasher zorgt ervoor dat het wachtwoord gehashed is.
 //Dit wordt alleen gebruik voor het tabel Gebruiker en zijn kinderen (sub klasses).

@@ -660,6 +660,38 @@ body, html {
         transform: translateY(-8px) rotate(-45deg);
     }
 
+/* Ipad Air formaat*/
+@media (max-width: 1540px) {
+    .main-nav {
+        display: flex;
+        flex-direction: column;
+        position: absolute;
+        top: 80px;
+        left: 20px;
+        right: 20px;
+        background: white;
+        padding: 1.25rem;
+        border-radius: 20px;
+        box-shadow: 0 15px 35px rgba(16, 35, 31, 0.12);
+        opacity: 0;
+        pointer-events: none;
+        transform: translateY(-10px);
+        transition: all 0.25s ease;
+        z-index: 100;
+    }
+
+    .main-nav.is-open {
+        opacity: 1;
+        pointer-events: auto;
+        transform: translateY(0);
+    }
+
+    .hamburger {
+        display: flex;
+    }
+}
+
+
 /* Mobiele telefoon (tot 768px) */
 @media (max-width: 768px) {
 

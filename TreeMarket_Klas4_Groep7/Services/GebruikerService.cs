@@ -1,13 +1,14 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using TreeMarket_Klas4_Groep7.Controllers.Interfaces;
 using TreeMarket_Klas4_Groep7.Data;
+using TreeMarket_Klas4_Groep7.Models;
 
 namespace TreeMarket_Klas4_Groep7.Services
 {
     //IT service desk voor de gebruikersController. 
     //Als de gebruikersController iets nodig heeft, kan hij het hier ophalen.
-    public class GebruikerService
+    public class GebruikerService : IGebruikerController
     {
-        //Context wordt zowel bij controller als service gebruikt.
         private readonly ApiContext _context;
 
         public GebruikerService(ApiContext context)
@@ -15,10 +16,35 @@ namespace TreeMarket_Klas4_Groep7.Services
             _context = context;
         }
 
-        //Deze methode controleerd of de mail bestaat of niet.
-        public async Task<bool> EmailBestaatAl(string email)
+        public async Task<Gebruiker> GetByEmailAsync(string email)
         {
-            return await _context.Gebruiker.AnyAsync(g => g.Email.ToLower() == email.ToLower());
+            return await _context.Gebruiker.FirstOrDefaultAsync(g => g.Email.ToLower() == email.ToLower());
+        }
+
+        public async Task AddAsync(Gebruiker gebruiker)
+        {
+            await _context.Gebruiker.AddAsync(gebruiker);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task<IEnumerable<Gebruiker>> GetAllAsync()
+        {
+            return await _context.Gebruiker.ToListAsync();
+        }
+
+        public async Task<Gebruiker> GetByIdAsync(int id)
+        {
+            return await _context.Gebruiker.FindAsync(id);
+        }
+
+        public async Task DeleteAsync(int id)
+        {
+            var result = await _context.Gebruiker.FindAsync(id);
+            if (result != null) 
+            {
+                _context.Gebruiker.Remove(result);
+                await _context.SaveChangesAsync();
+            }
         }
     }
 }

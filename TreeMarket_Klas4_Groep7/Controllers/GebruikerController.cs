@@ -7,10 +7,9 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Numerics;
 using System.Text;
-using TreeMarket_Klas4_Groep7.Data;
 using TreeMarket_Klas4_Groep7.Models;
 using TreeMarket_Klas4_Groep7.Models.DTO;
-using TreeMarket_Klas4_Groep7.Services;
+using TreeMarket_Klas4_Groep7.Controllers.Interfaces;
 using static TreeMarket_Klas4_Groep7.Models.DTO.KlantDto;
 using SC = System.Security.Claims;
 
@@ -20,13 +19,14 @@ namespace TreeMarket_Klas4_Groep7.Controllers
     [ApiController]
     public class GebruikerController : ControllerBase
     {
-        private readonly ApiContext _context;
+        //De variabele interface moet van de polymorfisme de GebruikerService oproepen
+        private readonly IGebruikerController _service;
         private readonly PasswordHasher<Gebruiker> _passwordHasher;
         private readonly IConfiguration _configuration;
 
-        public GebruikerController(ApiContext context, PasswordHasher<Gebruiker> passwordHasher, IConfiguration configuration)
+        public GebruikerController(IGebruikerController service, PasswordHasher<Gebruiker> passwordHasher, IConfiguration configuration)
         {
-            _context = context;
+            _service = service;
             _passwordHasher = passwordHasher;
             _configuration = configuration;
         }
@@ -54,7 +54,7 @@ namespace TreeMarket_Klas4_Groep7.Controllers
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            var emailBestaatAl = _context.Gebruiker.FirstOrDefault(g => g.Email.ToLower() == klantToDo.Email.ToLower());
+            var emailBestaatAl = await _service.GetByEmailAsync(klantToDo.Email);
             if (emailBestaatAl != null) return Conflict("Dit e-mailadres is al in gebruik.");
 
             try
@@ -69,8 +69,7 @@ namespace TreeMarket_Klas4_Groep7.Controllers
 
                 klant.Wachtwoord = _passwordHasher.HashPassword(klant, klantToDo.Wachtwoord);
 
-                await _context.Gebruiker.AddAsync(klant);
-                await _context.SaveChangesAsync();
+                await _service.AddAsync(klant);
 
                 return Ok(klant);
             }
@@ -85,7 +84,7 @@ namespace TreeMarket_Klas4_Groep7.Controllers
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            var emailBestaatAl = _context.Gebruiker.FirstOrDefault(g => g.Email.ToLower() == leverancierToDo.Email.ToLower());
+            var emailBestaatAl = await _service.GetByEmailAsync(leverancierToDo.Email);
             if (emailBestaatAl != null) return Conflict("Dit e-mailadres is al in gebruik.");
 
             try
@@ -103,8 +102,7 @@ namespace TreeMarket_Klas4_Groep7.Controllers
 
                 leverancier.Wachtwoord = _passwordHasher.HashPassword(leverancier, leverancierToDo.Wachtwoord);
 
-                await _context.Gebruiker.AddAsync(leverancier);
-                await _context.SaveChangesAsync();
+                await _service.AddAsync(leverancier);
 
                 return Ok(leverancier);
             }
@@ -119,7 +117,7 @@ namespace TreeMarket_Klas4_Groep7.Controllers
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            var emailBestaatAl = _context.Gebruiker.FirstOrDefault(g => g.Email.ToLower() == veilingsmeesterToDo.Email.ToLower());
+            var emailBestaatAl = await _service.GetByEmailAsync(veilingsmeesterToDo.Email);
             if (emailBestaatAl != null) return Conflict("Dit e-mailadres is al in gebruik.");
 
             try
@@ -134,8 +132,7 @@ namespace TreeMarket_Klas4_Groep7.Controllers
 
                 veilingsmeester.Wachtwoord = _passwordHasher.HashPassword(veilingsmeester, veilingsmeesterToDo.Wachtwoord);
 
-                await _context.Gebruiker.AddAsync(veilingsmeester);
-                await _context.SaveChangesAsync();
+                await _service.AddAsync(veilingsmeester);
 
                 return Ok(veilingsmeester);
             }
@@ -153,9 +150,7 @@ namespace TreeMarket_Klas4_Groep7.Controllers
 
             try
             {
-                var gebruiker = await _context.Gebruiker
-                    .FirstOrDefaultAsync(g => g.Email.ToLower() == loginDto.Email.ToLower());
-
+                var gebruiker = await _service.GetByEmailAsync(loginDto.Email);
                 if (gebruiker == null) return Unauthorized("E-mail of wachtwoord is onjuist.");
 
                 var result = _passwordHasher.VerifyHashedPassword(gebruiker, gebruiker.Wachtwoord, loginDto.Wachtwoord);
@@ -227,13 +222,29 @@ namespace TreeMarket_Klas4_Groep7.Controllers
 
         // ================= BEVEILIGDE ROUTES (RBAC) =================
 
+
+        [Authorize(Roles = "Admin")] // Alleen Admin mag alles zien
+        [HttpGet("GetAllUsers")]
+        public async Task<IActionResult> GetAllUsers()
+        {
+            try
+            {
+                var result = await _service.GetAllAsync();
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Databasefout.", error = ex.Message });
+            }
+        }
+
         [Authorize]
         [HttpGet("{id}")]
         public async Task<IActionResult> GetUserById(int id)
         {
             try
             {
-                var result = await _context.Gebruiker.FindAsync(id);
+                var result = await _service.GetByIdAsync(id);
                 if (result == null) return NotFound("Id is not found: " + id);
                 return Ok(result);
             }
@@ -243,20 +254,6 @@ namespace TreeMarket_Klas4_Groep7.Controllers
             }
         }
 
-        [Authorize(Roles = "Admin")] // Alleen Admin mag alles zien
-        [HttpGet("GetAllUsers")]
-        public async Task<IActionResult> GetAllUsers()
-        {
-            try
-            {
-                var result = await _context.Gebruiker.ToListAsync();
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = "Databasefout.", error = ex.Message });
-            }
-        }
 
         [Authorize(Roles = "Admin")] // Alleen Admin mag verwijderen
         [HttpDelete("{id}")]
@@ -264,12 +261,7 @@ namespace TreeMarket_Klas4_Groep7.Controllers
         {
             try
             {
-                var result = await _context.Gebruiker.FindAsync(id);
-                if (result == null) return NotFound();
-
-                _context.Gebruiker.Remove(result);
-                await _context.SaveChangesAsync();
-
+                await _service.DeleteAsync(id);
                 return NoContent();
             }
             catch (Exception ex)
