@@ -96,6 +96,15 @@ var app = builder.Build();
 // ============================================================
 using (var scope = app.Services.CreateScope())
 {
+    // 1. HAAL EERST DE DATABASE CONTEXT OP
+    var context = scope.ServiceProvider.GetRequiredService<ApiContext>();
+    
+    // 2. VOER DE MIGRATIES UIT (MAAK TABELLEN AAN IN AZURE)
+    // Dit commando zorgt dat de database tabellen worden aangemaakt als ze nog niet bestaan.
+    context.Database.Migrate();
+
+    // ---------------------------------------------------------
+
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
     var userManager = scope.ServiceProvider.GetRequiredService<UserManager<Gebruiker>>();
 
