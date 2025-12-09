@@ -9,19 +9,36 @@ function AuctionPage({ currentUser }) {
 
     useEffect(() => {
         const fetchLots = async () => {
-            const url = 'http://localhost:7054/api/Product/pending'; // HTTP voor lokaal dev
+            const url = 'https://localhost:7054/api/Product/pending';
             console.log("Fetching pending kavels vanaf:", url);
 
             try {
-                const response = await fetch(url);
+                const response = await fetch(url, {
+                    method: 'GET',
+                    headers: { 'Accept': 'application/json' },
+                    mode: 'cors'
+                });
 
-                if (!response.ok) {
-                    const text = await response.text();
-                    console.error("Fetch error:", text);
-                    throw new Error(`HTTP error! status: ${response.status}`);
+                const text = await response.text();
+                console.log("Raw response:", text);
+
+                let data;
+                try {
+                    data = JSON.parse(text);
+                } catch (err) {
+                    console.warn("Kan JSON niet parsen, response is waarschijnlijk HTML:", err);
+                    setError("Kon kavels niet ophalen: server geeft geen JSON terug.");
+                    setLoading(false);
+                    return;
                 }
 
-                const data = await response.json();
+                if (!response.ok) {
+                    console.error("HTTP error:", response.status, data);
+                    setError(`Kon kavels niet ophalen: ${response.status}`);
+                    setLoading(false);
+                    return;
+                }
+
                 console.log("Fetched lots:", data);
                 setLots(data);
 
@@ -40,16 +57,18 @@ function AuctionPage({ currentUser }) {
     if (loading) return <p>Even wachten, kavels worden geladen...</p>;
     if (error) return <p>{error}</p>;
 
-    // Case-insensitive filter op status
     const pendingLots = lots.filter(lot => lot.status?.toLowerCase() === 'pending');
-
     if (pendingLots.length === 0) return <p>Geen kavels beschikbaar om te publiceren.</p>;
 
     const createVeiling = async (lot) => {
+        if (currentUser.rol !== 'veilingsmeester') {
+            return alert("Alleen een veilingsmeester kan een veiling aanmaken.");
+        }
+
         try {
-            const response = await fetch('http://localhost:7054/api/Veiling/CreateVeiling', {
+            const response = await fetch('https://localhost:7054/api/Veiling/CreateVeiling', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
                 body: JSON.stringify({
                     startPrijs: lot.minPrice + 1,
                     prijsStap: 1,
@@ -60,29 +79,35 @@ function AuctionPage({ currentUser }) {
             });
 
             const text = await response.text();
-            console.log("Create veiling response:", text);
+            console.log("Create veiling raw response:", text);
 
-            if (!response.ok) {
-                return alert("Fout bij het aanmaken van veiling: " + text);
+            let veiling;
+            try {
+                veiling = JSON.parse(text);
+            } catch {
+                console.warn("Response geen JSON, gebruik text:", text);
+                veiling = { message: text };
             }
 
-            const veiling = JSON.parse(text);
-            setVeilingen(prev => [...prev, veiling]);
+            if (!response.ok) {
+                console.error("Fout bij aanmaken veiling:", veiling);
+                return alert("Fout bij het aanmaken van veiling: " + (veiling.message || response.statusText));
+            }
 
-            // Verwijder de kavel uit pending list
+            setVeilingen(prev => [...prev, veiling]);
             setLots(prev => prev.filter(l => l.productID !== lot.productID));
 
         } catch (error) {
             console.error("Fout bij publiceren van kavel:", error);
-            alert("Er ging iets mis bij het publiceren van de kavel.");
+            alert("Er ging iets mis bij het publiceren van de kavel. Check console voor details.");
         }
     };
 
     return (
         <div className="auction-page">
             <header className="section-header">
-                <h1>Te publiceren kavels (veilingmeester)</h1>
-                <p>Bekijk de kavels die door leveranciers zijn toegevoegd en publiceer ze.</p>
+                <h1>Te publiceren kavels</h1>
+                <p>Bekijk de kavels die door leveranciers zijn toegevoegd{currentUser.rol === 'veilingsmeester' ? ' en publiceer ze.' : '.'}</p>
             </header>
 
             <div className="auction-grid">
@@ -92,7 +117,9 @@ function AuctionPage({ currentUser }) {
                         <p>{lot.description}</p>
                         <span>{lot.lots} stuks</span>
                         {lot.image && <img src={lot.image} alt={lot.name} className="auction-card-image" />}
-                        <button className="primary-action" onClick={() => createVeiling(lot)}>Start Veiling</button>
+                        {currentUser.rol === 'veilingsmeester' && (
+                            <button className="primary-action" onClick={() => createVeiling(lot)}>Start Veiling</button>
+                        )}
                     </article>
                 ))}
             </div>

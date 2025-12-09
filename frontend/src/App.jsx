@@ -113,6 +113,10 @@ function App() {
 
     // ---------- ProtectedRoute component ----------
     const ProtectedRoute = ({ children }) => {
+        if (loadingUser) {
+            return <p>Even wachten...</p>; // Wacht tot de gebruiker geladen is
+        }
+
         if (!currentUser) {
             return <Navigate to="/auth" replace />
         }
