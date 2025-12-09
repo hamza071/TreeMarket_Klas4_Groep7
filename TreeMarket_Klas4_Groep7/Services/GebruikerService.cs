@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using TreeMarket_Klas4_Groep7.Controllers.Interfaces;
 using TreeMarket_Klas4_Groep7.Data;
+using TreeMarket_Klas4_Groep7.Interfaces;
 using TreeMarket_Klas4_Groep7.Models;
 
 namespace TreeMarket_Klas4_Groep7.Services

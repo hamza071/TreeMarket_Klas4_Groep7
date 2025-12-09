@@ -9,9 +9,9 @@ using System.Numerics;
 using System.Text;
 using TreeMarket_Klas4_Groep7.Models;
 using TreeMarket_Klas4_Groep7.Models.DTO;
-using TreeMarket_Klas4_Groep7.Controllers.Interfaces;
 using static TreeMarket_Klas4_Groep7.Models.DTO.KlantDto;
 using SC = System.Security.Claims;
+using TreeMarket_Klas4_Groep7.Interfaces;
 
 namespace TreeMarket_Klas4_Groep7.Controllers
 {

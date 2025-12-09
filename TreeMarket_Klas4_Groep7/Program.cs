@@ -6,8 +6,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
-using TreeMarket_Klas4_Groep7.Controllers.Interfaces;
 using TreeMarket_Klas4_Groep7.Data;
+using TreeMarket_Klas4_Groep7.Interfaces;
 using TreeMarket_Klas4_Groep7.Models;
 using TreeMarket_Klas4_Groep7.Services;
 
@@ -86,11 +86,14 @@ builder.Services.AddSwaggerGen(c =>
 // Dependency Injection
 // =======================
 
+// ============== De Controller klasses maakt gebruik van een interface :)==============
 // ProductService kan nu via constructor in controllers worden gebruikt
-builder.Services.AddScoped<ProductService>();
-
-// De gebruiker klasse maakt gebruik van een interface :)
+builder.Services.AddScoped<IProductController, ProductService>();
 builder.Services.AddScoped<IGebruikerController, GebruikerService>();
+builder.Services.AddScoped<IVeilingController, VeilingService>();
+builder.Services.AddScoped<ILeverancierController, LeverancierService>();
+builder.Services.AddScoped<IClaimController, ClaimService>();
+builder.Services.AddScoped<IDashboardController, DashboardService>();
 
 
 // De PasswordHasher zorgt ervoor dat het wachtwoord gehashed is.

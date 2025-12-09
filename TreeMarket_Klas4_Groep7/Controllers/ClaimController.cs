@@ -7,8 +7,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using TreeMarket_Klas4_Groep7.Data;
+using TreeMarket_Klas4_Groep7.Interfaces;
 using TreeMarket_Klas4_Groep7.Models;
 using TreeMarket_Klas4_Groep7.Models.DTO;
+using TreeMarket_Klas4_Groep7.Services;
 
 namespace TreeMarket_Klas4_Groep7.Controllers
 {
@@ -16,11 +18,11 @@ namespace TreeMarket_Klas4_Groep7.Controllers
     [ApiController]
     public class ClaimController : ControllerBase
     {
-        private readonly ApiContext _context;
+        private readonly IClaimController _service;
 
-        public ClaimController(ApiContext context)
+        public ClaimController(IClaimController service)
         {
-            _context = context;
+            _service = service;
         }
 
         // GET: api/Claims
@@ -29,7 +31,7 @@ namespace TreeMarket_Klas4_Groep7.Controllers
         {
             try
             {
-                var result = await _context.Gebruiker.ToListAsync();
+                var result = await _service.GetAllAsync();
                 return Ok(result);
             }
             catch (Exception ex)
@@ -44,7 +46,7 @@ namespace TreeMarket_Klas4_Groep7.Controllers
         {
             try
             {
-                var claim = await _context.Claim.FindAsync(id);
+                var claim = await _service.GetByIdAsync(id);
 
                 if (claim == null)
                 {
@@ -65,28 +67,10 @@ namespace TreeMarket_Klas4_Groep7.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> PutClaim(int id, Claim claim)
         {
-            if (id != claim.ClaimID)
-            {
-                return BadRequest();
-            }
+            var updated = await _service.UpdateAsync(id, claim);
 
-            _context.Entry(claim).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!ClaimExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
+            if (!updated)
+                return NotFound();
 
             return NoContent();
         }
@@ -110,17 +94,8 @@ namespace TreeMarket_Klas4_Groep7.Controllers
 
             try
             {
-                var claim = new Claim
-                {
-                    Prijs = claimDto.prijs,
-                    KlantId = claimDto.klantId,
-                    VeilingId = claimDto.veilingId
-                };
-
-                await _context.Claim.AddAsync(claim);
-                await _context.SaveChangesAsync();
-
-                return (Ok(claim));
+                await _service.CreateAsync(claimDto);
+                return (Ok(claimDto));
             }
             catch(Exception ex)
             {
@@ -135,21 +110,17 @@ namespace TreeMarket_Klas4_Groep7.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteClaim(int id)
         {
-            var claim = await _context.Claim.FindAsync(id);
-            if (claim == null)
-            {
+            var ok = await _service.DeleteAsync(id);
+            if (!ok)
                 return NotFound();
-            }
-
-            _context.Claim.Remove(claim);
-            await _context.SaveChangesAsync();
 
             return NoContent();
         }
 
-        private bool ClaimExists(int id)
+        private async Task<bool> ClaimExists(int id)
         {
-            return _context.Claim.Any(e => e.ClaimID == id);
+            //return _context.Claim.Any(e => e.ClaimID == id);
+            return await _service.ExistsAsync(id);
         }
     }
 }

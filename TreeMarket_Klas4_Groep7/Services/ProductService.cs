@@ -2,12 +2,13 @@
 using TreeMarket_Klas4_Groep7.Models;
 using TreeMarket_Klas4_Groep7.Models.DTO;
 using Microsoft.EntityFrameworkCore;
+using TreeMarket_Klas4_Groep7.Interfaces;
 
 namespace TreeMarket_Klas4_Groep7.Services
 {
     // ✅ Service class voor Product-logica
     // Houdt LINQ-query’s netjes apart van de controller
-    public class ProductService
+    public class ProductService : IProductController
     {
         //Maakt gebruik van de ApiContext
         private readonly ApiContext _context;
@@ -75,5 +76,12 @@ namespace TreeMarket_Klas4_Groep7.Services
             await _context.SaveChangesAsync();
             return product;
         }
+
+        public async Task AddAsync(Product product)
+        {
+            await _context.Product.AddAsync(product);
+            await _context.SaveChangesAsync();
+        }
+
     }
 }

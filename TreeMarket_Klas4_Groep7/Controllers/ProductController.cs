@@ -5,6 +5,7 @@ using TreeMarket_Klas4_Groep7.Data;
 using TreeMarket_Klas4_Groep7.Models;
 using TreeMarket_Klas4_Groep7.Models.DTO;
 using TreeMarket_Klas4_Groep7.Services;
+using TreeMarket_Klas4_Groep7.Interfaces;
 
 namespace TreeMarket_Klas4_Groep7.Controllers
 {
@@ -13,13 +14,11 @@ namespace TreeMarket_Klas4_Groep7.Controllers
     public class ProductController : ControllerBase
     {
         //Die van productService maakt gebruik van LINQ
-        private readonly ProductService _productService;
-        private readonly ApiContext _context;
+        private readonly IProductController _productService;
 
-        public ProductController(ProductService productService, ApiContext context)
+        public ProductController(IProductController productService)
         {
             _productService = productService;
-            _context = context;
         }
 
         // Haal producten van vandaag op
@@ -122,8 +121,12 @@ namespace TreeMarket_Klas4_Groep7.Controllers
         public async Task<IActionResult> PostProduct([FromBody] ProductDto productDto)
         {
             if (!ModelState.IsValid)
-                return BadRequest(ModelState);  
-            
+                return BadRequest(ModelState);
+
+            if (productDto.leverancierID <= 0)
+                return BadRequest("LeverancierID is verplicht.");
+
+
             try
             {
                 var product = new Product
@@ -136,8 +139,7 @@ namespace TreeMarket_Klas4_Groep7.Controllers
                     LeverancierID = productDto.leverancierID
                 };
 
-                await _context.Product.AddAsync(product);
-                await _context.SaveChangesAsync();
+                await _productService.AddAsync(product);
 
                 return (Ok(product));
             }

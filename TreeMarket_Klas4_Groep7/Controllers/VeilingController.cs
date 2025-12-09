@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
 using TreeMarket_Klas4_Groep7.Data;
+using TreeMarket_Klas4_Groep7.Interfaces;
 using TreeMarket_Klas4_Groep7.Models;
 using TreeMarket_Klas4_Groep7.Models.DTO;
 
@@ -11,25 +12,25 @@ namespace TreeMarket_Klas4_Group7.Controllers
     [ApiController]
     public class VeilingController : ControllerBase
     {
-        private readonly ApiContext _context;
+        private readonly IVeilingController _service;
 
-        public VeilingController(ApiContext context)
+        public VeilingController(IVeilingController service)
         {
-            _context = context;
+            _service = service;
         }
 
         // GET: api/veiling
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
-            return Ok(await _context.Veiling.ToListAsync());
+            return Ok(await _service.GetAllAsync());
         }
 
         // GET: api/veiling/5
         [HttpGet("{id}")]
         public async Task<IActionResult> Get(int id)
         {
-            var veiling = await _context.Veiling.FindAsync(id);
+            var veiling = await _service.GetByIdAsync(id);
             if (veiling == null) return NotFound();
             return Ok(veiling);
         }
@@ -50,8 +51,7 @@ namespace TreeMarket_Klas4_Group7.Controllers
                 TimerInSeconden = dto.TimerInSeconden
             };
 
-            _context.Veiling.Add(veiling);
-            await _context.SaveChangesAsync();
+            await _service.AddAsync(veiling);
 
             return Ok(veiling);
         }
@@ -60,7 +60,7 @@ namespace TreeMarket_Klas4_Group7.Controllers
         [HttpPost("Bid")]
         public async Task<IActionResult> PlaceBid(CreateBidDTO dto)
         {
-            var veiling = await _context.Veiling.FindAsync(dto.VeilingID);
+            var veiling = await _service.GetByIdAsync(dto.VeilingID);
             if (veiling == null) return NotFound("Veiling niet gevonden.");
 
             var bid = new Bid
@@ -69,11 +69,11 @@ namespace TreeMarket_Klas4_Group7.Controllers
                 Bedrag = dto.Bod
             };
 
-            _context.Bids.Add(bid);
-            await _context.SaveChangesAsync();
+            //In de service opslaan
+            await _service.AddBidAsync(bid);
 
             veiling.HuidigePrijs = dto.Bod;
-            await _context.SaveChangesAsync();
+            await _service.AddAsync(veiling);
 
             return Ok(bid);
         }
@@ -82,11 +82,11 @@ namespace TreeMarket_Klas4_Group7.Controllers
         [HttpPut("UpdateStatus/{id}")]
         public async Task<IActionResult> UpdateStatus(int id, UpdateStatusDTO dto)
         {
-            var veiling = await _context.Veiling.FindAsync(id);
+            var veiling = await _service.GetByIdAsync(id);
             if (veiling == null) return NotFound("Veiling niet gevonden.");
 
             veiling.Status = dto.Status;
-            await _context.SaveChangesAsync();
+            await _service.UpdateAsync(veiling);
 
             return Ok(veiling);
         }

@@ -1,8 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using TreeMarket_Klas4_Groep7.Data;
-using TreeMarket_Klas4_Groep7.Models;
-using System.Linq;
 using Microsoft.EntityFrameworkCore;
+using System.Linq;
+using TreeMarket_Klas4_Groep7.Data;
+using TreeMarket_Klas4_Groep7.Interfaces;
+using TreeMarket_Klas4_Groep7.Models;
 
 namespace TreeMarket_Klas4_Groep7.Controllers
 {
@@ -10,12 +11,12 @@ namespace TreeMarket_Klas4_Groep7.Controllers
     [ApiController]
     public class LeverancierController : ControllerBase
     {
-        private readonly ApiContext _context;
+        private readonly ILeverancierController _service;
 
         //  Constructor: krijgt de databasecontext via Dependency Injection
-        public LeverancierController(ApiContext context)
+        public LeverancierController(ILeverancierController service)
         {
-            _context = context;
+            _service = service;
         }
 
         // ===============================
@@ -35,8 +36,7 @@ namespace TreeMarket_Klas4_Groep7.Controllers
                 }
 
                 // Voeg leverancier toe aan database
-                await _context.Leverancier.AddAsync(leverancier);
-                await _context.SaveChangesAsync();
+                await _service.AddAsync(leverancier);
 
                 // Return het aangemaakte object (inclusief ID)
                 return Ok(leverancier);
@@ -57,7 +57,7 @@ namespace TreeMarket_Klas4_Groep7.Controllers
         {
             try
             {
-                var leveranciers = await _context.Leverancier.ToListAsync();
+                var leveranciers = await _service.GetAllAsync();
                 return Ok(leveranciers);
             }
             catch (Exception ex)
@@ -76,7 +76,7 @@ namespace TreeMarket_Klas4_Groep7.Controllers
         {
             try
             {
-                var leverancier = await _context.Leverancier.FindAsync(id);
+                var leverancier = await _service.GetByIdAsync(id);
 
                 if (leverancier == null)
                     return NotFound("Leverancier niet gevonden met ID: " + id);

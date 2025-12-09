@@ -4,7 +4,7 @@ using TreeMarket_Klas4_Groep7.Models.DTO;
 
 //============= NOTE ==============
 //De interfaces worden gelinked met de services! Zodat ze in de controller gebruik gemaakt worden.
-namespace TreeMarket_Klas4_Groep7.Controllers.Interfaces
+namespace TreeMarket_Klas4_Groep7.Interfaces
 {
     public interface IGebruikerController
     {
