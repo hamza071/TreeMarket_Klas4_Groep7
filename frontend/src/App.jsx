@@ -1,5 +1,5 @@
-﻿import { Link, Routes, Route } from "react-router-dom";
-import { useRef, useCallback, useState } from "react";
+﻿import { Link, Routes, Route, Navigate } from "react-router-dom";
+import { useRef, useCallback, useState, useEffect } from "react";
 
 // Styling
 import './assets/css/App.css'
@@ -12,14 +12,12 @@ import UploadAuctionPage from './pages/UploadAuctionPage'
 import ReportsPage from './pages/ReportsPage'
 import AuthPage from './pages/AuthPage'
 import AboutUsPage from './pages/AboutUsPage'
-import HomePage from './pages/HomePage'
 import AllUsers from './pages/CRUD/AllUsers'
 import IdUser from './pages/CRUD/IdUser'
 import DeleteUser from './pages/CRUD/DeleteUser'
 import LogOutUser from './pages/Logout'
 
-// Navigatie voor ingelogde gebruikers
-const NAVIGATION_ITEMS_AUTHENTICATED = [
+const NAVIGATION_ITEMS = [
     { id: 'dashboard', label: 'Dashboard' },
     { id: 'veiling', label: 'Veiling' },
     { id: 'upload', label: 'Upload Veiling' },
@@ -32,45 +30,27 @@ const NAVIGATION_ITEMS_AUTHENTICATED = [
     { id: 'logout', label: 'LogOutTheUser' },
 ]
 
-// Navigatie voor anonieme gebruikers (alleen publieke pagina's)
-const NAVIGATION_ITEMS_ANONYMOUS = [
-    { id: 'home', label: 'Home' },
-    { id: 'about', label: 'About' },
-]
-
 function App() {
     const navigationRefs = useRef([]);
 
-    // Check of de gebruiker is ingelogd (op basis van JWT in localStorage)
-    const isLoggedIn = !!localStorage.getItem('token');
-
-    // Kies de juiste navigatiestructuur op basis van login status
-    const NAVIGATION_ITEMS = isLoggedIn
-        ? NAVIGATION_ITEMS_AUTHENTICATED
-        : NAVIGATION_ITEMS_ANONYMOUS;
-
     const handleNavKeyDown = useCallback((event, currentIndex) => {
-        const navLength = NAVIGATION_ITEMS.length;
-
         if (event.key === "ArrowRight") {
-            const nextIndex = (currentIndex + 1) % navLength;
-            navigationRefs.current[nextIndex]?.focus();
+            const nextIndex = (currentIndex + 1) % NAVIGATION_ITEMS.length
+            navigationRefs.current[nextIndex]?.focus()
         }
         if (event.key === "ArrowLeft") {
-            const prevIndex = (currentIndex - 1 + navLength) % navLength;
-            navigationRefs.current[prevIndex]?.focus();
+            const prevIndex = (currentIndex - 1 + NAVIGATION_ITEMS.length) % NAVIGATION_ITEMS.length
+            navigationRefs.current[prevIndex]?.focus()
         }
-    }, [NAVIGATION_ITEMS]);
+    }, [])
 
     // Alle kavels (status: pending / published)
     const [lots, setLots] = useState([])
 
-    // Leverancier voegt nieuwe kavel toe (status: pending)
     const addNewLot = (newLot) => {
         setLots(prev => [...prev, { ...newLot, status: 'pending' }])
     }
 
-    // Veilingmeester bewerkt kavel (voegt prijs en sluitingstijd toe en publiceert)
     const updateLot = (updatedLot) => {
         setLots(prev => prev.map(lot =>
             lot.code === updatedLot.code
@@ -79,14 +59,76 @@ function App() {
         ))
     }
 
+    // ---------- currentUser ophalen ----------
+    const [currentUser, setCurrentUser] = useState(null);
+    const [loadingUser, setLoadingUser] = useState(true);
+
+    useEffect(() => {
+        const fetchCurrentUser = async () => {
+            const token = localStorage.getItem("jwtToken");
+            if (!token) {
+                console.error("Geen JWT token gevonden. Log in a.u.b.");
+                setLoadingUser(false);
+                return;
+            }
+
+            try {
+                const res = await fetch('https://localhost:7054/api/Gebruiker/me', {
+                    method: "GET",
+                    headers: {
+                        "Authorization": `Bearer ${token}`,
+                        "Content-Type": "application/json"
+                    }
+                });
+
+                if (!res.ok) {
+                    if (res.status === 401) {
+                        throw new Error("Niet ingelogd of token ongeldig. Log in a.u.b.");
+                    } else {
+                        throw new Error(`Kon gebruiker niet ophalen: ${res.status} ${res.statusText}`);
+                    }
+                }
+
+                const data = await res.json();
+                setCurrentUser(data);
+                console.log("Current user:", data);
+
+            } catch (err) {
+                console.error("Fout bij ophalen gebruiker:", err);
+                setCurrentUser(null);
+            } finally {
+                setLoadingUser(false);
+            }
+        };
+
+        fetchCurrentUser();
+    }, []);
+
+    const handleLogout = () => {
+        localStorage.removeItem("jwtToken");
+        setCurrentUser(null);
+    };
+
+    if (loadingUser) return <p>Even wachten, gebruiker wordt geladen...</p>;
+
+    // ---------- ProtectedRoute component ----------
+    const ProtectedRoute = ({ children }) => {
+        if (loadingUser) {
+            return <p>Even wachten...</p>; // Wacht tot de gebruiker geladen is
+        }
+
+        if (!currentUser) {
+            return <Navigate to="/auth" replace />
+        }
+        return children;
+    };
+
     return (
         <div className="app-shell">
             <a className="skip-link" href="#main-content">Ga direct naar de hoofdinhoud</a>
 
             <header className="app-header">
                 <div className="brand">TREE MARKET</div>
-
-                {/* Navigatie past zich aan op basis van ingelogde / anonieme gebruiker */}
                 <nav className="main-nav" aria-label="Primaire navigatie">
                     {NAVIGATION_ITEMS.map((item, index) => (
                         <Link
@@ -100,38 +142,42 @@ function App() {
                         </Link>
                     ))}
                 </nav>
-
-                {/* Voor anonieme gebruiker: User linkt naar registreren/inloggen (AuthPage) */}
-                {/* Voor ingelogde gebruiker kun je deze eventueel later aanpassen naar profiel / uitloggen */}
-                <Link className="user-chip" to="/auth">User</Link>
+                {currentUser
+                    ? <button className="user-chip" onClick={handleLogout}>Uitloggen</button>
+                    : <Link className="user-chip" to="/auth">Login</Link>
+                }
             </header>
 
             <main className="page-area" id="main-content">
                 <Routes>
-                    {/* Extra: root route naar Home */}
-                    <Route path="/" element={<HomePage />} />
-
-                    {/* Dashboard krijgt alleen gepubliceerde kavels */}
                     <Route path="/dashboard" element={<DashboardPage lots={lots.filter(lot => lot.status === 'published')} />} />
-
-                    {/* Veiling krijgt alle kavels */}
-                    <Route path="/veiling" element={<AuctionPage lots={lots} />} />
-                    <Route path="/veiling/:code" element={<AuctionDetailPage lots={lots} updateLot={updateLot} />} />
-
-                    {/* Upload voor leverancier */}
-                    <Route path="/upload" element={<UploadAuctionPage addNewLot={addNewLot} />} />
-
-                    {/* Overige pages */}
+                    <Route path="/veiling" element={<AuctionPage lots={lots} currentUser={currentUser} />} />
+                    <Route path="/veiling/:code" element={<AuctionDetailPage lots={lots} updateLot={updateLot} currentUser={currentUser} />} />
+                    <Route path="/upload" element={
+                        <ProtectedRoute>
+                            <UploadAuctionPage addNewLot={addNewLot} />
+                        </ProtectedRoute>
+                    } />
                     <Route path="/reports" element={<ReportsPage />} />
-                    <Route path="/home" element={<HomePage />} />
+                    <Route path="/home" element={<DashboardPage lots={lots.filter(lot => lot.status === 'published')} />} />
                     <Route path="/about" element={<AboutUsPage />} />
-                    <Route path="/auth" element={<AuthPage />} />
-                    <Route path="/allusers" element={<AllUsers />} />
-                    <Route path="/idUser" element={<IdUser />} />
-                    <Route path="/deleteUser" element={<DeleteUser />} />
-                    <Route path="/logout" element={<LogOutUser />} />
-
-                    {/* Fallback */}
+                    <Route path="/auth" element={<AuthPage setCurrentUser={setCurrentUser} />} />
+                    <Route path="/allusers" element={
+                        <ProtectedRoute>
+                            <AllUsers />
+                        </ProtectedRoute>
+                    } />
+                    <Route path="/idUser" element={
+                        <ProtectedRoute>
+                            <IdUser />
+                        </ProtectedRoute>
+                    } />
+                    <Route path="/deleteUser" element={
+                        <ProtectedRoute>
+                            <DeleteUser />
+                        </ProtectedRoute>
+                    } />
+                    <Route path="/logout" element={<LogOutUser handleLogout={handleLogout} />} />
                     <Route path="*" element={<DashboardPage lots={lots.filter(lot => lot.status === 'published')} />} />
                 </Routes>
             </main>

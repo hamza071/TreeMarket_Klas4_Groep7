@@ -6,6 +6,7 @@ using TreeMarket_Klas4_Groep7.Models;
 using TreeMarket_Klas4_Groep7.Services;
 //Deze code wordt gebruikt om tokens te generen voor de login. 
 //Dit is ook in de appsettings.json gezet :)
+// ... rest van de using statements
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
@@ -72,14 +73,6 @@ builder.Services.AddSwaggerGen(c =>
         }
     });
 });
-//builder.Services.AddSwaggerGen(c =>
-//{
-//    c.SwaggerDoc("v1", new OpenApiInfo
-//    {
-//        Title = "TreeMarket API",
-//        Version = "v1"
-//    });
-//});       
 
 // =======================
 // Dependency Injection
@@ -92,36 +85,23 @@ builder.Services.AddScoped<ProductService>();
 //Dit wordt alleen gebruik voor het tabel Gebruiker en zijn kinderen (sub klasses).
 builder.Services.AddScoped<PasswordHasher<Gebruiker>>();
 
-
-
 // ===============
 // CORS = Cross-Origin Resource Sharing
 // Het regelt en webpagina die geladen wordt vanaf een domein zoals http://localhost:55125
 // CORS gebruikt ook de Grand Cross om met andere domeinen te mogen communiceren via een server.
 // ===========
 
-// Tijdelijk voor testen
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll",
-        policy =>
-        {
-            policy.AllowAnyOrigin()
-                  .AllowAnyHeader()
-                  .AllowAnyMethod();
-        });
+    options.AddPolicy("AllowReactDev", policy =>
+    {
+        //De nummer van de localhost staat op basis van hoe wij npm run dev starten.
+        policy.WithOrigins("http://localhost:55125")
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials(); // ← toegevoegd, cruciaal voor fetch met credentials
+    });
 });
-
-//builder.Services.AddCors(options =>
-//{
-//    options.AddPolicy("AllowReactDev", policy =>
-//    {
-//        //De nummer van de localhost staat op basis van hoe wij npm run dev starten.
-//        policy.WithOrigins("http://localhost:55125")
-//              .AllowAnyHeader()
-//              .AllowAnyMethod();
-//    });
-//});
 
 //=====De builder voor de JWT token.=====
 builder.Services.AddAuthentication(options =>
@@ -171,7 +151,8 @@ app.UseRouting();
 //CORS wordt opgeroepen.
 //Dit zorgt ervoor dat de localhost binnen
 //tijdelijk
-app.UseCors("AllowAll"); //app.UseCors("AllowReactDev");
+app.UseCors("AllowReactDev"); // <- belangrijk dat dit hier staat VOOR authentication/authorization
+
 app.UseAuthentication();
 //Wordt waarschijnlijk gebruikt voor rechten en rollen
 app.UseAuthorization();

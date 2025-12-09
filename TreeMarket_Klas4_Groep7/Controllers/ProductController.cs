@@ -147,6 +147,135 @@ namespace TreeMarket_Klas4_Groep7.Controllers
             }
         }
 
+        [HttpPost("upload")]
+        public async Task<IActionResult> UploadProduct([FromForm] CreateProductDto dto)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            string? imagePath = null;
+
+            // Afbeelding opslaan
+            if (dto.Image != null)
+            {
+                var fileName = Guid.NewGuid() + Path.GetExtension(dto.Image.FileName);
+                var filePath = Path.Combine("wwwroot/images", fileName);
+
+                Directory.CreateDirectory(Path.GetDirectoryName(filePath)!);
+
+                using var stream = new FileStream(filePath, FileMode.Create);
+                await dto.Image.CopyToAsync(stream);
+
+                imagePath = "/images/" + fileName;
+            }
+
+            // Product aanmaken met de juiste properties
+            var product = new Product
+            {
+                Artikelkenmerken = dto.Variety ?? "",  // dit is verplicht in entity
+                Hoeveelheid = dto.Quantity,
+                MinimumPrijs = dto.MinPrice,
+                Foto = imagePath ?? "",                 // dit is verplicht in entity
+                Dagdatum = DateTime.UtcNow,
+                LeverancierID = dto.LeverancierID
+            };
+
+            _context.Product.Add(product);
+            await _context.SaveChangesAsync();
+
+            return Ok(product);
+        }
+
+        //[HttpGet("pending")]
+        //public async Task<IActionResult> GetPendingProducts()
+        //{
+        //    try
+        //    {
+        //        var pending = await _context.Product
+        //            .Where(p => !p.Veilingen.Any()) // nog geen veiling aangemaakt
+        //            .Select(p => new
+        //            {
+        //                code = p.ProductId,
+        //                name = p.Artikelkenmerken,
+        //                description = "", // kan later uit DTO of extra veld komen
+        //                lots = p.Hoeveelheid,
+        //                image = p.Foto, // /images/... pad
+        //                status = "pending",
+        //                productID = p.ProductId,
+        //                minPrice = p.MinimumPrijs
+        //            })
+        //            .ToListAsync();
+
+        //        return Ok(pending);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return StatusCode(500, new { message = "Kan pending kavels niet ophalen.", error = ex.Message });
+        //    }
+        //}
+
+        // GET: api/Product/5
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetProductById(int id)
+        {
+            try
+            {
+                // Haal het product op inclusief eventuele gerelateerde data (zoals Leverancier)
+                var product = await _context.Product
+                    .Include(p => p.Leverancier)
+                    .FirstOrDefaultAsync(p => p.ProductId == id);
+
+                if (product == null)
+                    return NotFound(new { message = "Kavel niet gevonden" });
+
+                // Optioneel: map naar DTO
+                var productDto = new ProductDto
+                {
+                    ProductId = product.ProductId,
+                    artikelkenmerken = product.Artikelkenmerken,
+                    Hoeveelheid = product.Hoeveelheid,
+                    MinimumPrijs = product.MinimumPrijs,
+                    Foto = product.Foto,
+                    dagdatum = product.Dagdatum,
+                    leverancierID = product.LeverancierID
+                };
+
+                return Ok(productDto);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Databasefout bij ophalen kavel", error = ex.Message });
+            }
+        }
+
+        // Haal alle pending kavels op
+        [HttpGet("pending")]
+        public async Task<IActionResult> GetPendingProducts()
+        {
+            try
+            {
+                var pending = await _context.Product
+                    .Where(p => !_context.Veiling.Any(v => v.ProductID == p.ProductId))
+                    .Select(p => new
+                    {
+                        code = p.ProductId,
+                        name = p.Artikelkenmerken,
+                        description = "",
+                        lots = p.Hoeveelheid,
+                        image = p.Foto,
+                        status = "pending",
+                        productID = p.ProductId,
+                        minPrice = p.MinimumPrijs
+                    })
+                    .ToListAsync();
+
+                return Ok(pending);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Kan pending kavels niet ophalen.", error = ex.Message });
+            }
+        }
+
     }
 }
-
