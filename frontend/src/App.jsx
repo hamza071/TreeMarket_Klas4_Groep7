@@ -19,14 +19,26 @@ import IdUser from "./pages/CRUD/IdUser";
 import DeleteUser from "./pages/CRUD/DeleteUser";
 import Logout from "./pages/Logout";
 
-// Navigatie voor KLANT (en leverancier)
+// ========================
+// Navigatie per rol
+// ========================
+
+// KLANT
 const NAVIGATION_ITEMS_KLANT = [
     { id: "home", label: "Home" },
     { id: "about", label: "About" },
     { id: "veiling", label: "Veiling" },
 ];
 
-// Navigatie voor VEILINGSMEESTER
+// LEVERANCIER
+const NAVIGATION_ITEMS_LEVERANCIER = [
+    { id: "home", label: "Home" },
+    { id: "about", label: "About" },
+    { id: "upload", label: "Upload Product" },
+    { id: "dashboard", label: "Dashboard" },
+];
+
+// VEILINGSMEESTER
 const NAVIGATION_ITEMS_VEILINGSMEESTER = [
     { id: "home", label: "Home" },
     { id: "about", label: "About" },
@@ -34,7 +46,7 @@ const NAVIGATION_ITEMS_VEILINGSMEESTER = [
     { id: "dashboard", label: "Dashboard" },
 ];
 
-// Navigatie voor anonieme gebruikers
+// ANONIEM
 const NAVIGATION_ITEMS_ANONYMOUS = [
     { id: "home", label: "Home" },
     { id: "about", label: "About" },
@@ -43,19 +55,21 @@ const NAVIGATION_ITEMS_ANONYMOUS = [
 function App() {
     const navigationRefs = useRef([]);
 
-    // Auth-status rechtstreeks uit localStorage
+    // Auth-status uit localStorage
     const token = localStorage.getItem("token");
-    const role = (localStorage.getItem("role") || "").toLowerCase(); // "klant", "leverancier", "veilingsmeester"
+    const role = (localStorage.getItem("role") || "").toLowerCase();
     const isLoggedIn = !!token;
 
-    // Juiste navigatie kiezen op basis van rol
+    // Juiste nav kiezen
     let NAVIGATION_ITEMS;
     if (!isLoggedIn) {
         NAVIGATION_ITEMS = NAVIGATION_ITEMS_ANONYMOUS;
     } else if (role === "veilingsmeester") {
         NAVIGATION_ITEMS = NAVIGATION_ITEMS_VEILINGSMEESTER;
+    } else if (role === "leverancier") {
+        NAVIGATION_ITEMS = NAVIGATION_ITEMS_LEVERANCIER;
     } else {
-        // standaard ingelogd = klant/leverancier
+        // alles wat overblijft behandelen we als klant
         NAVIGATION_ITEMS = NAVIGATION_ITEMS_KLANT;
     }
 
@@ -75,15 +89,13 @@ function App() {
         [NAVIGATION_ITEMS.length]
     );
 
-    // Alle kavels (status: pending / published)
+    // Alle kavels
     const [lots, setLots] = useState([]);
 
-    // Leverancier voegt nieuwe kavel toe (status: pending)
     const addNewLot = (newLot) => {
         setLots((prev) => [...prev, { ...newLot, status: "pending" }]);
     };
 
-    // Veilingmeester publiceert kavel
     const updateLot = (updatedLot) => {
         setLots((prev) =>
             prev.map((lot) =>
@@ -103,7 +115,7 @@ function App() {
             <header className="app-header">
                 <div className="brand">TREE MARKET</div>
 
-                {/* Navigatie op basis van rol */}
+                {/* Navigatie per rol */}
                 <nav className="main-nav" aria-label="Primaire navigatie">
                     {NAVIGATION_ITEMS.map((item, index) => (
                         <Link
@@ -118,7 +130,7 @@ function App() {
                     ))}
                 </nav>
 
-                {/* User knop rechtsboven */}
+                {/* User chip rechtsboven */}
                 {!isLoggedIn ? (
                     <Link className="user-chip" to="/auth">
                         Inloggen
@@ -135,7 +147,7 @@ function App() {
                     {/* Root → Home */}
                     <Route path="/" element={<HomePage />} />
 
-                    {/* Dashboard (alleen gepubliceerde kavels) */}
+                    {/* Dashboard */}
                     <Route
                         path="/dashboard"
                         element={
@@ -156,7 +168,7 @@ function App() {
                         }
                     />
 
-                    {/* Upload veiling (veilingsmeester / leverancier) */}
+                    {/* Upload (zowel leverancier als veilingsmeester gebruiken deze pagina) */}
                     <Route
                         path="/upload"
                         element={<UploadAuctionPage addNewLot={addNewLot} />}
@@ -174,7 +186,7 @@ function App() {
                     <Route path="/idUser" element={<IdUser />} />
                     <Route path="/deleteUser" element={<DeleteUser />} />
 
-                    {/* Logout pagina */}
+                    {/* Logout */}
                     <Route path="/logout" element={<Logout />} />
 
                     {/* Fallback */}
