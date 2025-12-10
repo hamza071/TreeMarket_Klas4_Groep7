@@ -1,6 +1,5 @@
 ﻿import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-// Importeer de decoder (zorg dat je 'npm install jwt-decode' hebt gedaan)
 import { jwtDecode } from "jwt-decode";
 
 function AuthPage() {
