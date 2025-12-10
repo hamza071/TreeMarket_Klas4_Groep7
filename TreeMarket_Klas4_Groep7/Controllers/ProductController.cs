@@ -1,5 +1,5 @@
 ﻿using backend.Interfaces;
-using Microsoft.AspNetCore.Authorization; // <--- NODIG VOOR BEVEILIGING
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
@@ -15,13 +15,13 @@ namespace TreeMarket_Klas4_Groep7.Controllers
     public class ProductController : ControllerBase
     {
         private readonly IProductController _service;
+        private readonly ApiContext _context; // ✅ Voeg context toe
 
-        public ProductController(IProductController service)
+        public ProductController(IProductController service, ApiContext context)
         {
             _service = service;
+            _context = context;
         }
-
-        // ================= GET ENDPOINTS (OPENBAAR) =================
 
         [HttpGet("vandaag")]
         public async Task<IActionResult> GetVandaag()
@@ -51,38 +51,9 @@ namespace TreeMarket_Klas4_Groep7.Controllers
             }
         }
 
-        // ================= CREATE / UPDATE (BEVEILIGD) =================
-
-        [HttpPost]
-        [Authorize]
-        //[Authorize(Roles = "Leverancier, Admin")]
-        public async Task<IActionResult> CreateOrUpdateProduct([FromBody] Product product)
-        {
-            try
-            {
-                var result = await _service.AddOrUpdateProductAsync(product);
-                if (result == null)
-                    return BadRequest("Validatie mislukt of product niet gevonden.");
-                return Ok(result);
-
-            }
-            catch (ArgumentException ex)
-            {
-                return BadRequest(ex.Message); // validatiefouten
-            }
-            catch (KeyNotFoundException ex)
-            {
-                return NotFound(ex.Message); // update van niet-bestaand product
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = "Databasefout.", error = ex.Message });
-            }
-        }
-
-
-        // DIT IS DE BETERE METHODE (gebruikt DTO en Token)
+        // ================= CREATE / UPDATE =================
         [HttpPost("CreateProduct")]
+        [Authorize] // alleen ingelogde leveranciers mogen
         public async Task<IActionResult> PostProduct([FromForm] ProductUploadDto productDto)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -90,8 +61,8 @@ namespace TreeMarket_Klas4_Groep7.Controllers
 
             try
             {
-                string? fotoUrl = null;
-
+                // -------------------- Image Upload --------------------
+                string fotoUrl;
                 if (productDto.Image != null)
                 {
                     var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images");
@@ -106,29 +77,46 @@ namespace TreeMarket_Klas4_Groep7.Controllers
                         await productDto.Image.CopyToAsync(stream);
                     }
 
-                    fotoUrl = "/images/" + uniqueFileName; // URL naar frontend
+                    fotoUrl = "/images/" + uniqueFileName;
                 }
                 else
                 {
-                    return BadRequest("Afbeelding is verplicht.");
+                    fotoUrl = "/images/default.png"; // default afbeelding
                 }
 
+                // -------------------- Leverancier ophalen --------------------
+                var leverancier = await _context.Leverancier
+                    .FirstOrDefaultAsync(l => l.Id == userId);
+
+                if (leverancier == null)
+                {
+                    return BadRequest("Er bestaat geen Leverancier-profiel voor deze gebruiker.");
+                }
+
+                // -------------------- Product aanmaken --------------------
                 var product = new Product
                 {
-                    Artikelkenmerken = productDto.Variety,
+                    Artikelkenmerken = productDto.Variety ?? "",
                     Hoeveelheid = productDto.Quantity,
                     MinimumPrijs = productDto.MinPrice,
                     Dagdatum = DateTime.UtcNow,
-                    LeverancierID = userId,  // zorg dat deze bestaat in Leverancier table
+                    LeverancierID = leverancier.Id,
                     Foto = fotoUrl
                 };
 
-                var result = await _service.AddOrUpdateProductAsync(product);
-                return Ok(result);
+                _context.Product.Add(product);
+                await _context.SaveChangesAsync();
+
+                return Ok(product);
+            }
+            catch (DbUpdateException dbEx)
+            {
+                // database fouten (tracking of primary key issues)
+                return StatusCode(500, new { message = "Databasefout.", error = dbEx.InnerException?.Message ?? dbEx.Message });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { message = "Databasefout.", error = ex.Message });
+                return StatusCode(500, new { message = "Serverfout.", error = ex.Message });
             }
         }
     }

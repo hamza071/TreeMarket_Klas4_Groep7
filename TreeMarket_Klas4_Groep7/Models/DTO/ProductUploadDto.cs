@@ -21,7 +21,6 @@ namespace TreeMarket_Klas4_Groep7.Models.DTO
         [Range(0.01, double.MaxValue, ErrorMessage = "Minimumprijs moet groter dan 0 zijn.")]
         public decimal MinPrice { get; set; }
 
-        [Required(ErrorMessage = "Afbeelding is verplicht.")]
-        public IFormFile Image { get; set; } = null!; // verplicht omdat Foto niet null mag
+        public IFormFile? Image { get; set; }
     }
 }
