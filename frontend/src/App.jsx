@@ -13,19 +13,40 @@ import ReportsPage from "./pages/ReportsPage";
 import AuthPage from "./pages/AuthPage";
 import AboutUsPage from "./pages/AboutUsPage";
 import HomePage from "./pages/HomePage";
+import ShopPage from "./pages/ShopPage";
 import AllUsers from "./pages/CRUD/AllUsers";
 import IdUser from "./pages/CRUD/IdUser";
 import DeleteUser from "./pages/CRUD/DeleteUser";
-import LogOutUser from "./pages/Logout";
+import Logout from "./pages/Logout";
 
-// Navigatie voor ingelogde KLANT
-const NAVIGATION_ITEMS_LOGGED_IN = [
+// ========================
+// Navigatie per rol
+// ========================
+
+// KLANT
+const NAVIGATION_ITEMS_KLANT = [
     { id: "home", label: "Home" },
     { id: "about", label: "About" },
     { id: "veiling", label: "Veiling" },
 ];
 
-// Navigatie voor anonieme gebruikers
+// LEVERANCIER
+const NAVIGATION_ITEMS_LEVERANCIER = [
+    { id: "home", label: "Home" },
+    { id: "about", label: "About" },
+    { id: "upload", label: "Upload Product" },
+    { id: "dashboard", label: "Dashboard" },
+];
+
+// VEILINGSMEESTER
+const NAVIGATION_ITEMS_VEILINGSMEESTER = [
+    { id: "home", label: "Home" },
+    { id: "about", label: "About" },
+    { id: "upload", label: "Upload Veiling" },
+    { id: "dashboard", label: "Dashboard" },
+];
+
+// ANONIEM
 const NAVIGATION_ITEMS_ANONYMOUS = [
     { id: "home", label: "Home" },
     { id: "about", label: "About" },
@@ -34,13 +55,23 @@ const NAVIGATION_ITEMS_ANONYMOUS = [
 function App() {
     const navigationRefs = useRef([]);
 
-    // Alleen op basis van token bepalen of iemand ingelogd is
-    const isLoggedIn = !!localStorage.getItem("token");
+    // Auth-status uit localStorage
+    const token = localStorage.getItem("token");
+    const role = (localStorage.getItem("role") || "").toLowerCase();
+    const isLoggedIn = !!token;
 
-    // Kies de juiste navigatie
-    const NAVIGATION_ITEMS = isLoggedIn
-        ? NAVIGATION_ITEMS_LOGGED_IN
-        : NAVIGATION_ITEMS_ANONYMOUS;
+    // Juiste nav kiezen
+    let NAVIGATION_ITEMS;
+    if (!isLoggedIn) {
+        NAVIGATION_ITEMS = NAVIGATION_ITEMS_ANONYMOUS;
+    } else if (role === "veilingsmeester") {
+        NAVIGATION_ITEMS = NAVIGATION_ITEMS_VEILINGSMEESTER;
+    } else if (role === "leverancier") {
+        NAVIGATION_ITEMS = NAVIGATION_ITEMS_LEVERANCIER;
+    } else {
+        // alles wat overblijft behandelen we als klant
+        NAVIGATION_ITEMS = NAVIGATION_ITEMS_KLANT;
+    }
 
     const handleNavKeyDown = useCallback(
         (event, currentIndex) => {
@@ -58,15 +89,13 @@ function App() {
         [NAVIGATION_ITEMS.length]
     );
 
-    // Alle kavels (status: pending / published)
+    // Alle kavels
     const [lots, setLots] = useState([]);
 
-    // Leverancier voegt nieuwe kavel toe (status: pending)
     const addNewLot = (newLot) => {
         setLots((prev) => [...prev, { ...newLot, status: "pending" }]);
     };
 
-    // Veilingmeester bewerkt kavel (voegt prijs en sluitingstijd toe en publiceert)
     const updateLot = (updatedLot) => {
         setLots((prev) =>
             prev.map((lot) =>
@@ -86,7 +115,7 @@ function App() {
             <header className="app-header">
                 <div className="brand">TREE MARKET</div>
 
-                {/* Navigatie past zich aan op basis van ingelogde / anonieme gebruiker */}
+                {/* Navigatie per rol */}
                 <nav className="main-nav" aria-label="Primaire navigatie">
                     {NAVIGATION_ITEMS.map((item, index) => (
                         <Link
@@ -115,10 +144,10 @@ function App() {
 
             <main className="page-area" id="main-content">
                 <Routes>
-                    {/* Root naar Home */}
+                    {/* Root → Home */}
                     <Route path="/" element={<HomePage />} />
 
-                    {/* Dashboard met gepubliceerde kavels */}
+                    {/* Dashboard */}
                     <Route
                         path="/dashboard"
                         element={
@@ -139,7 +168,7 @@ function App() {
                         }
                     />
 
-                    {/* Upload voor leverancier */}
+                    {/* Upload (zowel leverancier als veilingsmeester gebruiken deze pagina) */}
                     <Route
                         path="/upload"
                         element={<UploadAuctionPage addNewLot={addNewLot} />}
@@ -149,11 +178,16 @@ function App() {
                     <Route path="/reports" element={<ReportsPage />} />
                     <Route path="/home" element={<HomePage />} />
                     <Route path="/about" element={<AboutUsPage />} />
+                    <Route path="/shop" element={<ShopPage />} />
                     <Route path="/auth" element={<AuthPage />} />
+
+                    {/* CRUD demo */}
                     <Route path="/allusers" element={<AllUsers />} />
                     <Route path="/idUser" element={<IdUser />} />
                     <Route path="/deleteUser" element={<DeleteUser />} />
-                    <Route path="/logout" element={<LogOutUser />} />
+
+                    {/* Logout */}
+                    <Route path="/logout" element={<Logout />} />
 
                     {/* Fallback */}
                     <Route

@@ -37,13 +37,13 @@ function AuthPage() {
         }));
     };
 
-    // =============================================
+    // =========================
     // VALIDATIE
-    // =============================================
+    // =========================
     const validateForm = () => {
         const newErrors = {};
 
-        // Email
+        // E-mail
         if (!formData.email.trim()) {
             newErrors.email = "Vul uw e-mailadres in.";
         } else {
@@ -76,31 +76,38 @@ function AuthPage() {
                 const phoneRegex = /^0[0-9]{9}$/;
                 if (!phoneRegex.test(formData.telefoonnummer.trim())) {
                     newErrors.telefoonnummer =
-                        "Vul een geldig Nederlands telefoonnummer in.";
+                        "Vul een geldig Nederlands telefoonnummer in (10 cijfers).";
                 }
             }
 
-            // Herhaal wachtwoord
+            // Bevestig wachtwoord
             if (!formData.herhaalWachtwoord) {
                 newErrors.herhaalWachtwoord = "Bevestig uw wachtwoord.";
             } else if (formData.wachtwoord !== formData.herhaalWachtwoord) {
-                newErrors.herhaalWachtwoord = "Wachtwoorden komen niet overeen.";
+                newErrors.herhaalWachtwoord =
+                    "Wachtwoorden komen niet overeen.";
             }
 
-            // Leverancier extra velden
+            // Extra velden voor leverancier
             if (formData.rol === "leverancier") {
-                if (!formData.bedrijf.trim()) newErrors.bedrijf = "Vul een bedrijfsnaam in.";
-                if (!formData.KvKNummer.trim()) newErrors.KvKNummer = "Vul KvK nummer in.";
-                if (!formData.IBANnummer.trim()) newErrors.IBANnummer = "Vul een IBAN in.";
+                if (!formData.bedrijf.trim()) {
+                    newErrors.bedrijf = "Vul een bedrijfsnaam in.";
+                }
+                if (!formData.KvKNummer.trim()) {
+                    newErrors.KvKNummer = "Vul een KvK nummer in.";
+                }
+                if (!formData.IBANnummer.trim()) {
+                    newErrors.IBANnummer = "Vul een IBAN in.";
+                }
             }
         }
 
         return newErrors;
     };
 
-    // =============================================
-    // SUBMIT HANDLER
-    // =============================================
+    // =========================
+    // SUBMIT
+    // =========================
     const handleSubmit = async (e) => {
         e.preventDefault();
 
@@ -115,9 +122,9 @@ function AuthPage() {
             return;
         }
 
-        // =============================
+        // =====================
         // REGISTREREN
-        // =============================
+        // =====================
         if (isRegister) {
             let endpoint = "";
 
@@ -167,22 +174,23 @@ function AuthPage() {
                 });
             } catch (err) {
                 console.error(err);
-                setServerError("Server fout tijdens registratie.");
+                setServerError("Er ging iets mis bij het registreren.");
             }
 
             return;
         }
 
-        // =============================
+        // =====================
         // INLOGGEN
-        // =============================
+        // =====================
         try {
+            // 1. login bij Identity
             const response = await fetch("https://localhost:7054/login", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     email: formData.email,
-                    password: formData.wachtwoord,
+                    password: formData.wachtwoord, // Identity verwacht 'password'
                 }),
             });
 
@@ -191,36 +199,60 @@ function AuthPage() {
 
             if (!response.ok) {
                 setServerError(
-                    data?.detail || data?.message || "E-mailadres of wachtwoord onjuist."
+                    data?.detail ||
+                    data?.message ||
+                    "E-mailadres of wachtwoord is onjuist."
                 );
                 return;
             }
 
-            // Token eruit halen
+            // 2. token opslaan (is bij Identity geen JWT, maar dat is prima)
             let accessToken = data?.accessToken || data?.token;
             if (!accessToken) {
-                accessToken = "dummy-token"; // fallback
+                accessToken = "dummy-token"; // flag dat je ingelogd bent
             }
-
-            // Token opslaan
             localStorage.setItem("token", accessToken);
 
-            // App vertellen dat login-status veranderd is
-            window.dispatchEvent(new Event("app-auth-changed"));
+            // 3. rol ophalen via jouw nieuwe API: api/Gebruiker/RoleByEmail
+            let role = "klant"; // standaard
+
+            try {
+                const roleResponse = await fetch(
+                    `https://localhost:7054/api/Gebruiker/RoleByEmail?email=${encodeURIComponent(
+                        formData.email
+                    )}`
+                );
+
+                if (roleResponse.ok) {
+                    const roleData = await roleResponse.json().catch(() => null);
+                    if (roleData?.role) {
+                        role = roleData.role.toLowerCase(); // "klant", "leverancier", "veilingsmeester"
+                    }
+                } else {
+                    console.warn("Kon rol niet ophalen, fallback = 'klant'");
+                }
+            } catch (err) {
+                console.error("Fout bij ophalen rol:", err);
+            }
+
+            // 4. rol in localStorage zodat App.jsx juiste menu kan tonen
+            localStorage.setItem("role", role);
 
             setServerSuccess("Succesvol ingelogd!");
 
-            // BELANGRIJK: volledige redirect zodat navigatie direct werkt
+            // 5. Harde redirect zodat de hele app opnieuw wordt opgebouwd
             window.location.href = "/home";
         } catch (err) {
             console.error(err);
-            setServerError("Er ging iets mis tijdens het inloggen.");
+            setServerError(
+                "Er ging iets mis bij het inloggen (server niet bereikbaar)."
+            );
         }
     };
 
-    // =============================================
-    // UI OUTPUT
-    // =============================================
+    // =========================
+    // UI
+    // =========================
     return (
         <div className="auth-page">
             <section className="auth-card">
@@ -237,15 +269,16 @@ function AuthPage() {
                     <div className="auth-tabs">
                         <button
                             type="button"
-                            className={`auth-tab ${isRegister ? "is-inactive" : "is-active"}`}
+                            className={`auth-tab ${isRegister ? "is-inactive" : "is-active"
+                                }`}
                             onClick={() => setActiveTab("login")}
                         >
                             Aanmelden
                         </button>
-
                         <button
                             type="button"
-                            className={`auth-tab ${isRegister ? "is-active" : "is-inactive"}`}
+                            className={`auth-tab ${isRegister ? "is-active" : "is-inactive"
+                                }`}
                             onClick={() => setActiveTab("register")}
                         >
                             Registreren
@@ -253,7 +286,6 @@ function AuthPage() {
                     </div>
 
                     <form className="auth-form" onSubmit={handleSubmit}>
-                        {/* ================= REGISTER EXTRA VELDEN ================= */}
                         {isRegister && (
                             <>
                                 {/* Rol */}
@@ -268,9 +300,15 @@ function AuthPage() {
                                         <option value="">-- Selecteer rol --</option>
                                         <option value="klant">Klant</option>
                                         <option value="leverancier">Leverancier</option>
-                                        <option value="veilingsmeester">Veilingsmeester</option>
+                                        <option value="veilingsmeester">
+                                            Veilingsmeester
+                                        </option>
                                     </select>
-                                    {errors.rol && <small className="error-text">{errors.rol}</small>}
+                                    {errors.rol && (
+                                        <small className="error-text">
+                                            {errors.rol}
+                                        </small>
+                                    )}
                                 </label>
 
                                 {/* Naam */}
@@ -283,7 +321,11 @@ function AuthPage() {
                                         onChange={handleChange}
                                         placeholder="Voornaam en Achternaam"
                                     />
-                                    {errors.naam && <small className="error-text">{errors.naam}</small>}
+                                    {errors.naam && (
+                                        <small className="error-text">
+                                            {errors.naam}
+                                        </small>
+                                    )}
                                 </label>
 
                                 {/* Telefoonnummer */}
@@ -297,11 +339,13 @@ function AuthPage() {
                                         placeholder="0612345678"
                                     />
                                     {errors.telefoonnummer && (
-                                        <small className="error-text">{errors.telefoonnummer}</small>
+                                        <small className="error-text">
+                                            {errors.telefoonnummer}
+                                        </small>
                                     )}
                                 </label>
 
-                                {/* Extra velden voor leverancier */}
+                                {/* Extra velden voor Leverancier */}
                                 {formData.rol === "leverancier" && (
                                     <>
                                         <label className="form-field">
@@ -314,7 +358,9 @@ function AuthPage() {
                                                 placeholder="Bedrijfsnaam"
                                             />
                                             {errors.bedrijf && (
-                                                <small className="error-text">{errors.bedrijf}</small>
+                                                <small className="error-text">
+                                                    {errors.bedrijf}
+                                                </small>
                                             )}
                                         </label>
 
@@ -328,7 +374,9 @@ function AuthPage() {
                                                 placeholder="KvK nummer"
                                             />
                                             {errors.KvKNummer && (
-                                                <small className="error-text">{errors.KvKNummer}</small>
+                                                <small className="error-text">
+                                                    {errors.KvKNummer}
+                                                </small>
                                             )}
                                         </label>
 
@@ -342,7 +390,9 @@ function AuthPage() {
                                                 placeholder="IBAN nummer"
                                             />
                                             {errors.IBANnummer && (
-                                                <small className="error-text">{errors.IBANnummer}</small>
+                                                <small className="error-text">
+                                                    {errors.IBANnummer}
+                                                </small>
                                             )}
                                         </label>
                                     </>
@@ -350,7 +400,7 @@ function AuthPage() {
                             </>
                         )}
 
-                        {/* ================= EMAIL & WACHTWOORD ================= */}
+                        {/* E-mail (voor login én registratie) */}
                         <label className="form-field">
                             <span>E-mailadres</span>
                             <input
@@ -361,12 +411,13 @@ function AuthPage() {
                                 placeholder="naam@voorbeeld.nl"
                             />
                             {errors.email && (
-                                <small className="error-text" style={{ color: "red" }}>
+                                <small className="error-text">
                                     {errors.email}
                                 </small>
                             )}
                         </label>
 
+                        {/* Wachtwoord */}
                         <label className="form-field">
                             <span>Wachtwoord</span>
                             <input
@@ -377,13 +428,13 @@ function AuthPage() {
                                 placeholder="Minimaal 8 tekens"
                             />
                             {errors.wachtwoord && (
-                                <small className="error-text" style={{ color: "red" }}>
+                                <small className="error-text">
                                     {errors.wachtwoord}
                                 </small>
                             )}
                         </label>
 
-                        {/* Herhaal wachtwoord alleen bij registratie */}
+                        {/* Bevestig wachtwoord (alleen bij registratie) */}
                         {isRegister && (
                             <label className="form-field">
                                 <span>Bevestig wachtwoord</span>
@@ -395,29 +446,30 @@ function AuthPage() {
                                     placeholder="Nogmaals wachtwoord"
                                 />
                                 {errors.herhaalWachtwoord && (
-                                    <small className="error-text" style={{ color: "red" }}>
+                                    <small className="error-text">
                                         {errors.herhaalWachtwoord}
                                     </small>
                                 )}
                             </label>
                         )}
 
-                        {/* Button */}
                         <button type="submit" className="primary-action full-width">
                             {isRegister ? "Registreren" : "Aanmelden"}
                         </button>
 
-                        {/* Meldingen */}
                         {serverError && (
-                            <p className="form-message form-message--error">{serverError}</p>
+                            <p className="form-message form-message--error">
+                                {serverError}
+                            </p>
                         )}
                         {serverSuccess && (
-                            <p className="form-message form-message--success">{serverSuccess}</p>
+                            <p className="form-message form-message--success">
+                                {serverSuccess}
+                            </p>
                         )}
                     </form>
                 </div>
 
-                {/* Rechterkant afbeelding */}
                 <div className="auth-card__media">
                     <img
                         src={

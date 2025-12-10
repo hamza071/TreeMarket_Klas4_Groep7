@@ -15,7 +15,7 @@ namespace TreeMarket_Klas4_Groep7.Controllers
         private readonly UserManager<Gebruiker> _userManager;
         private readonly ApiContext _context;
 
-        // We injecteren UserManager (voor logica) en ApiContext (voor lijstjes ophalen)
+        // We injecteren UserManager (voor Identity-logica) en ApiContext (voor andere tabellen)
         public GebruikerController(UserManager<Gebruiker> userManager, ApiContext context)
         {
             _userManager = userManager;
@@ -29,27 +29,23 @@ namespace TreeMarket_Klas4_Groep7.Controllers
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            // Identity vereist een UserName. We gebruiken hiervoor het Email adres.
             var klant = new Klant
             {
-                UserName = dto.Email, 
+                UserName = dto.Email,
                 Email = dto.Email,
                 Naam = dto.Naam,
                 PhoneNumber = dto.Telefoonnummer,
-                EmailConfirmed = true // Zetten we op true zodat ze direct kunnen inloggen
+                EmailConfirmed = true
             };
 
-            // 1. Maak gebruiker aan (Wachtwoord wordt hier automatisch gehasht!)
             var result = await _userManager.CreateAsync(klant, dto.Wachtwoord);
 
             if (result.Succeeded)
             {
-                // 2. Rol toewijzen
                 await _userManager.AddToRoleAsync(klant, "Klant");
                 return Ok(new { message = "Klant succesvol geregistreerd!" });
             }
-            
-            // Als het mislukt (bijv. wachtwoord te zwak), stuur fouten terug
+
             return BadRequest(result.Errors);
         }
 
@@ -109,25 +105,25 @@ namespace TreeMarket_Klas4_Groep7.Controllers
         // ================= BEHEER FUNCTIES (Alleen voor Admin) =================
 
         // GET: api/Gebruiker/GetAllUsers
-        [Authorize(Roles = "Admin")] // Beveiligd met Identity Roles
+        [Authorize(Roles = "Admin")]
         [HttpGet("GetAllUsers")]
         public async Task<IActionResult> GetAllUsers()
         {
-            // We gebruiken _context.Users omdat UserManager geen simpele "ToList" heeft voor alle types
-            var users = await _context.Users.ToListAsync();
+            // Gebruik de UserManager.Users i.p.v. _context.Users
+            var users = await _userManager.Users.ToListAsync();
             return Ok(users);
         }
 
         // DELETE: api/Gebruiker/{id}
         [Authorize(Roles = "Admin")]
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteUser(string id) // Let op: ID is nu een string!
+        public async Task<IActionResult> DeleteUser(string id)
         {
             var user = await _userManager.FindByIdAsync(id);
             if (user == null) return NotFound("Gebruiker niet gevonden.");
 
             var result = await _userManager.DeleteAsync(user);
-            
+
             if (result.Succeeded)
             {
                 return NoContent();
@@ -136,14 +132,36 @@ namespace TreeMarket_Klas4_Groep7.Controllers
             return BadRequest(result.Errors);
         }
 
-  
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetUserById(string id) // Let op: ID is nu een string!
+        public async Task<IActionResult> GetUserById(string id)
         {
             var user = await _userManager.FindByIdAsync(id);
             if (user == null) return NotFound("Gebruiker niet gevonden.");
-            
+
             return Ok(user);
+        }
+
+        // ================= NIEUW: ROL OPHALEN OP BASIS VAN EMAIL =================
+
+        // GET: api/Gebruiker/RoleByEmail?email=...
+        [HttpGet("RoleByEmail")]
+        public async Task<IActionResult> GetRoleByEmail([FromQuery] string email)
+        {
+            if (string.IsNullOrWhiteSpace(email))
+            {
+                return BadRequest(new { message = "Email is verplicht." });
+            }
+
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user == null)
+            {
+                return NotFound(new { message = "Gebruiker niet gevonden." });
+            }
+
+            var roles = await _userManager.GetRolesAsync(user);
+            var role = roles.FirstOrDefault(); // Klant / Leverancier / Veilingsmeester
+
+            return Ok(new { role });
         }
     }
 }
