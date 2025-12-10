@@ -38,4 +38,4 @@ export const authFetch = async (endpoint, options = {}) => {
     if (response.status !== 204) {
         return await response.json();
     }
-};//
+};
