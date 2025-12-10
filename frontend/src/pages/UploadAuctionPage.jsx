@@ -34,17 +34,19 @@ function UploadAuctionPage() {
         }
 
         const formData = new FormData();
-        formData.append("Title", form.title);
-        if (form.variety) formData.append("Variety", form.variety);
-        formData.append("Quantity", form.quantity);
-        if (form.description) formData.append("Description", form.description);
-        formData.append("MinPrice", form.minPrice);
-        if (form.image) formData.append("Image", form.image);
-        formData.append("LeverancierID", 2); // tijdelijk, vervang met dynamisch ID indien nodig
+        formData.append("artikelkenmerken", form.variety || "");
+        formData.append("Hoeveelheid", form.quantity);
+        formData.append("MinimumPrijs", form.minPrice);
+        if (form.image) formData.append("Foto", form.image);
 
         try {
-            const response = await fetch("https://localhost:7054/api/Product/Upload", { // let op hoofdletter
+            const token = localStorage.getItem("token");
+
+            const response = await fetch("https://localhost:7054/api/Product/CreateProduct", {
                 method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${token}`
+                },
                 body: formData
             });
 

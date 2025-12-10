@@ -82,31 +82,42 @@ namespace TreeMarket_Klas4_Groep7.Controllers
 
         // DIT IS DE BETERE METHODE (gebruikt DTO en Token)
         [HttpPost("CreateProduct")]
-        [Authorize(Roles = "Leverancier")] // Alleen Leveranciers
-        public async Task<IActionResult> PostProduct([FromBody] ProductDto productDto)
+        [Authorize(Roles = "Leverancier")]
+        public async Task<IActionResult> PostProduct([FromForm] ProductUploadDto productDto)
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
-
-            // 1. Haal de ID van de ingelogde gebruiker op (uit token)
-            // Dit is VEILIGER dan de ID uit de DTO halen!
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier); 
-            
-            // (Als Admin dit doet, moeten we misschien wel de ID uit de DTO pakken, 
-            // maar voor een Leverancier is dit het veiligst).
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (userId == null) return Unauthorized("Je bent niet ingelogd.");
 
             try
             {
+                string? fotoUrl = null;
+
+                // Opslaan van de afbeelding als bestand
+                if (productDto.Image != null)
+                {
+                    var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images");
+                    if (!Directory.Exists(uploadsFolder))
+                        Directory.CreateDirectory(uploadsFolder);
+
+                    var uniqueFileName = Guid.NewGuid() + Path.GetExtension(productDto.Image.FileName);
+                    var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+                    using (var stream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await productDto.Image.CopyToAsync(stream);
+                    }
+
+                    fotoUrl = "/images/" + uniqueFileName; // URL naar frontend
+                }
+
                 var product = new Product
                 {
-                    Foto = productDto.Foto,
-                    Artikelkenmerken = productDto.artikelkenmerken,
-                    Hoeveelheid = productDto.Hoeveelheid,
-                    MinimumPrijs = productDto.MinimumPrijs,
+                    Artikelkenmerken = productDto.Variety,
+                    Hoeveelheid = productDto.Quantity,
+                    MinimumPrijs = productDto.MinPrice,
                     Dagdatum = DateTime.UtcNow,
-                    
-                    // AANGEPAST: Gebruik de ID uit het token!
-                    LeverancierID = userId 
+                    LeverancierID = userId,
+                    Foto = fotoUrl // ✅ hier een string
                 };
 
                 var result = await _service.AddOrUpdateProductAsync(product);
