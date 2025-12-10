@@ -1,5 +1,5 @@
 ﻿import { Link, Routes, Route } from "react-router-dom";
-import { useRef, useCallback, useState } from "react";
+import { useRef, useState, useCallback } from "react";
 
 // Styling
 import "./assets/css/App.css";
@@ -18,28 +18,14 @@ import IdUser from "./pages/CRUD/IdUser";
 import DeleteUser from "./pages/CRUD/DeleteUser";
 import LogOutUser from "./pages/Logout";
 
-// Navigatie voor ingelogde gebruikers (bijv. beheer / andere rollen)
-const NAVIGATION_ITEMS_AUTHENTICATED = [
-    { id: "dashboard", label: "Dashboard" },
-    { id: "veiling", label: "Veiling" },
-    { id: "upload", label: "Upload Veiling" },
-    { id: "reports", label: "Rapporten" },
-    { id: "home", label: "Home" },
-    { id: "about", label: "About" },
-    { id: "allusers", label: "GetAlleGebruikers" },
-    { id: "idUser", label: "GetIdGebruiker" },
-    { id: "deleteUser", label: "DeleteIdGebruiker" },
-    { id: "logout", label: "LogOutTheUser" },
-];
-
-// Navigatie specifiek voor KLANT (userstory: eigen navigatiestructuur)
+// Navigatie voor KLANT (ingelogd)
 const NAVIGATION_ITEMS_KLANT = [
     { id: "home", label: "Home" },
     { id: "about", label: "About" },
     { id: "veiling", label: "Veiling" },
 ];
 
-// Navigatie voor anonieme gebruikers (alleen publieke pagina's)
+// Navigatie voor anonieme gebruikers
 const NAVIGATION_ITEMS_ANONYMOUS = [
     { id: "home", label: "Home" },
     { id: "about", label: "About" },
@@ -48,25 +34,15 @@ const NAVIGATION_ITEMS_ANONYMOUS = [
 function App() {
     const navigationRefs = useRef([]);
 
-    // Informatie uit localStorage
-    const token = localStorage.getItem("token");
-    const role = localStorage.getItem("role"); // bv. "klant", "leverancier", ...
-    const userName = localStorage.getItem("userName"); // optioneel, uit JWT
+    // Ingelogd ja/nee: alleen op basis van token
+    const isLoggedIn = !!localStorage.getItem("token");
 
-    // Check of de gebruiker is ingelogd (op basis van JWT in localStorage)
-    const isLoggedIn = !!token;
+    // Kies navigatie: ingelogd = klant-navigatie, anders anoniem
+    const NAVIGATION_ITEMS = isLoggedIn
+        ? NAVIGATION_ITEMS_KLANT
+        : NAVIGATION_ITEMS_ANONYMOUS;
 
-    // Kies de juiste navigatiestructuur op basis van login status + rol
-    let NAVIGATION_ITEMS;
-    if (!isLoggedIn) {
-        NAVIGATION_ITEMS = NAVIGATION_ITEMS_ANONYMOUS;
-    } else if (role === "klant") {
-        NAVIGATION_ITEMS = NAVIGATION_ITEMS_KLANT;
-    } else {
-        // overige rollen (leverancier / veilingsmeester / admin)
-        NAVIGATION_ITEMS = NAVIGATION_ITEMS_AUTHENTICATED;
-    }
-
+    // Keyboard-navigatie in het menu
     const handleNavKeyDown = useCallback(
         (event, currentIndex) => {
             const navLength = NAVIGATION_ITEMS.length;
@@ -111,7 +87,7 @@ function App() {
             <header className="app-header">
                 <div className="brand">TREE MARKET</div>
 
-                {/* Navigatie past zich aan op basis van ingelogde / anonieme gebruiker + rol */}
+                {/* Navigatie past zich aan op basis van ingelogde / anonieme gebruiker */}
                 <nav className="main-nav" aria-label="Primaire navigatie">
                     {NAVIGATION_ITEMS.map((item, index) => (
                         <Link
@@ -128,14 +104,12 @@ function App() {
 
                 {/* User chip rechtsboven */}
                 {!isLoggedIn ? (
-                    // Anonieme gebruiker: naar registreren/inloggen (AuthPage)
                     <Link className="user-chip" to="/auth">
                         Inloggen
                     </Link>
                 ) : (
-                    // Ingelogde gebruiker: naam + uitloggen
                     <Link className="user-chip" to="/logout">
-                        {userName ? `${userName} (uitloggen)` : "Uitloggen"}
+                        Uitloggen
                     </Link>
                 )}
             </header>
@@ -158,17 +132,11 @@ function App() {
                     />
 
                     {/* Veiling krijgt alle kavels */}
-                    <Route
-                        path="/veiling"
-                        element={<AuctionPage lots={lots} />}
-                    />
+                    <Route path="/veiling" element={<AuctionPage lots={lots} />} />
                     <Route
                         path="/veiling/:code"
                         element={
-                            <AuctionDetailPage
-                                lots={lots}
-                                updateLot={updateLot}
-                            />
+                            <AuctionDetailPage lots={lots} updateLot={updateLot} />
                         }
                     />
 
@@ -206,3 +174,4 @@ function App() {
 }
 
 export default App;
+//
