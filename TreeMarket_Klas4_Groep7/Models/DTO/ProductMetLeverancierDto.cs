@@ -1,6 +1,6 @@
 ﻿namespace TreeMarket_Klas4_Groep7.Models.DTO
 {
-    public class CreateVeilingWithProductDto
+    public class ProductMetLeverancierDto
     {
         // ==== Productvelden ====
         public string Naam { get; set; }
