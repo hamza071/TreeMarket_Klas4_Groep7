@@ -64,5 +64,18 @@ namespace TreeMarket_Klas4_Groep7.Services
             // IdentityDbContext noemt de tabel met gebruikers altijd 'Users'
             return await _userManager.Users.AnyAsync(g => g.Email.ToLower() == email.ToLower());
         }
+
+        public async Task<string?> GetRoleByEmailAsync(string email)
+        {
+            if (string.IsNullOrWhiteSpace(email))
+                throw new ArgumentException("Email is verplicht.");
+
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user == null)
+                return null;
+
+            var roles = await _userManager.GetRolesAsync(user);
+            return roles.FirstOrDefault(); // return "Klant" / "Leverancier" / "Veilingsmeester"
+        }
     }
 }

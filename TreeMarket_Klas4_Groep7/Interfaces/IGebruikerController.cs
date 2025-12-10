@@ -13,5 +13,7 @@ namespace backend.Interfaces
         Task<Gebruiker> GetByIdAsync(string id);
         Task DeleteAsync(string id);
         Task<bool> EmailBestaatAl(string email);
+        Task<string?> GetRoleByEmailAsync(string email);
+
     }
 }
