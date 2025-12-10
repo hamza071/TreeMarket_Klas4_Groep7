@@ -1,29 +1,39 @@
-import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect } from "react";
 
 export default function Logout() {
-    const navigate = useNavigate();
-
     useEffect(() => {
-        async function logout() {
-            // server-side logout (cookie verwijderen)
-            await fetch('/api/auth/logout', {
-                method: 'POST',
-                credentials: 'include',
-            });
+        async function doLogout() {
+            try {
+                // (optioneel) server-side logout, alleen laten staan als je endpoint echt bestaat
+                await fetch("/api/auth/logout", {
+                    method: "POST",
+                    credentials: "include",
+                });
+            } catch (err) {
+                console.error("Server-side logout mislukt (optioneel):", err);
+            }
 
-            // client-side token verwijderen
-            localStorage.removeItem('token');
-            localStorage.removeItem('gebruikerId');
-            localStorage.removeItem('rol');
-            localStorage.removeItem('user');
+            // Client-side: alles wat met inloggen te maken heeft verwijderen
+            localStorage.removeItem("token");
+            localStorage.removeItem("gebruikerId");
+            localStorage.removeItem("rol");
+            localStorage.removeItem("user");
 
-            // redirect
-            navigate('/login', { replace: true });
+            // (optioneel) event voor listeners zoals App.jsx
+            window.dispatchEvent(new Event("app-auth-changed"));
+
+            // BELANGRIJK: harde redirect zodat App opnieuw wordt geladen
+            // en direct de anonieme navigatie (zonder Veiling) laat zien
+            window.location.href = "/home"; // of "/auth" als je liever naar login gaat
         }
 
-        logout();
-    }, [navigate]);
+        doLogout();
+    }, []);
 
-    return <p>Logging out...</p>;
+    return (
+        <div className="page">
+            <h1>Uitloggen...</h1>
+            <p>U wordt zo doorgestuurd naar de homepagina.</p>
+        </div>
+    );
 }

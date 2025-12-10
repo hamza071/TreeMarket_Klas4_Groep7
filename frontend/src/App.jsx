@@ -2,86 +2,86 @@
 import { useRef, useCallback, useState } from "react";
 
 // Styling
-import './assets/css/App.css'
+import "./assets/css/App.css";
 
 // Pages
-import DashboardPage from './pages/DashboardPage'
-import AuctionPage from './pages/AuctionPage'
-import AuctionDetailPage from './pages/AuctionDetailPage'
-import UploadAuctionPage from './pages/UploadAuctionPage'
-import ReportsPage from './pages/ReportsPage'
-import AuthPage from './pages/AuthPage'
-import AboutUsPage from './pages/AboutUsPage'
-import HomePage from './pages/HomePage'
-import AllUsers from './pages/CRUD/AllUsers'
-import IdUser from './pages/CRUD/IdUser'
-import DeleteUser from './pages/CRUD/DeleteUser'
-import LogOutUser from './pages/Logout'
+import DashboardPage from "./pages/DashboardPage";
+import AuctionPage from "./pages/AuctionPage";
+import AuctionDetailPage from "./pages/AuctionDetailPage";
+import UploadAuctionPage from "./pages/UploadAuctionPage";
+import ReportsPage from "./pages/ReportsPage";
+import AuthPage from "./pages/AuthPage";
+import AboutUsPage from "./pages/AboutUsPage";
+import HomePage from "./pages/HomePage";
+import AllUsers from "./pages/CRUD/AllUsers";
+import IdUser from "./pages/CRUD/IdUser";
+import DeleteUser from "./pages/CRUD/DeleteUser";
+import LogOutUser from "./pages/Logout";
 
-// Navigatie voor ingelogde gebruikers
-const NAVIGATION_ITEMS_AUTHENTICATED = [
-    { id: 'dashboard', label: 'Dashboard' },
-    { id: 'veiling', label: 'Veiling' },
-    { id: 'upload', label: 'Upload Veiling' },
-    { id: 'reports', label: 'Rapporten' },
-    { id: 'home', label: 'Home' },
-    { id: 'about', label: 'About' },
-    { id: 'allusers', label: 'GetAlleGebruikers' },
-    { id: 'idUser', label: 'GetIdGebruiker' },
-    { id: 'deleteUser', label: 'DeleteIdGebruiker' },
-    { id: 'logout', label: 'LogOutTheUser' },
-]
+// Navigatie voor ingelogde KLANT
+const NAVIGATION_ITEMS_LOGGED_IN = [
+    { id: "home", label: "Home" },
+    { id: "about", label: "About" },
+    { id: "veiling", label: "Veiling" },
+];
 
-// Navigatie voor anonieme gebruikers (alleen publieke pagina's)
+// Navigatie voor anonieme gebruikers
 const NAVIGATION_ITEMS_ANONYMOUS = [
-    { id: 'home', label: 'Home' },
-    { id: 'about', label: 'About' },
-]
+    { id: "home", label: "Home" },
+    { id: "about", label: "About" },
+];
 
 function App() {
     const navigationRefs = useRef([]);
 
-    // Check of de gebruiker is ingelogd (op basis van JWT in localStorage)
-    const isLoggedIn = !!localStorage.getItem('token');
+    // Alleen op basis van token bepalen of iemand ingelogd is
+    const isLoggedIn = !!localStorage.getItem("token");
 
-    // Kies de juiste navigatiestructuur op basis van login status
+    // Kies de juiste navigatie
     const NAVIGATION_ITEMS = isLoggedIn
-        ? NAVIGATION_ITEMS_AUTHENTICATED
+        ? NAVIGATION_ITEMS_LOGGED_IN
         : NAVIGATION_ITEMS_ANONYMOUS;
 
-    const handleNavKeyDown = useCallback((event, currentIndex) => {
-        const navLength = NAVIGATION_ITEMS.length;
+    const handleNavKeyDown = useCallback(
+        (event, currentIndex) => {
+            const navLength = NAVIGATION_ITEMS.length;
 
-        if (event.key === "ArrowRight") {
-            const nextIndex = (currentIndex + 1) % navLength;
-            navigationRefs.current[nextIndex]?.focus();
-        }
-        if (event.key === "ArrowLeft") {
-            const prevIndex = (currentIndex - 1 + navLength) % navLength;
-            navigationRefs.current[prevIndex]?.focus();
-        }
-    }, [NAVIGATION_ITEMS]);
+            if (event.key === "ArrowRight") {
+                const nextIndex = (currentIndex + 1) % navLength;
+                navigationRefs.current[nextIndex]?.focus();
+            }
+            if (event.key === "ArrowLeft") {
+                const prevIndex = (currentIndex - 1 + navLength) % navLength;
+                navigationRefs.current[prevIndex]?.focus();
+            }
+        },
+        [NAVIGATION_ITEMS.length]
+    );
 
     // Alle kavels (status: pending / published)
-    const [lots, setLots] = useState([])
+    const [lots, setLots] = useState([]);
 
     // Leverancier voegt nieuwe kavel toe (status: pending)
     const addNewLot = (newLot) => {
-        setLots(prev => [...prev, { ...newLot, status: 'pending' }])
-    }
+        setLots((prev) => [...prev, { ...newLot, status: "pending" }]);
+    };
 
     // Veilingmeester bewerkt kavel (voegt prijs en sluitingstijd toe en publiceert)
     const updateLot = (updatedLot) => {
-        setLots(prev => prev.map(lot =>
-            lot.code === updatedLot.code
-                ? { ...updatedLot, status: 'published' }
-                : lot
-        ))
-    }
+        setLots((prev) =>
+            prev.map((lot) =>
+                lot.code === updatedLot.code
+                    ? { ...updatedLot, status: "published" }
+                    : lot
+            )
+        );
+    };
 
     return (
         <div className="app-shell">
-            <a className="skip-link" href="#main-content">Ga direct naar de hoofdinhoud</a>
+            <a className="skip-link" href="#main-content">
+                Ga direct naar de hoofdinhoud
+            </a>
 
             <header className="app-header">
                 <div className="brand">TREE MARKET</div>
@@ -93,35 +93,59 @@ function App() {
                             key={item.id}
                             to={`/${item.id}`}
                             className="nav-link"
-                            ref={el => (navigationRefs.current[index] = el)}
-                            onKeyDown={e => handleNavKeyDown(e, index)}
+                            ref={(el) => (navigationRefs.current[index] = el)}
+                            onKeyDown={(e) => handleNavKeyDown(e, index)}
                         >
                             {item.label}
                         </Link>
                     ))}
                 </nav>
 
-                {/* Voor anonieme gebruiker: User linkt naar registreren/inloggen (AuthPage) */}
-                {/* Voor ingelogde gebruiker kun je deze eventueel later aanpassen naar profiel / uitloggen */}
-                <Link className="user-chip" to="/auth">User</Link>
+                {/* User chip rechtsboven */}
+                {!isLoggedIn ? (
+                    <Link className="user-chip" to="/auth">
+                        Inloggen
+                    </Link>
+                ) : (
+                    <Link className="user-chip" to="/logout">
+                        Uitloggen
+                    </Link>
+                )}
             </header>
 
             <main className="page-area" id="main-content">
                 <Routes>
-                    {/* Extra: root route naar Home */}
+                    {/* Root naar Home */}
                     <Route path="/" element={<HomePage />} />
 
-                    {/* Dashboard krijgt alleen gepubliceerde kavels */}
-                    <Route path="/dashboard" element={<DashboardPage lots={lots.filter(lot => lot.status === 'published')} />} />
+                    {/* Dashboard met gepubliceerde kavels */}
+                    <Route
+                        path="/dashboard"
+                        element={
+                            <DashboardPage
+                                lots={lots.filter(
+                                    (lot) => lot.status === "published"
+                                )}
+                            />
+                        }
+                    />
 
-                    {/* Veiling krijgt alle kavels */}
+                    {/* Veiling */}
                     <Route path="/veiling" element={<AuctionPage lots={lots} />} />
-                    <Route path="/veiling/:code" element={<AuctionDetailPage lots={lots} updateLot={updateLot} />} />
+                    <Route
+                        path="/veiling/:code"
+                        element={
+                            <AuctionDetailPage lots={lots} updateLot={updateLot} />
+                        }
+                    />
 
                     {/* Upload voor leverancier */}
-                    <Route path="/upload" element={<UploadAuctionPage addNewLot={addNewLot} />} />
+                    <Route
+                        path="/upload"
+                        element={<UploadAuctionPage addNewLot={addNewLot} />}
+                    />
 
-                    {/* Overige pages */}
+                    {/* Overige pagina's */}
                     <Route path="/reports" element={<ReportsPage />} />
                     <Route path="/home" element={<HomePage />} />
                     <Route path="/about" element={<AboutUsPage />} />
@@ -132,11 +156,20 @@ function App() {
                     <Route path="/logout" element={<LogOutUser />} />
 
                     {/* Fallback */}
-                    <Route path="*" element={<DashboardPage lots={lots.filter(lot => lot.status === 'published')} />} />
+                    <Route
+                        path="*"
+                        element={
+                            <DashboardPage
+                                lots={lots.filter(
+                                    (lot) => lot.status === "published"
+                                )}
+                            />
+                        }
+                    />
                 </Routes>
             </main>
         </div>
-    )
+    );
 }
 
 export default App;
