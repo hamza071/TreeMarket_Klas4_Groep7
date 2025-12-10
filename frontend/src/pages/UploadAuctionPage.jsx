@@ -25,22 +25,22 @@ function UploadAuctionPage() {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        if (!form.minPrice || Number(form.minPrice) <= 0) {
-            return alert("Vul een geldige minimumprijs in.");
-        }
-
-        if (!form.title.trim() || !form.quantity) {
-            return alert("Productnaam en aantal stuks zijn verplicht.");
-        }
+        // Validatie
+        if (!form.title.trim()) return alert("Titel is verplicht.");
+        if (!form.quantity || Number(form.quantity) < 1) return alert("Aantal moet minimaal 1 zijn.");
+        if (!form.minPrice || Number(form.minPrice) <= 0) return alert("Minimumprijs moet groter dan 0 zijn.");
 
         const formData = new FormData();
-        formData.append("artikelkenmerken", form.variety || "");
-        formData.append("Hoeveelheid", form.quantity);
-        formData.append("MinimumPrijs", form.minPrice);
-        if (form.image) formData.append("Foto", form.image);
+        formData.append("Title", form.title.trim());
+        if (form.variety) formData.append("Variety", form.variety.trim());
+        formData.append("Quantity", Number(form.quantity));        // string -> int
+        if (form.description) formData.append("Description", form.description.trim());
+        formData.append("MinPrice", parseFloat(form.minPrice));    // string -> decimal
+        if (form.image) formData.append("Image", form.image);
 
         try {
             const token = localStorage.getItem("token");
+            if (!token) return alert("Je bent niet ingelogd.");
 
             const response = await fetch("https://localhost:7054/api/Product/CreateProduct", {
                 method: "POST",

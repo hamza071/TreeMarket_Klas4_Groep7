@@ -7,21 +7,21 @@ namespace TreeMarket_Klas4_Groep7.Models.DTO
     public class ProductUploadDto
     {
         [Required(ErrorMessage = "Titel is verplicht.")]
-        public string Title { get; set; } = null!; // verplicht
+        public string Title { get; set; } = null!;
 
-        public string? Variety { get; set; } // optioneel
+        public string? Variety { get; set; }
 
         [Required(ErrorMessage = "Aantal stuks is verplicht.")]
         [Range(1, int.MaxValue, ErrorMessage = "Aantal moet minimaal 1 zijn.")]
         public int Quantity { get; set; }
 
-        public string? Description { get; set; } // optioneel
+        public string? Description { get; set; }
 
         [Required(ErrorMessage = "Minimumprijs is verplicht.")]
         [Range(0.01, double.MaxValue, ErrorMessage = "Minimumprijs moet groter dan 0 zijn.")]
         public decimal MinPrice { get; set; }
 
-        // Image upload via FormData, optioneel
-        public IFormFile? Image { get; set; }
+        [Required(ErrorMessage = "Afbeelding is verplicht.")]
+        public IFormFile Image { get; set; } = null!; // verplicht omdat Foto niet null mag
     }
 }

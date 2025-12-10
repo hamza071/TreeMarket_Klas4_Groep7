@@ -54,7 +54,7 @@ namespace TreeMarket_Klas4_Groep7.Controllers
         // ================= CREATE / UPDATE (BEVEILIGD) =================
 
         [HttpPost]
-        //[Authorize]
+        [Authorize]
         //[Authorize(Roles = "Leverancier, Admin")]
         public async Task<IActionResult> CreateOrUpdateProduct([FromBody] Product product)
         {
@@ -83,8 +83,6 @@ namespace TreeMarket_Klas4_Groep7.Controllers
 
         // DIT IS DE BETERE METHODE (gebruikt DTO en Token)
         [HttpPost("CreateProduct")]
-        //[Authorize]
-        //[Authorize(Roles = "Leverancier, Admin")]
         public async Task<IActionResult> PostProduct([FromForm] ProductUploadDto productDto)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -94,7 +92,6 @@ namespace TreeMarket_Klas4_Groep7.Controllers
             {
                 string? fotoUrl = null;
 
-                // Opslaan van de afbeelding als bestand
                 if (productDto.Image != null)
                 {
                     var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images");
@@ -111,6 +108,10 @@ namespace TreeMarket_Klas4_Groep7.Controllers
 
                     fotoUrl = "/images/" + uniqueFileName; // URL naar frontend
                 }
+                else
+                {
+                    return BadRequest("Afbeelding is verplicht.");
+                }
 
                 var product = new Product
                 {
@@ -118,8 +119,8 @@ namespace TreeMarket_Klas4_Groep7.Controllers
                     Hoeveelheid = productDto.Quantity,
                     MinimumPrijs = productDto.MinPrice,
                     Dagdatum = DateTime.UtcNow,
-                    LeverancierID = userId,
-                    Foto = fotoUrl // ✅ hier een string
+                    LeverancierID = userId,  // zorg dat deze bestaat in Leverancier table
+                    Foto = fotoUrl
                 };
 
                 var result = await _service.AddOrUpdateProductAsync(product);
