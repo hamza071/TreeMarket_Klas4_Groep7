@@ -5,6 +5,10 @@ import { useNavigate } from "react-router-dom";
 
 function AuthPage() {
     const [activeTab, setActiveTab] = useState("register");
+    
+    const BASE_URL = import.meta.env.VITE_API_URL
+        ? import.meta.env.VITE_API_URL.replace('/api', '') // We halen /api er even af voor de flexibiliteit
+        : "https://localhost:7054";
 
     const [formData, setFormData] = useState({
         naam: "",
@@ -132,13 +136,13 @@ function AuthPage() {
 
             switch (formData.rol) {
                 case "klant":
-                    endpoint = "https://localhost:7054/api/Gebruiker/Klant";
+                    endpoint = `${BASE_URL}/api/Gebruiker/Klant`;
                     break;
                 case "leverancier":
-                    endpoint = "https://localhost:7054/api/Gebruiker/Leverancier";
+                    endpoint = `${BASE_URL}/api/Gebruiker/Leverancier`;
                     break;
                 case "veilingsmeester":
-                    endpoint = "https://localhost:7054/api/Gebruiker/Veilingsmeester";
+                    endpoint = `${BASE_URL}/api/Gebruiker/Veilingsmeester`;
                     break;
                 default:
                     setErrors({ rol: "Selecteer een rol." });
@@ -186,7 +190,7 @@ function AuthPage() {
             // ========== INLOGGEN (AANGEPAST VOOR IDENTITY) ==========
             try {
                 // 1. URL AANGEPAST: De standaard Identity URL is /login
-                const response = await fetch("https://localhost:7054/login", {
+                const response = await fetch(`${BASE_URL}/login`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({

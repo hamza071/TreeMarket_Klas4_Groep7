@@ -17,6 +17,7 @@ import AllUsers from './pages/CRUD/AllUsers'
 import IdUser from './pages/CRUD/IdUser'
 import DeleteUser from './pages/CRUD/DeleteUser'
 
+
 const NAVIGATION_ITEMS = [
     { id: 'dashboard', label: 'Dashboard' },
     { id: 'veiling', label: 'Veiling' },
