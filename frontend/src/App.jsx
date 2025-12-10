@@ -13,12 +13,13 @@ import ReportsPage from "./pages/ReportsPage";
 import AuthPage from "./pages/AuthPage";
 import AboutUsPage from "./pages/AboutUsPage";
 import HomePage from "./pages/HomePage";
+import ShopPage from "./pages/ShopPage";
 import AllUsers from "./pages/CRUD/AllUsers";
 import IdUser from "./pages/CRUD/IdUser";
 import DeleteUser from "./pages/CRUD/DeleteUser";
 import Logout from "./pages/Logout";
 
-// Navigatie voor KLANT
+// Navigatie voor KLANT (en leverancier)
 const NAVIGATION_ITEMS_KLANT = [
     { id: "home", label: "Home" },
     { id: "about", label: "About" },
@@ -42,17 +43,19 @@ const NAVIGATION_ITEMS_ANONYMOUS = [
 function App() {
     const navigationRefs = useRef([]);
 
+    // Auth-status rechtstreeks uit localStorage
     const token = localStorage.getItem("token");
-    const role = localStorage.getItem("role"); // "klant" of "veilingsmeester"
+    const role = (localStorage.getItem("role") || "").toLowerCase(); // "klant", "leverancier", "veilingsmeester"
     const isLoggedIn = !!token;
 
+    // Juiste navigatie kiezen op basis van rol
     let NAVIGATION_ITEMS;
     if (!isLoggedIn) {
         NAVIGATION_ITEMS = NAVIGATION_ITEMS_ANONYMOUS;
     } else if (role === "veilingsmeester") {
         NAVIGATION_ITEMS = NAVIGATION_ITEMS_VEILINGSMEESTER;
     } else {
-        // default ingelogd = klant
+        // standaard ingelogd = klant/leverancier
         NAVIGATION_ITEMS = NAVIGATION_ITEMS_KLANT;
     }
 
@@ -72,12 +75,15 @@ function App() {
         [NAVIGATION_ITEMS.length]
     );
 
+    // Alle kavels (status: pending / published)
     const [lots, setLots] = useState([]);
 
+    // Leverancier voegt nieuwe kavel toe (status: pending)
     const addNewLot = (newLot) => {
         setLots((prev) => [...prev, { ...newLot, status: "pending" }]);
     };
 
+    // Veilingmeester publiceert kavel
     const updateLot = (updatedLot) => {
         setLots((prev) =>
             prev.map((lot) =>
@@ -97,6 +103,7 @@ function App() {
             <header className="app-header">
                 <div className="brand">TREE MARKET</div>
 
+                {/* Navigatie op basis van rol */}
                 <nav className="main-nav" aria-label="Primaire navigatie">
                     {NAVIGATION_ITEMS.map((item, index) => (
                         <Link
@@ -111,6 +118,7 @@ function App() {
                     ))}
                 </nav>
 
+                {/* User knop rechtsboven */}
                 {!isLoggedIn ? (
                     <Link className="user-chip" to="/auth">
                         Inloggen
@@ -124,8 +132,10 @@ function App() {
 
             <main className="page-area" id="main-content">
                 <Routes>
+                    {/* Root → Home */}
                     <Route path="/" element={<HomePage />} />
 
+                    {/* Dashboard (alleen gepubliceerde kavels) */}
                     <Route
                         path="/dashboard"
                         element={
@@ -137,6 +147,7 @@ function App() {
                         }
                     />
 
+                    {/* Veiling */}
                     <Route path="/veiling" element={<AuctionPage lots={lots} />} />
                     <Route
                         path="/veiling/:code"
@@ -145,20 +156,28 @@ function App() {
                         }
                     />
 
+                    {/* Upload veiling (veilingsmeester / leverancier) */}
                     <Route
                         path="/upload"
                         element={<UploadAuctionPage addNewLot={addNewLot} />}
                     />
 
+                    {/* Overige pagina's */}
                     <Route path="/reports" element={<ReportsPage />} />
                     <Route path="/home" element={<HomePage />} />
                     <Route path="/about" element={<AboutUsPage />} />
+                    <Route path="/shop" element={<ShopPage />} />
                     <Route path="/auth" element={<AuthPage />} />
+
+                    {/* CRUD demo */}
                     <Route path="/allusers" element={<AllUsers />} />
                     <Route path="/idUser" element={<IdUser />} />
                     <Route path="/deleteUser" element={<DeleteUser />} />
+
+                    {/* Logout pagina */}
                     <Route path="/logout" element={<Logout />} />
 
+                    {/* Fallback */}
                     <Route
                         path="*"
                         element={
