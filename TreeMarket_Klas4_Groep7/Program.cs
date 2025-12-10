@@ -1,7 +1,9 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using backend.Interfaces;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using TreeMarket_Klas4_Groep7.Data;
+using backend.Interfaces;
 using TreeMarket_Klas4_Groep7.Models;
 using TreeMarket_Klas4_Groep7.Services;
 
@@ -74,8 +76,14 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
+// ============== De Controller klasses maakt gebruik van een interface :)==============
 // Je eigen services
-builder.Services.AddScoped<ProductService>();
+builder.Services.AddScoped<IProductController, ProductService>();
+builder.Services.AddScoped<IGebruikerController, GebruikerService>();
+//builder.Services.AddScoped<IVeilingController, VeilingService>();
+builder.Services.AddScoped<ILeverancierController, LeverancierService>();
+builder.Services.AddScoped<IClaimController, ClaimService>();
+builder.Services.AddScoped<IDashboardController, DashboardService>();
 
 // CORS beleid
 builder.Services.AddCors(options =>

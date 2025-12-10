@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization; // <--- NODIG VOOR BEVEILIGING
+﻿using backend.Interfaces;
+using Microsoft.AspNetCore.Authorization; // <--- NODIG VOOR BEVEILIGING
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
@@ -13,33 +14,36 @@ namespace TreeMarket_Klas4_Groep7.Controllers
     [ApiController]
     public class ProductController : ControllerBase
     {
-        private readonly ProductService _productService;
-        private readonly ApiContext _context;
+        private readonly IProductController _service;
 
-        public ProductController(ProductService productService, ApiContext context)
+        public ProductController(IProductController service)
         {
-            _productService = productService;
-            _context = context;
+            _service = service;
         }
+
+        // ================= GET ENDPOINTS (OPENBAAR) =================
 
         [HttpGet("vandaag")]
         public async Task<IActionResult> GetVandaag()
         {
             try
             {
-                // Gebruik de service-methode die ook Leverancier-info teruggeeft
-                var producten = await _productService.GetProductenMetLeverancier();
+                var producten = await _service.GetProductenVanVandaagAsync();
+                return Ok(producten);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Databasefout.", error = ex.Message });
+            }
+        }
 
-                var result = producten.Select(p => new ProductMetVeilingmeesterDto
-                {
-                    ProductId = p.ProductId,
-                    MinimumPrijs = p.MinimumPrijs,
-                    // Gebruik de leverancier-naam property die door de service DTO levert.
-                    // Vervang 'LeverancierNaam' door de correcte propertynaam als de DTO anders heet (bv. 'UserName' of 'Naam').
-                    LeverancierNaam = (p as dynamic).LeverancierNaam ?? (p as dynamic).UserName ?? "Onbekend"
-                }).ToList();
-
-                return Ok(result);
+        [HttpGet("leverancier")]
+        public async Task<IActionResult> GetMetLeverancier()
+        {
+            try
+            {
+                var producten = await _service.GetProductenMetLeverancierAsync();
+                return Ok(producten);
             }
             catch (Exception ex)
             {
@@ -50,40 +54,31 @@ namespace TreeMarket_Klas4_Groep7.Controllers
         // ================= CREATE / UPDATE (BEVEILIGD) =================
 
         [HttpPost]
-        [Authorize(Roles = "Leverancier, Admin")] // Alleen Leveranciers mogen dit!
+        [Authorize(Roles = "Leverancier, Admin")]
         public async Task<IActionResult> CreateOrUpdateProduct([FromBody] Product product)
         {
-            // 1. Validatie
-            if (string.IsNullOrWhiteSpace(product.Artikelkenmerken)) return BadRequest("Artikelkenmerken is verplicht.");
-            if (product.Hoeveelheid <= 0) return BadRequest("Hoeveelheid moet groter zijn dan 0.");
-            if (product.MinimumPrijs < 0) return BadRequest("MinimumPrijs mag niet negatief zijn.");
-            if (product.Dagdatum.Date < DateTime.Today) return BadRequest("Dagdatum mag niet in het verleden liggen.");
-
-            // AANGEPAST: String check voor ID
-            if (string.IsNullOrEmpty(product.LeverancierID)) return BadRequest("LeverancierID is verplicht.");
-
             try
             {
-                // Omdat je service waarschijnlijk nog niet is geüpdatet voor strings, 
-                // doen we het hier even direct (of je past je service aan):
-                
-                if (product.ProductId == 0) // Nieuw
-                {
-                    await _context.Product.AddAsync(product);
-                }
-                else // Update
-                {
-                    _context.Product.Update(product);
-                }
-                
-                await _context.SaveChangesAsync();
-                return Ok(product);
+                var result = await _service.AddOrUpdateProductAsync(product);
+                if (result == null)
+                    return BadRequest("Validatie mislukt of product niet gevonden.");
+                return Ok(result);
+
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ex.Message); // validatiefouten
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ex.Message); // update van niet-bestaand product
             }
             catch (Exception ex)
             {
                 return StatusCode(500, new { message = "Databasefout.", error = ex.Message });
             }
         }
+
 
         // DIT IS DE BETERE METHODE (gebruikt DTO en Token)
         [HttpPost("CreateProduct")]
@@ -114,85 +109,12 @@ namespace TreeMarket_Klas4_Groep7.Controllers
                     LeverancierID = userId 
                 };
 
-                await _context.Product.AddAsync(product);
-                await _context.SaveChangesAsync();
-
-                return Ok(product);
+                var result = await _service.AddOrUpdateProductAsync(product);
+                return Ok(result);
             }
             catch (Exception ex)
             {
                 return StatusCode(500, new { message = "Databasefout.", error = ex.Message });
-            }
-        }
-
-        [HttpPost("Upload")]
-        [Authorize(Roles = "Leverancier")]
-        public async Task<IActionResult> Upload([FromForm] ProductUploadDto dto)
-        {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-            if (userId == null)
-                return Unauthorized("Geen geldige login.");
-
-            // === FOTO OPSLAAN ===
-            string fotoPad = null;
-
-            if (dto.Image != null)
-            {
-                var fileName = $"{Guid.NewGuid()}_{dto.Image.FileName}";
-                var filePath = Path.Combine("wwwroot/images", fileName);
-
-                using (var stream = new FileStream(filePath, FileMode.Create))
-                {
-                    await dto.Image.CopyToAsync(stream);
-                }
-
-                fotoPad = "/images/" + fileName;
-            }
-
-            // === PRODUCT MAKEN ===
-            var product = new Product
-            {
-                Foto = fotoPad,
-                Artikelkenmerken = dto.Title + (dto.Variety != null ? " - " + dto.Variety : ""),
-                Hoeveelheid = dto.Quantity,
-                MinimumPrijs = dto.MinPrice,
-                Dagdatum = DateTime.UtcNow,
-                LeverancierID = userId
-            };
-
-            await _context.Product.AddAsync(product);
-            await _context.SaveChangesAsync();
-
-            return Ok(product);
-        }
-
-        // Haal alle pending kavels op
-        [HttpGet("pending")]
-        public async Task<IActionResult> GetPendingProducts()
-        {
-            try
-            {
-                var pending = await _context.Product
-                    .Where(p => !_context.Veiling.Any(v => v.ProductID == p.ProductId))
-                    .Select(p => new
-                    {
-                        code = p.ProductId,
-                        name = p.Artikelkenmerken,
-                        description = "",
-                        lots = p.Hoeveelheid,
-                        image = p.Foto,
-                        status = "pending",
-                        productID = p.ProductId,
-                        minPrice = p.MinimumPrijs
-                    })
-                    .ToListAsync();
-
-                return Ok(pending);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = "Kan pending kavels niet ophalen.", error = ex.Message });
             }
         }
     }

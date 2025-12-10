@@ -235,7 +235,8 @@ function AuthPage() {
                 console.error("Fout bij ophalen rol:", err);
             }
 
-            // 4. rol in localStorage zodat App.jsx juiste menu kan tonen
+            // 4. rol in localStorage zodat App.jsx juiste menu kan tonen welke rol je hebt.
+            // Op ene andere manier werkt de rol niet samen met de token. Voor nu is het wel goed.
             localStorage.setItem("role", role);
 
             setServerSuccess("Succesvol ingelogd!");

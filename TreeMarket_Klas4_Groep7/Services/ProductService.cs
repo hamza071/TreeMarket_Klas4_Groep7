@@ -2,12 +2,13 @@
 using TreeMarket_Klas4_Groep7.Models;
 using TreeMarket_Klas4_Groep7.Models.DTO;
 using Microsoft.EntityFrameworkCore;
+using backend.Interfaces;
 
 namespace TreeMarket_Klas4_Groep7.Services
 {
     // ✅ Service class voor Product-logica
     // Houdt LINQ-query’s netjes apart van de controller
-    public class ProductService
+    public class ProductService: IProductController
     {
         //Maakt gebruik van de ApiContext
         private readonly ApiContext _context;
@@ -18,7 +19,7 @@ namespace TreeMarket_Klas4_Groep7.Services
         }
 
         // ✅ Haal alle producten van vandaag op
-        public async Task<List<ProductDto>> GetProductenVanVandaag()
+        public async Task<List<ProductDto>> GetProductenVanVandaagAsync()
         {
             var vandaag = DateTime.Today;
 
@@ -36,7 +37,7 @@ namespace TreeMarket_Klas4_Groep7.Services
         }
 
         // ✅ Haal producten op met Leverancier info
-        public async Task<List<ProductMetLeverancierDto>> GetProductenMetLeverancier()
+        public async Task<List<ProductMetLeverancierDto>> GetProductenMetLeverancierAsync()
         {
             return await _context.Product
                 .Include(p => p.Leverancier) // Zorg dat Leverancier geladen wordt
@@ -50,17 +51,23 @@ namespace TreeMarket_Klas4_Groep7.Services
         }
 
         // ✅ Voeg een nieuw product toe of update een bestaand product
-        public async Task<Product> AddOrUpdateProduct(Product product)
+        public async Task<Product?> AddOrUpdateProductAsync(Product product)
         {
+            // ✅ Validatie
+            if (string.IsNullOrWhiteSpace(product.Artikelkenmerken)) return null;
+            if (product.Hoeveelheid <= 0) return null;
+            if (product.MinimumPrijs < 0) return null;
+            if (product.Dagdatum.Date < DateTime.Today) return null;
+            if (string.IsNullOrEmpty(product.LeverancierID)) return null;
+
+            // Add or update
             if (product.ProductId == 0)
             {
-                // Nieuw product
                 await _context.Product.AddAsync(product);
             }
             else
             {
-                // Bestaand product updaten
-                var productInDb = _context.Product.Find(product.ProductId);
+                var productInDb = await _context.Product.FindAsync(product.ProductId);
                 if (productInDb != null)
                 {
                     productInDb.Foto = product.Foto;
@@ -70,10 +77,30 @@ namespace TreeMarket_Klas4_Groep7.Services
                     productInDb.Dagdatum = product.Dagdatum;
                     productInDb.LeverancierID = product.LeverancierID;
                 }
+                else
+                {
+                    return null; // Product niet gevonden
+                }
             }
 
             await _context.SaveChangesAsync();
             return product;
+        }
+
+
+        public async Task<Product> GetByIdAsync(int productId)
+        {
+            return await _context.Product.FindAsync(productId);
+        }
+
+        public async Task<bool> DeleteAsync(int productId)
+        {
+            var product = await _context.Product.FindAsync(productId);
+            if (product == null) return false;
+
+            _context.Product.Remove(product);
+            await _context.SaveChangesAsync();
+            return true;
         }
     }
 }

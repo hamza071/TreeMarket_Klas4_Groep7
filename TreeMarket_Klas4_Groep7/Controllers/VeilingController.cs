@@ -1,124 +1,141 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using System.Threading.Tasks;
-using TreeMarket_Klas4_Groep7.Data;
-using TreeMarket_Klas4_Groep7.Models;
-using TreeMarket_Klas4_Groep7.Models.DTO;
+﻿//using backend.Interfaces;
+//using Microsoft.AspNetCore.Authorization; // <--- NODIG VOOR BEVEILIGING
+//using Microsoft.AspNetCore.Mvc;
+//using Microsoft.EntityFrameworkCore;
+//using System.Security.Claims; // <--- NODIG OM ID UIT TOKEN TE HALEN
+//using TreeMarket_Klas4_Groep7.Data;
+//using TreeMarket_Klas4_Groep7.Models;
+//using TreeMarket_Klas4_Groep7.Models.DTO;
 
-namespace TreeMarket_Klas4_Groep7.Controllers
-{
-    [Route("api/[controller]")]
-    [ApiController]
-    public class VeilingController : ControllerBase
-    {
-        private readonly ApiContext _context;
+//namespace TreeMarket_Klas4_Group7.Controllers
+//{
+//    [Route("api/[controller]")]
+//    [ApiController]
+//    public class VeilingController : ControllerBase
+//    {
+//        private readonly IVeilingController _service;
 
-        public VeilingController(ApiContext context)
-        {
-            _context = context;
-        }
+//        public VeilingController(IVeilingController service)
+//        {
+//            _service = service;
+//        }
+//        // ================= GET (Openbaar) =================
 
-        // ================= GET ENDPOINTS =================
+//        // GET: api/veiling
+//        [HttpGet]
+//        public async Task<IActionResult> GetAll()
+//        {
+//            try
+//            {
+//                var veilingen = await _service.GetAllAsync();
+//                return Ok(veilingen);
+//            }
+//            catch (Exception ex)
+//            {
+//                return StatusCode(500, new { message = "Databasefout: Kon veilingen niet ophalen.", error = ex.Message });
+//            }
+//        }
 
-        // GET: api/veiling
-        [HttpGet]
-        public async Task<IActionResult> GetAll()
-        {
-            var veilingen = await _context.Veiling
-                .Include(v => v.Product)       // optioneel: include product info
-                .Include(v => v.Veilingsmeester) // optioneel: include veilingmeester info
-                .ToListAsync();
+//        // GET: api/veiling/5
+//        [HttpGet("{id}")]
+//        public async Task<IActionResult> Get(int id)
+//        {
+//            try
+//            {
+//                var veiling = await _service.GetByIdAsync(id);
 
-            return Ok(veilingen);
-        }
+//                if (veiling == null)
+//                    return NotFound(new { message = $"Veiling met ID {id} niet gevonden." });
 
-        // GET: api/veiling/5
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetById(int id)
-        {
-            var veiling = await _context.Veiling
-                .Include(v => v.Product)
-                .Include(v => v.Veilingsmeester)
-                .FirstOrDefaultAsync(v => v.VeilingID == id);
+//                return Ok(veiling);
+//            }
+//            catch (Exception ex)
+//            {
+//                return StatusCode(500, new { message = "Databasefout: Kon veiling niet ophalen.", error = ex.Message });
+//            }
+//        }
 
-            if (veiling == null) return NotFound(new { message = "Veiling niet gevonden." });
+//        // ================= CREATE (Alleen Veilingsmeester/Admin) =================
 
-            return Ok(veiling);
-        }
+//        [HttpPost("CreateVeiling")]
+//        [Authorize(Roles = "Veilingsmeester, Admin")] // <--- BEVEILIGING
+//        public async Task<IActionResult> Create(VeilingDto dto)
+//        {
+//            if (!ModelState.IsValid) return BadRequest(ModelState);
 
-        // ================= CREATE =================
+//            // 1. Haal de ID van de ingelogde gebruiker op uit het token
+//            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        // POST: api/veiling/CreateVeiling
-        [HttpPost("CreateVeiling")]
-        public async Task<IActionResult> CreateVeiling([FromBody] VeilingToDo dto)
-        {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
+//            if (userId == null) return Unauthorized("Je bent niet ingelogd.");
 
-            // Controleer of product bestaat
-            var product = await _context.Product.FindAsync(dto.ProductID);
-            if (product == null) return NotFound(new { message = "Product niet gevonden." });
+//            try
+//            {
+//                var veiling = new Veiling
+//                {
+//                    StartPrijs = dto.StartPrijs,
+//                    HuidigePrijs = dto.StartPrijs,
+//                    PrijsStap = dto.PrijsStap,
+//                    // PrijsStrategie = dto.PrijsStrategie, // Voeg toe als je die in DTO hebt
+//                    ProductID = dto.ProductID,
+//                    StartTijd = dto.StartTijd,
+//                    EindTijd = dto.EindTijd,
 
-            // Optional: check of veilingsmeester bestaat (bijv. Identity user)
-            var veiling = new Veiling
-            {
-                StartPrijs = dto.StartPrijs,
-                HuidigePrijs = dto.StartPrijs,
-                PrijsStap = dto.PrijsStap,
-                ProductID = dto.ProductID,
-                VeilingsmeesterID = dto.VeilingsmeesterID,
-                Status = true,
-                TimerInSeconden = dto.TimerInSeconden
-            };
+//                    // AANGEPAST: We gebruiken de ID uit het token, niet uit de DTO!
+//                    VeilingsmeesterID = userId,
 
-            _context.Veiling.Add(veiling);
-            await _context.SaveChangesAsync();
+//                    Status = true,
+//                    // TimerInSeconden = dto.TimerInSeconden // Voeg toe als je die in DTO hebt
+//                };
 
-            return Ok(veiling);
-        }
+//                await _service.CreateVeilingAsync(dto, userId);
 
-        // ================= BID =================
+//                return Ok(veiling);
+//            }
+//            catch (Exception ex)
+//            {
+//                return StatusCode(500, new { message = "Databasefout: Veiling kon niet worden aangemaakt.", error = ex.Message });
+//            }
+//        }
 
-        // POST: api/veiling/Bid
-        [HttpPost("Bid")]
-        public async Task<IActionResult> PlaceBid([FromBody] CreateBidDTO dto)
-        {
-            var veiling = await _context.Veiling.FindAsync(dto.VeilingID);
-            if (veiling == null) return NotFound(new { message = "Veiling niet gevonden." });
+//        // ================= BIEDEN (Alleen Ingelogde Klanten) =================
 
-            // Optioneel: controleer dat bod hoger is dan huidige prijs
-            if (dto.Bod <= veiling.HuidigePrijs)
-                return BadRequest(new { message = "Bod moet hoger zijn dan de huidige prijs." });
+//        // POST: api/veiling/Bid
+//        [HttpPost("Bid")]
+//        [Authorize] // <--- Iedereen met een account mag bieden
+//        public async Task<IActionResult> PlaceBid(CreateBidDTO dto)
+//        {
+//            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+//            if (userId == null) return Unauthorized();
 
-            var bid = new Bid
-            {
-                VeilingID = dto.VeilingID,
-                Bedrag = dto.Bod
-            };
+//            try
+//            {
+//                var bid = await _service.PlaceBidAsync(dto, userId);
+//                if (bid == null) return NotFound("Veiling niet gevonden.");
+//                return Ok(bid);
+//            }
+//            catch (Exception ex)
+//            {
+//                return StatusCode(500, new { message = ex.Message });
+//            }
+//        }
 
-            _context.Bids.Add(bid);
+//        // ================= UPDATE (Alleen Veilingsmeester/Admin) =================
 
-            // Update veiling
-            veiling.HuidigePrijs = dto.Bod;
-
-            await _context.SaveChangesAsync();
-
-            return Ok(bid);
-        }
-
-        // ================= UPDATE STATUS =================
-
-        // PUT: api/veiling/UpdateStatus/5
-        [HttpPut("UpdateStatus/{id}")]
-        public async Task<IActionResult> UpdateStatus(int id, [FromBody] UpdateStatusDTO dto)
-        {
-            var veiling = await _context.Veiling.FindAsync(id);
-            if (veiling == null) return NotFound(new { message = "Veiling niet gevonden." });
-
-            veiling.Status = dto.Status;
-
-            await _context.SaveChangesAsync();
-
-            return Ok(veiling);
-        }
-    }
-}
+//        // PUT: api/veiling/UpdateStatus/5
+//        [HttpPut("UpdateStatus/{id}")]
+//        [Authorize(Roles = "Veilingsmeester, Admin")]
+//        public async Task<IActionResult> UpdateStatus(int id, UpdateStatusDTO dto)
+//        {
+//            try
+//            {
+//                var veiling = await _service.UpdateStatusAsync(id, dto.Status);
+//                if (veiling == null) return NotFound("Veiling niet gevonden.");
+//                return Ok(veiling);
+//            }
+//            catch (Exception ex)
+//            {
+//                return StatusCode(500, new { message = "Databasefout: Kon status niet aanpassen.", error = ex.Message });
+//            }
+//        }
+//    }
+//}

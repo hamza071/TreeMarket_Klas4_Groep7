@@ -1,9 +1,11 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using backend.Interfaces;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity; // Nodig voor UserManager
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using System.Linq;
 using TreeMarket_Klas4_Groep7.Data;
 using TreeMarket_Klas4_Groep7.Models;
-using System.Linq;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Identity; // Nodig voor UserManager
 
 namespace TreeMarket_Klas4_Groep7.Controllers
 {
@@ -11,15 +13,12 @@ namespace TreeMarket_Klas4_Groep7.Controllers
     [ApiController]
     public class LeverancierController : ControllerBase
     {
-        private readonly ApiContext _context;
-        private readonly UserManager<Gebruiker> _userManager; // Toevoegen voor veiligheid
+        private readonly ILeverancierController _service;
 
-        public LeverancierController(ApiContext context, UserManager<Gebruiker> userManager)
+        public LeverancierController(ILeverancierController service)
         {
-            _context = context;
-            _userManager = userManager;
+            _service = service;
         }
-
         // ===============================
         // GET: Haal alle leveranciers op
         // ===============================
@@ -29,7 +28,7 @@ namespace TreeMarket_Klas4_Groep7.Controllers
             try
             {
                 // We halen specifiek de Leveranciers op uit de context
-                var leveranciers = await _context.Leverancier.ToListAsync();
+                var leveranciers = await _service.GetAllAsync();
                 return Ok(leveranciers);
             }
             catch (Exception ex)
@@ -47,7 +46,7 @@ namespace TreeMarket_Klas4_Groep7.Controllers
         {
             try
             {
-                var leverancier = await _context.Leverancier.FindAsync(id);
+                var leverancier = await _service.GetByIdAsync(id);
 
                 if (leverancier == null)
                     return NotFound(new { message = $"Leverancier niet gevonden met ID: {id}" });
@@ -57,6 +56,23 @@ namespace TreeMarket_Klas4_Groep7.Controllers
             catch (Exception ex)
             {
                 return StatusCode(500, new { message = "Databasefout: Leverancier Id kon niet opgehaald worden.", error = ex.Message });
+            }
+        }
+
+        // DELETE: api/Leverancier/{id}
+        [Authorize(Roles = "Admin")]
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(string id)
+        {
+            try
+            {
+                var success = await _service.DeleteAsync(id);
+                if (!success) return NotFound(new { message = $"Leverancier niet gevonden met ID: {id}" });
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
             }
         }
 

@@ -10,6 +10,6 @@
         public int Hoeveelheid { get; set; }// Beschikbare hoeveelheid
         public decimal MinimumPrijs { get; set; } // Minimumprijs
         public DateTime dagdatum { get; set; } = DateTime.Now;
-        public int leverancierID { get; set; }
+        public string leverancierID { get; set; }
     }
 }
