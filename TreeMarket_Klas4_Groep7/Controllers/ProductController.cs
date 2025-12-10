@@ -54,7 +54,8 @@ namespace TreeMarket_Klas4_Groep7.Controllers
         // ================= CREATE / UPDATE (BEVEILIGD) =================
 
         [HttpPost]
-        [Authorize(Roles = "Leverancier, Admin")]
+        //[Authorize]
+        //[Authorize(Roles = "Leverancier, Admin")]
         public async Task<IActionResult> CreateOrUpdateProduct([FromBody] Product product)
         {
             try
@@ -82,7 +83,8 @@ namespace TreeMarket_Klas4_Groep7.Controllers
 
         // DIT IS DE BETERE METHODE (gebruikt DTO en Token)
         [HttpPost("CreateProduct")]
-        [Authorize(Roles = "Leverancier")]
+        //[Authorize]
+        //[Authorize(Roles = "Leverancier, Admin")]
         public async Task<IActionResult> PostProduct([FromForm] ProductUploadDto productDto)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
