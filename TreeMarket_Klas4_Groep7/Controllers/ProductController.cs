@@ -1,5 +1,4 @@
-﻿using backend.Models.DTO;
-using Microsoft.AspNetCore.Authorization; // <--- NODIG VOOR BEVEILIGING
+﻿using Microsoft.AspNetCore.Authorization; // <--- NODIG VOOR BEVEILIGING
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
