@@ -1,5 +1,5 @@
 ﻿import { Link, Routes, Route } from "react-router-dom";
-import { useRef, useState, useCallback } from "react";
+import { useRef, useCallback, useState } from "react";
 
 // Styling
 import "./assets/css/App.css";
@@ -18,8 +18,8 @@ import IdUser from "./pages/CRUD/IdUser";
 import DeleteUser from "./pages/CRUD/DeleteUser";
 import LogOutUser from "./pages/Logout";
 
-// Navigatie voor KLANT (ingelogd)
-const NAVIGATION_ITEMS_KLANT = [
+// Navigatie voor ingelogde KLANT
+const NAVIGATION_ITEMS_LOGGED_IN = [
     { id: "home", label: "Home" },
     { id: "about", label: "About" },
     { id: "veiling", label: "Veiling" },
@@ -34,15 +34,14 @@ const NAVIGATION_ITEMS_ANONYMOUS = [
 function App() {
     const navigationRefs = useRef([]);
 
-    // Ingelogd ja/nee: alleen op basis van token
+    // Alleen op basis van token bepalen of iemand ingelogd is
     const isLoggedIn = !!localStorage.getItem("token");
 
-    // Kies navigatie: ingelogd = klant-navigatie, anders anoniem
+    // Kies de juiste navigatie
     const NAVIGATION_ITEMS = isLoggedIn
-        ? NAVIGATION_ITEMS_KLANT
+        ? NAVIGATION_ITEMS_LOGGED_IN
         : NAVIGATION_ITEMS_ANONYMOUS;
 
-    // Keyboard-navigatie in het menu
     const handleNavKeyDown = useCallback(
         (event, currentIndex) => {
             const navLength = NAVIGATION_ITEMS.length;
@@ -116,10 +115,10 @@ function App() {
 
             <main className="page-area" id="main-content">
                 <Routes>
-                    {/* Extra: root route naar Home */}
+                    {/* Root naar Home */}
                     <Route path="/" element={<HomePage />} />
 
-                    {/* Dashboard krijgt alleen gepubliceerde kavels */}
+                    {/* Dashboard met gepubliceerde kavels */}
                     <Route
                         path="/dashboard"
                         element={
@@ -131,7 +130,7 @@ function App() {
                         }
                     />
 
-                    {/* Veiling krijgt alle kavels */}
+                    {/* Veiling */}
                     <Route path="/veiling" element={<AuctionPage lots={lots} />} />
                     <Route
                         path="/veiling/:code"
@@ -146,7 +145,7 @@ function App() {
                         element={<UploadAuctionPage addNewLot={addNewLot} />}
                     />
 
-                    {/* Overige pages */}
+                    {/* Overige pagina's */}
                     <Route path="/reports" element={<ReportsPage />} />
                     <Route path="/home" element={<HomePage />} />
                     <Route path="/about" element={<AboutUsPage />} />
@@ -174,4 +173,3 @@ function App() {
 }
 
 export default App;
-//
