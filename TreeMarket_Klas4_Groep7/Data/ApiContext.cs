@@ -14,7 +14,7 @@ namespace TreeMarket_Klas4_Groep7.Data
         public DbSet<Product> Product { get; set; }
         // DbSet<Gebruiker> hoeft eigenlijk niet meer (zit in IdentityDbContext als 'Users'), 
         // maar je mag hem laten staan als je oude code 'context.Gebruiker' gebruikt.
-        // public DbSet<Gebruiker> Gebruiker { get; set; } 
+        public DbSet<Gebruiker> Gebruiker { get; set; }
 
         public DbSet<Veiling> Veiling { get; set; }
         public DbSet<Dashboard> Dashboard { get; set; }

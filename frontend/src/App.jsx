@@ -33,6 +33,8 @@ const NAVIGATION_ITEMS_ANONYMOUS = [
 
 function App() {
     const navigationRefs = useRef([]);
+    const [menuOpen, setMenuOpen] = useState(false);
+    const toggleMenu = () => setMenuOpen(prev => !prev);
 
     // Alleen op basis van token bepalen of iemand ingelogd is
     const isLoggedIn = !!localStorage.getItem("token");
@@ -84,17 +86,30 @@ function App() {
             </a>
 
             <header className="app-header">
+                {/* Hamburger links (alleen zichtbaar op mobiel) */}
+                <button
+                    className={`hamburger ${menuOpen ? "is-active" : ""}`}
+                    onClick={toggleMenu}
+                    aria-label="Menu openen/sluiten">
+
+                    {/*Voor de hamburger menu*/}
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+
                 <div className="brand">TREE MARKET</div>
 
                 {/* Navigatie past zich aan op basis van ingelogde / anonieme gebruiker */}
-                <nav className="main-nav" aria-label="Primaire navigatie">
+                <nav className={`main-nav ${menuOpen ? "is-open" : ""}`} aria-label="Primaire navigatie">
                     {NAVIGATION_ITEMS.map((item, index) => (
                         <Link
                             key={item.id}
                             to={`/${item.id}`}
                             className="nav-link"
-                            ref={(el) => (navigationRefs.current[index] = el)}
-                            onKeyDown={(e) => handleNavKeyDown(e, index)}
+                            ref={el => (navigationRefs.current[index] = el)}
+                            onKeyDown={e => handleNavKeyDown(e, index)}
+                            onClick={() => setMenuOpen(false)}
                         >
                             {item.label}
                         </Link>

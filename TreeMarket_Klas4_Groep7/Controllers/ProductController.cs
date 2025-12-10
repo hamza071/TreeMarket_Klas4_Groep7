@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization; // <--- NODIG VOOR BEVEILIGING
+﻿using backend.Interfaces;
+using Microsoft.AspNetCore.Authorization; // <--- NODIG VOOR BEVEILIGING
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
@@ -13,13 +14,11 @@ namespace TreeMarket_Klas4_Groep7.Controllers
     [ApiController]
     public class ProductController : ControllerBase
     {
-        private readonly ProductService _productService;
-        private readonly ApiContext _context;
+        private readonly IProductController _service;
 
-        public ProductController(ProductService productService, ApiContext context)
+        public ProductController(IProductController service)
         {
-            _productService = productService;
-            _context = context;
+            _service = service;
         }
 
         // ================= GET ENDPOINTS (OPENBAAR) =================
@@ -29,7 +28,7 @@ namespace TreeMarket_Klas4_Groep7.Controllers
         {
             try
             {
-                var producten = await _productService.GetProductenVanVandaag();
+                var producten = await _service.GetProductenVanVandaagAsync();
                 return Ok(producten);
             }
             catch (Exception ex)
@@ -43,7 +42,7 @@ namespace TreeMarket_Klas4_Groep7.Controllers
         {
             try
             {
-                var producten = await _productService.GetProductenMetLeverancier();
+                var producten = await _service.GetProductenMetLeverancierAsync();
                 return Ok(producten);
             }
             catch (Exception ex)
@@ -55,40 +54,31 @@ namespace TreeMarket_Klas4_Groep7.Controllers
         // ================= CREATE / UPDATE (BEVEILIGD) =================
 
         [HttpPost]
-        [Authorize(Roles = "Leverancier, Admin")] // Alleen Leveranciers mogen dit!
+        [Authorize(Roles = "Leverancier, Admin")]
         public async Task<IActionResult> CreateOrUpdateProduct([FromBody] Product product)
         {
-            // 1. Validatie
-            if (string.IsNullOrWhiteSpace(product.Artikelkenmerken)) return BadRequest("Artikelkenmerken is verplicht.");
-            if (product.Hoeveelheid <= 0) return BadRequest("Hoeveelheid moet groter zijn dan 0.");
-            if (product.MinimumPrijs < 0) return BadRequest("MinimumPrijs mag niet negatief zijn.");
-            if (product.Dagdatum.Date < DateTime.Today) return BadRequest("Dagdatum mag niet in het verleden liggen.");
-
-            // AANGEPAST: String check voor ID
-            if (string.IsNullOrEmpty(product.LeverancierID)) return BadRequest("LeverancierID is verplicht.");
-
             try
             {
-                // Omdat je service waarschijnlijk nog niet is geüpdatet voor strings, 
-                // doen we het hier even direct (of je past je service aan):
-                
-                if (product.ProductId == 0) // Nieuw
-                {
-                    await _context.Product.AddAsync(product);
-                }
-                else // Update
-                {
-                    _context.Product.Update(product);
-                }
-                
-                await _context.SaveChangesAsync();
-                return Ok(product);
+                var result = await _service.AddOrUpdateProductAsync(product);
+                if (result == null)
+                    return BadRequest("Validatie mislukt of product niet gevonden.");
+                return Ok(result);
+
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ex.Message); // validatiefouten
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ex.Message); // update van niet-bestaand product
             }
             catch (Exception ex)
             {
                 return StatusCode(500, new { message = "Databasefout.", error = ex.Message });
             }
         }
+
 
         // DIT IS DE BETERE METHODE (gebruikt DTO en Token)
         [HttpPost("CreateProduct")]
@@ -119,10 +109,8 @@ namespace TreeMarket_Klas4_Groep7.Controllers
                     LeverancierID = userId 
                 };
 
-                await _context.Product.AddAsync(product);
-                await _context.SaveChangesAsync();
-
-                return Ok(product);
+                var result = await _service.AddOrUpdateProductAsync(product);
+                return Ok(result);
             }
             catch (Exception ex)
             {
