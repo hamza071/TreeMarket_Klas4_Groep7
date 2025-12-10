@@ -166,5 +166,34 @@ namespace TreeMarket_Klas4_Groep7.Controllers
 
             return Ok(product);
         }
+
+        // Haal alle pending kavels op
+        [HttpGet("pending")]
+        public async Task<IActionResult> GetPendingProducts()
+        {
+            try
+            {
+                var pending = await _context.Product
+                    .Where(p => !_context.Veiling.Any(v => v.ProductID == p.ProductId))
+                    .Select(p => new
+                    {
+                        code = p.ProductId,
+                        name = p.Artikelkenmerken,
+                        description = "",
+                        lots = p.Hoeveelheid,
+                        image = p.Foto,
+                        status = "pending",
+                        productID = p.ProductId,
+                        minPrice = p.MinimumPrijs
+                    })
+                    .ToListAsync();
+
+                return Ok(pending);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Kan pending kavels niet ophalen.", error = ex.Message });
+            }
+        }
     }
 }
