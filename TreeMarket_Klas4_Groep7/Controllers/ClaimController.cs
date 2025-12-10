@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Authorization; // <--- BELANGRIJK
+﻿using backend.Interfaces;
+using TreeMarket_Klas4_Groep7.Services;
+using Microsoft.AspNetCore.Authorization; // <--- BELANGRIJK
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
@@ -14,11 +16,11 @@ namespace TreeMarket_Klas4_Groep7.Controllers
     [ApiController]
     public class ClaimController : ControllerBase
     {
-        private readonly ApiContext _context;
+        private readonly IClaimController _service;
 
-        public ClaimController(ApiContext context)
+        public ClaimController(IClaimController service)
         {
-            _context = context;
+            _service = service;
         }
 
         // GET: api/Claim
@@ -28,10 +30,8 @@ namespace TreeMarket_Klas4_Groep7.Controllers
             try
             {
                 // Include Klant en Veiling voor meer info
-                return await _context.Claim
-                    .Include(c => c.klant)
-                    .Include(c => c.Veiling)
-                    .ToListAsync();
+                var claims = await _service.GetClaimsAsync();
+                return Ok(claims);
             }
             catch (Exception ex)
             {
@@ -57,18 +57,7 @@ namespace TreeMarket_Klas4_Groep7.Controllers
 
             try
             {
-                var claim = new Claim
-                {
-                    Prijs = claimDto.prijs,
-                    VeilingId = claimDto.veilingId,
-                    
-                    // 2. Vul de ID van de ingelogde gebruiker in
-                    KlantId = userId // Dit is nu een string, en dat klopt!
-                };
-
-                await _context.Claim.AddAsync(claim);
-                await _context.SaveChangesAsync();
-
+                var claim = await _service.CreateClaimAsync(claimDto, userId);
                 return Ok(claim);
             }
             catch (Exception ex)
@@ -84,11 +73,8 @@ namespace TreeMarket_Klas4_Groep7.Controllers
         {
             try 
             {
-                var claim = await _context.Claim.FindAsync(id);
-                if (claim == null) return NotFound();
-
-                _context.Claim.Remove(claim);
-                await _context.SaveChangesAsync();
+                var success = await _service.DeleteClaimAsync(id);
+                if (!success) return NotFound();
 
                 return NoContent();
             }

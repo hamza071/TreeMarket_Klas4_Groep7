@@ -52,8 +52,21 @@ const NAVIGATION_ITEMS_ANONYMOUS = [
     { id: "about", label: "About" },
 ];
 
+// ===== ADMIN (Kan niet aangemaakt worden) =====
+const NAVIGATION_ITEMS_ADMIN = [
+    { id: 'home', label: 'Home' },
+    { id: 'about', label: 'About' },
+    { id: 'dashboard', label: 'Dashboard' },
+    { id: 'veiling', label: 'Veiling' },
+    { id: 'upload', label: 'Upload Veiling' },
+    { id: 'reports', label: 'Rapporten' },
+    { id: 'allusers', label: 'GetAlleGebruikers' },
+];
+
 function App() {
     const navigationRefs = useRef([]);
+    const [menuOpen, setMenuOpen] = useState(false);
+    const toggleMenu = () => setMenuOpen(prev => !prev);
 
     // Auth-status uit localStorage
     const token = localStorage.getItem("token");
@@ -61,10 +74,13 @@ function App() {
     const isLoggedIn = !!token;
 
     // Juiste nav kiezen
+    //De 'role' wordt gelezen en kijkt welke rol de ingelogde gebruiker heeft staan in de localstorage.
     let NAVIGATION_ITEMS;
     if (!isLoggedIn) {
         NAVIGATION_ITEMS = NAVIGATION_ITEMS_ANONYMOUS;
-    } else if (role === "veilingsmeester") {
+    } else if (role === "admin") {
+        NAVIGATION_ITEMS = NAVIGATION_ITEMS_ADMIN;
+    }  else if (role === "veilingsmeester") {
         NAVIGATION_ITEMS = NAVIGATION_ITEMS_VEILINGSMEESTER;
     } else if (role === "leverancier") {
         NAVIGATION_ITEMS = NAVIGATION_ITEMS_LEVERANCIER;
@@ -113,17 +129,30 @@ function App() {
             </a>
 
             <header className="app-header">
+                {/* Hamburger links (alleen zichtbaar op mobiel) */}
+                <button
+                    className={`hamburger ${menuOpen ? "is-active" : ""}`}
+                    onClick={toggleMenu}
+                    aria-label="Menu openen/sluiten">
+
+                    {/*Voor de hamburger menu*/}
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+
                 <div className="brand">TREE MARKET</div>
 
-                {/* Navigatie per rol */}
-                <nav className="main-nav" aria-label="Primaire navigatie">
+                {/* Navigatie past zich aan op basis van ingelogde / anonieme gebruiker */}
+                <nav className={`main-nav ${menuOpen ? "is-open" : ""}`} aria-label="Primaire navigatie">
                     {NAVIGATION_ITEMS.map((item, index) => (
                         <Link
                             key={item.id}
                             to={`/${item.id}`}
                             className="nav-link"
-                            ref={(el) => (navigationRefs.current[index] = el)}
-                            onKeyDown={(e) => handleNavKeyDown(e, index)}
+                            ref={el => (navigationRefs.current[index] = el)}
+                            onKeyDown={e => handleNavKeyDown(e, index)}
+                            onClick={() => setMenuOpen(false)}
                         >
                             {item.label}
                         </Link>

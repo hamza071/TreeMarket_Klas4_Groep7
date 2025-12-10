@@ -6,7 +6,7 @@ namespace TreeMarket_Klas4_Groep7.Models.DTO
     {
         [Required]
         public decimal prijs {get; set;}
-        public int klantId { get; set; }
+        //public string klantId { get; set; }
         public int veilingId { get; set; }
     }
 }

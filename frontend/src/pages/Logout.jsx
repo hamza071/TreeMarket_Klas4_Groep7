@@ -15,9 +15,7 @@ export default function Logout() {
 
             // Client-side: alles wat met inloggen te maken heeft verwijderen
             localStorage.removeItem("token");
-            localStorage.removeItem("gebruikerId");
-            localStorage.removeItem("rol");
-            localStorage.removeItem("user");
+            localStorage.removeItem("role");
 
             // (optioneel) event voor listeners zoals App.jsx
             window.dispatchEvent(new Event("app-auth-changed"));
