@@ -16,13 +16,21 @@ import HomePage from "./pages/HomePage";
 import AllUsers from "./pages/CRUD/AllUsers";
 import IdUser from "./pages/CRUD/IdUser";
 import DeleteUser from "./pages/CRUD/DeleteUser";
-import LogOutUser from "./pages/Logout";
+import Logout from "./pages/Logout";
 
-// Navigatie voor ingelogde KLANT
-const NAVIGATION_ITEMS_LOGGED_IN = [
+// Navigatie voor KLANT
+const NAVIGATION_ITEMS_KLANT = [
     { id: "home", label: "Home" },
     { id: "about", label: "About" },
     { id: "veiling", label: "Veiling" },
+];
+
+// Navigatie voor VEILINGSMEESTER
+const NAVIGATION_ITEMS_VEILINGSMEESTER = [
+    { id: "home", label: "Home" },
+    { id: "about", label: "About" },
+    { id: "upload", label: "Upload Veiling" },
+    { id: "dashboard", label: "Dashboard" },
 ];
 
 // Navigatie voor anonieme gebruikers
@@ -34,13 +42,19 @@ const NAVIGATION_ITEMS_ANONYMOUS = [
 function App() {
     const navigationRefs = useRef([]);
 
-    // Alleen op basis van token bepalen of iemand ingelogd is
-    const isLoggedIn = !!localStorage.getItem("token");
+    const token = localStorage.getItem("token");
+    const role = localStorage.getItem("role"); // "klant" of "veilingsmeester"
+    const isLoggedIn = !!token;
 
-    // Kies de juiste navigatie
-    const NAVIGATION_ITEMS = isLoggedIn
-        ? NAVIGATION_ITEMS_LOGGED_IN
-        : NAVIGATION_ITEMS_ANONYMOUS;
+    let NAVIGATION_ITEMS;
+    if (!isLoggedIn) {
+        NAVIGATION_ITEMS = NAVIGATION_ITEMS_ANONYMOUS;
+    } else if (role === "veilingsmeester") {
+        NAVIGATION_ITEMS = NAVIGATION_ITEMS_VEILINGSMEESTER;
+    } else {
+        // default ingelogd = klant
+        NAVIGATION_ITEMS = NAVIGATION_ITEMS_KLANT;
+    }
 
     const handleNavKeyDown = useCallback(
         (event, currentIndex) => {
@@ -58,15 +72,12 @@ function App() {
         [NAVIGATION_ITEMS.length]
     );
 
-    // Alle kavels (status: pending / published)
     const [lots, setLots] = useState([]);
 
-    // Leverancier voegt nieuwe kavel toe (status: pending)
     const addNewLot = (newLot) => {
         setLots((prev) => [...prev, { ...newLot, status: "pending" }]);
     };
 
-    // Veilingmeester bewerkt kavel (voegt prijs en sluitingstijd toe en publiceert)
     const updateLot = (updatedLot) => {
         setLots((prev) =>
             prev.map((lot) =>
@@ -86,7 +97,6 @@ function App() {
             <header className="app-header">
                 <div className="brand">TREE MARKET</div>
 
-                {/* Navigatie past zich aan op basis van ingelogde / anonieme gebruiker */}
                 <nav className="main-nav" aria-label="Primaire navigatie">
                     {NAVIGATION_ITEMS.map((item, index) => (
                         <Link
@@ -101,7 +111,6 @@ function App() {
                     ))}
                 </nav>
 
-                {/* User chip rechtsboven */}
                 {!isLoggedIn ? (
                     <Link className="user-chip" to="/auth">
                         Inloggen
@@ -115,10 +124,8 @@ function App() {
 
             <main className="page-area" id="main-content">
                 <Routes>
-                    {/* Root naar Home */}
                     <Route path="/" element={<HomePage />} />
 
-                    {/* Dashboard met gepubliceerde kavels */}
                     <Route
                         path="/dashboard"
                         element={
@@ -130,7 +137,6 @@ function App() {
                         }
                     />
 
-                    {/* Veiling */}
                     <Route path="/veiling" element={<AuctionPage lots={lots} />} />
                     <Route
                         path="/veiling/:code"
@@ -139,13 +145,11 @@ function App() {
                         }
                     />
 
-                    {/* Upload voor leverancier */}
                     <Route
                         path="/upload"
                         element={<UploadAuctionPage addNewLot={addNewLot} />}
                     />
 
-                    {/* Overige pagina's */}
                     <Route path="/reports" element={<ReportsPage />} />
                     <Route path="/home" element={<HomePage />} />
                     <Route path="/about" element={<AboutUsPage />} />
@@ -153,9 +157,8 @@ function App() {
                     <Route path="/allusers" element={<AllUsers />} />
                     <Route path="/idUser" element={<IdUser />} />
                     <Route path="/deleteUser" element={<DeleteUser />} />
-                    <Route path="/logout" element={<LogOutUser />} />
+                    <Route path="/logout" element={<Logout />} />
 
-                    {/* Fallback */}
                     <Route
                         path="*"
                         element={
