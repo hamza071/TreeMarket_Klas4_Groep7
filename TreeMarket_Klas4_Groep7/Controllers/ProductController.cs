@@ -22,29 +22,24 @@ namespace TreeMarket_Klas4_Groep7.Controllers
             _context = context;
         }
 
-        // ================= GET ENDPOINTS (OPENBAAR) =================
-
         [HttpGet("vandaag")]
         public async Task<IActionResult> GetVandaag()
         {
             try
             {
-                var producten = await _productService.GetProductenVanVandaag();
-                return Ok(producten);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = "Databasefout.", error = ex.Message });
-            }
-        }
-
-        [HttpGet("leverancier")]
-        public async Task<IActionResult> GetMetLeverancier()
-        {
-            try
-            {
+                // Gebruik de service-methode die ook Leverancier-info teruggeeft
                 var producten = await _productService.GetProductenMetLeverancier();
-                return Ok(producten);
+
+                var result = producten.Select(p => new ProductMetVeilingmeesterDto
+                {
+                    ProductId = p.ProductId,
+                    MinimumPrijs = p.MinimumPrijs,
+                    // Gebruik de leverancier-naam property die door de service DTO levert.
+                    // Vervang 'LeverancierNaam' door de correcte propertynaam als de DTO anders heet (bv. 'UserName' of 'Naam').
+                    LeverancierNaam = (p as dynamic).LeverancierNaam ?? (p as dynamic).UserName ?? "Onbekend"
+                }).ToList();
+
+                return Ok(result);
             }
             catch (Exception ex)
             {
