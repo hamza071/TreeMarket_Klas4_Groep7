@@ -70,7 +70,7 @@ function DashboardPage({ lots }) {
             <section className="dashboard-hero">
                 <div className="hero-copy">
                     <span className="eyebrow">TREE MARKET</span>
-                    <h1>De toekomst van bloemen en plantenveilingen</h1>
+                    <h1>De toekomst van appelsap</h1>
                     <p>
                         Digitale Veilingklok 2025 brengt kopers en kwekers samen in een moderne, efficiënte online
                         veilingomgeving.
