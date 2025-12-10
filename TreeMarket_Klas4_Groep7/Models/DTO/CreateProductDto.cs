@@ -23,6 +23,6 @@ namespace TreeMarket_Klas4_Groep7.Models.DTO
         public IFormFile? Image { get; set; }
 
         [Required]
-        public int LeverancierID { get; set; }
+        public string LeverancierID { get; set; }
     }
 }

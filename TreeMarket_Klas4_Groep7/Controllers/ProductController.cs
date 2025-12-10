@@ -1,7 +1,6 @@
-﻿using Microsoft.AspNetCore.Authorization; // <--- NODIG VOOR BEVEILIGING
+﻿using Humanizer;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Claims;
 using TreeMarket_Klas4_Groep7.Data;
 using TreeMarket_Klas4_Groep7.Models;
 using TreeMarket_Klas4_Groep7.Models.DTO;
@@ -22,8 +21,7 @@ namespace TreeMarket_Klas4_Groep7.Controllers
             _context = context;
         }
 
-        // ================= GET ENDPOINTS (OPENBAAR) =================
-
+        // Haal producten van vandaag op
         [HttpGet("vandaag")]
         public async Task<IActionResult> GetVandaag()
         {
@@ -34,10 +32,11 @@ namespace TreeMarket_Klas4_Groep7.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { message = "Databasefout.", error = ex.Message });
+                return StatusCode(500, new { message = "Databasefout: Product van vandaag kan niet getoond worden.", error = ex.Message });
             }
         }
 
+        // Haal producten met Leverancier info op
         [HttpGet("leverancier")]
         public async Task<IActionResult> GetMetLeverancier()
         {
@@ -48,62 +47,47 @@ namespace TreeMarket_Klas4_Groep7.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { message = "Databasefout.", error = ex.Message });
+                return StatusCode(500, new { message = "Databasefout: Product van de leverancier kan niet getoond worden.", error = ex.Message });
             }
         }
 
-        // ================= CREATE / UPDATE (BEVEILIGD) =================
-
+        // Voeg nieuw product toe of update bestaand product
         [HttpPost]
-        [Authorize(Roles = "Leverancier, Admin")] // Alleen Leveranciers mogen dit!
         public async Task<IActionResult> CreateOrUpdateProduct([FromBody] Product product)
         {
-            // 1. Validatie
-            if (string.IsNullOrWhiteSpace(product.Artikelkenmerken)) return BadRequest("Artikelkenmerken is verplicht.");
-            if (product.Hoeveelheid <= 0) return BadRequest("Hoeveelheid moet groter zijn dan 0.");
-            if (product.MinimumPrijs < 0) return BadRequest("MinimumPrijs mag niet negatief zijn.");
-            if (product.Dagdatum.Date < DateTime.Today) return BadRequest("Dagdatum mag niet in het verleden liggen.");
+            if (string.IsNullOrWhiteSpace(product.Artikelkenmerken))
+                return BadRequest("Artikelkenmerken is verplicht.");
 
-            // AANGEPAST: String check voor ID
-            if (string.IsNullOrEmpty(product.LeverancierID)) return BadRequest("LeverancierID is verplicht.");
+            if (product.Hoeveelheid <= 0)
+                return BadRequest("Hoeveelheid moet groter zijn dan 0.");
+
+            if (product.MinimumPrijs < 0)
+                return BadRequest("MinimumPrijs mag niet negatief zijn.");
+
+            if (product.Dagdatum.Date < DateTime.Today)
+                return BadRequest("Dagdatum mag niet in het verleden liggen.");
+
+            // Hier controleren we op lege string in plaats van <= 0
+            if (string.IsNullOrWhiteSpace(product.LeverancierID))
+                return BadRequest("LeverancierID is verplicht.");
 
             try
             {
-                // Omdat je service waarschijnlijk nog niet is geüpdatet voor strings, 
-                // doen we het hier even direct (of je past je service aan):
-                
-                if (product.ProductId == 0) // Nieuw
-                {
-                    await _context.Product.AddAsync(product);
-                }
-                else // Update
-                {
-                    _context.Product.Update(product);
-                }
-                
-                await _context.SaveChangesAsync();
-                return Ok(product);
+                var result = await _productService.AddOrUpdateProduct(product);
+                return Ok(result);
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { message = "Databasefout.", error = ex.Message });
+                return StatusCode(500, new { message = "Databasefout: Product kan niet toegevoegd of geupdate worden.", error = ex.Message });
             }
         }
 
-        // DIT IS DE BETERE METHODE (gebruikt DTO en Token)
+        // POST via DTO
         [HttpPost("CreateProduct")]
-        [Authorize(Roles = "Leverancier")] // Alleen Leveranciers
         public async Task<IActionResult> PostProduct([FromBody] ProductDto productDto)
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
-
-            // 1. Haal de ID van de ingelogde gebruiker op (uit token)
-            // Dit is VEILIGER dan de ID uit de DTO halen!
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier); 
-            
-            // (Als Admin dit doet, moeten we misschien wel de ID uit de DTO pakken, 
-            // maar voor een Leverancier is dit het veiligst).
-            if (userId == null) return Unauthorized("Je bent niet ingelogd.");
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
 
             try
             {
@@ -114,9 +98,7 @@ namespace TreeMarket_Klas4_Groep7.Controllers
                     Hoeveelheid = productDto.Hoeveelheid,
                     MinimumPrijs = productDto.MinimumPrijs,
                     Dagdatum = DateTime.UtcNow,
-                    
-                    // AANGEPAST: Gebruik de ID uit het token!
-                    LeverancierID = userId 
+                    LeverancierID = productDto.leverancierID // string
                 };
 
                 await _context.Product.AddAsync(product);
@@ -126,7 +108,74 @@ namespace TreeMarket_Klas4_Groep7.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { message = "Databasefout.", error = ex.Message });
+                return StatusCode(500, new { message = "Databasefout: Product kan niet aangemaakt worden.", error = ex.Message });
+            }
+        }
+
+        // Upload product via form
+        [HttpPost("upload")]
+        public async Task<IActionResult> UploadProduct([FromForm] CreateProductDto dto)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            string? imagePath = null;
+
+            if (dto.Image != null)
+            {
+                var fileName = Guid.NewGuid() + Path.GetExtension(dto.Image.FileName);
+                var filePath = Path.Combine("wwwroot/images", fileName);
+
+                Directory.CreateDirectory(Path.GetDirectoryName(filePath)!);
+
+                using var stream = new FileStream(filePath, FileMode.Create);
+                await dto.Image.CopyToAsync(stream);
+
+                imagePath = "/images/" + fileName;
+            }
+
+            var product = new Product
+            {
+                Artikelkenmerken = dto.Variety ?? "",
+                Hoeveelheid = dto.Quantity,
+                MinimumPrijs = dto.MinPrice,
+                Foto = imagePath ?? "",
+                Dagdatum = DateTime.UtcNow,
+                LeverancierID = dto.LeverancierID // string
+            };
+
+            _context.Product.Add(product);
+            await _context.SaveChangesAsync();
+
+            return Ok(product);
+        }
+
+        // Haal alle pending kavels op
+        [HttpGet("pending")]
+        public async Task<IActionResult> GetPendingProducts()
+        {
+            try
+            {
+                var pending = await _context.Product
+                    .Where(p => !_context.Veiling.Any(v => v.ProductID == p.ProductId))
+                    .Select(p => new
+                    {
+                        code = p.ProductId,
+                        name = p.Artikelkenmerken,
+                        description = "",
+                        lots = p.Hoeveelheid,
+                        image = p.Foto,
+                        status = "pending",
+                        productID = p.ProductId,
+                        minPrice = p.MinimumPrijs
+                    })
+                    .ToListAsync();
+
+                return Ok(pending);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Kan pending kavels niet ophalen.", error = ex.Message });
             }
         }
     }
