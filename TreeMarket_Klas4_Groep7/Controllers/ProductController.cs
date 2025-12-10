@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization; // <--- NODIG VOOR BEVEILIGING
+﻿using backend.Models.DTO;
+using Microsoft.AspNetCore.Authorization; // <--- NODIG VOOR BEVEILIGING
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
@@ -128,6 +129,48 @@ namespace TreeMarket_Klas4_Groep7.Controllers
             {
                 return StatusCode(500, new { message = "Databasefout.", error = ex.Message });
             }
+        }
+
+        [HttpPost("Upload")]
+        [Authorize(Roles = "Leverancier")]
+        public async Task<IActionResult> Upload([FromForm] ProductUploadDto dto)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (userId == null)
+                return Unauthorized("Geen geldige login.");
+
+            // === FOTO OPSLAAN ===
+            string fotoPad = null;
+
+            if (dto.Image != null)
+            {
+                var fileName = $"{Guid.NewGuid()}_{dto.Image.FileName}";
+                var filePath = Path.Combine("wwwroot/images", fileName);
+
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await dto.Image.CopyToAsync(stream);
+                }
+
+                fotoPad = "/images/" + fileName;
+            }
+
+            // === PRODUCT MAKEN ===
+            var product = new Product
+            {
+                Foto = fotoPad,
+                Artikelkenmerken = dto.Title + (dto.Variety != null ? " - " + dto.Variety : ""),
+                Hoeveelheid = dto.Quantity,
+                MinimumPrijs = dto.MinPrice,
+                Dagdatum = DateTime.UtcNow,
+                LeverancierID = userId
+            };
+
+            await _context.Product.AddAsync(product);
+            await _context.SaveChangesAsync();
+
+            return Ok(product);
         }
     }
 }
