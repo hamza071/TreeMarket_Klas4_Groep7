@@ -12,5 +12,8 @@ namespace TreeMarket_Klas4_Groep7.Models.DTO
 
         [Required]
         public int ProductID { get; set; }
+
+        [Required]
+        public int TimerInSeconden { get; set; }
     }
 }

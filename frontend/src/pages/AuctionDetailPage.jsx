@@ -2,10 +2,9 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import '../assets/css/UploadAuctionPage.css';
 
-function AuctionDetailPage({ lots, updateLot }) {
+function AuctionDetailPage({ lots }) {
     const { code } = useParams();
     const navigate = useNavigate();
-
     const lot = lots.find(l => l.code === code);
 
     const [startPrice, setStartPrice] = useState('');
@@ -20,79 +19,69 @@ function AuctionDetailPage({ lots, updateLot }) {
 
     if (!lot) return null;
 
-    const handlePublish = () => {
-        if (!startPrice || !closingTime) return alert('Vul alle velden in!');
-        if (Number(startPrice) <= lot.minPrice) return alert('Beginprijs moet hoger zijn dan minimumprijs');
+    const handlePublish = async () => {
+        if (!startPrice || !closingTime)
+            return alert('Vul alle velden in!');
 
-        const closingTimestamp = Date.now() + Number(closingTime) * 1000;
-
-        const updatedLot = {
-            ...lot,
-            startPrice: Number(startPrice),
-            closingTime: Number(closingTime),
-            status: 'published',
-            closingTimestamp,
-            startTimestamp: Date.now(), // start van veiling nu
-            currentPrice: Number(startPrice), // beginprijs voor dashboard
+        const payload = {
+            ProductID: lot.id || lot.ProductId,
+            StartPrijs: Number(startPrice),
+            PrijsStap: 1,
+            TimerInSeconden: Number(closingTime)
         };
 
-        updateLot(updatedLot);
-        alert('Kavel gepubliceerd!');
-        navigate('/veiling');
+        const token = localStorage.getItem("token");
+        if (!token) return alert("Je bent niet ingelogd.");
+
+        try {
+            const response = await fetch(
+                "https://localhost:7054/api/Veiling/CreateVeiling",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${token}`
+                    },
+                    body: JSON.stringify(payload)
+                }
+            );
+
+            if (!response.ok) {
+                const text = await response.text();
+                return alert("Fout bij aanmaken veiling: " + text);
+            }
+
+            const data = await response.json();
+            console.log("Veiling aangemaakt:", data);
+            alert("Veiling succesvol aangemaakt!");
+            navigate('/veiling');
+
+        } catch (err) {
+            console.error("Error creating veiling:", err);
+            alert("Er ging iets mis: " + err.message);
+        }
     };
 
     return (
         <div className="upload-page">
             <header className="section-header">
                 <h1>Kavel publiceren (veilingmeester)</h1>
-                <p>
-                    Alle leveranciervelden zijn ingevuld door de leverancier. Vul hier de beginprijs en sluitingstijd in om te publiceren.
-                </p>
             </header>
 
             <form className="upload-form" onSubmit={e => e.preventDefault()}>
                 <fieldset className="form-grid">
-                    <legend className="sr-only">Kavelgegevens</legend>
-
                     <label className="form-field">
                         <span className="form-label">Productnaam</span>
-                        <input value={lot.name} disabled />
+                        <input value={lot.name || lot.Artikelkenmerken} disabled />
                     </label>
 
-                    <label className="form-field">
-                        <span className="form-label">Variëteit</span>
-                        <input value={lot.specs} disabled />
-                    </label>
-
-                    <label className="form-field">
-                        <span className="form-label">Aantal stuks</span>
-                        <input value={lot.lots} disabled />
-                    </label>
-
-                    <label className="form-field full-width">
-                        <span className="form-label">Omschrijving</span>
-                        <textarea value={lot.description} disabled rows="4" />
-                    </label>
-
-                    <label className="form-field full-width">
-                        <span className="form-label">Upload afbeelding</span>
-                        {lot.image && (
-                            <img
-                                src={lot.image}
-                                alt={lot.name}
-                                style={{ width: '100%', maxHeight: '200px', objectFit: 'cover' }}
-                            />
-                        )}
-                    </label>
-
-                    {/* Veilingmeester velden */}
                     <label className="form-field">
                         <span className="form-label">Beginprijs (€)</span>
                         <input
                             type="number"
                             value={startPrice}
                             onChange={e => setStartPrice(e.target.value)}
-                            placeholder={`> ${lot.minPrice}`}
+                            placeholder={`> ${lot.minPrice || lot.MinimumPrijs}`}
                         />
                     </label>
 

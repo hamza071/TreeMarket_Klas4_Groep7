@@ -1,11 +1,9 @@
 ﻿using backend.Interfaces;
-using Microsoft.AspNetCore.Authorization; // <--- NODIG VOOR BEVEILIGING
+using Microsoft.AspNetCore.Authorization; // Nodig voor beveiliging
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using System.Security.Claims; // <--- NODIG OM ID UIT TOKEN TE HALEN
-using TreeMarket_Klas4_Groep7.Data;
-using TreeMarket_Klas4_Groep7.Models;
+using System.Security.Claims; // Nodig om ID uit token te halen
 using TreeMarket_Klas4_Groep7.Models.DTO;
+using TreeMarket_Klas4_Groep7.Models;
 
 namespace TreeMarket_Klas4_Group7.Controllers
 {
@@ -19,9 +17,9 @@ namespace TreeMarket_Klas4_Group7.Controllers
         {
             _service = service;
         }
+
         // ================= GET (Openbaar) =================
 
-        // GET: api/veiling
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
@@ -36,14 +34,12 @@ namespace TreeMarket_Klas4_Group7.Controllers
             }
         }
 
-        // GET: api/veiling/5
         [HttpGet("{id}")]
         public async Task<IActionResult> Get(int id)
         {
             try
             {
                 var veiling = await _service.GetByIdAsync(id);
-
                 if (veiling == null)
                     return NotFound(new { message = $"Veiling met ID {id} niet gevonden." });
 
@@ -58,48 +54,48 @@ namespace TreeMarket_Klas4_Group7.Controllers
         // ================= CREATE (Alleen Veilingsmeester/Admin) =================
 
         [HttpPost("CreateVeiling")]
-        [Authorize(Roles = "Veilingsmeester, Admin")] // <--- BEVEILIGING
-        public async Task<IActionResult> Create(VeilingDto dto)
+        [Authorize] // Rol check voorlopig weggelaten voor dummy ID
+        public async Task<IActionResult> CreateVeiling(VeilingDto dto)
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
-
-            // 1. Haal de ID van de ingelogde gebruiker op uit het token
+            // 1. Haal ID van ingelogde gebruiker uit token
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var isAdmin = User.IsInRole("Admin");
+            var isVeilingmeester = User.IsInRole("Veilingsmeester");
 
-            if (userId == null) return Unauthorized("Je bent niet ingelogd.");
+            // 2. Dummy veilingmeester ID voor test/fallback
+            string veilingmeesterId = userId ?? (isAdmin ? "admin-01" : isVeilingmeester ? "veilingmeester-01" : null);
+
+            if (veilingmeesterId == null)
+                return Unauthorized("Je hebt geen toestemming om een veiling aan te maken.");
 
             try
             {
+                // 3. Maak de veiling aan
                 var veiling = new Veiling
                 {
+                    ProductID = dto.ProductID,
                     StartPrijs = dto.StartPrijs,
                     HuidigePrijs = dto.StartPrijs,
                     PrijsStap = dto.PrijsStap,
-                    // PrijsStrategie = dto.PrijsStrategie, // Voeg toe als je die in DTO hebt
-                    ProductID = dto.ProductID,
-
-                    // AANGEPAST: We gebruiken de ID uit het token, niet uit de DTO!
-                    VeilingsmeesterID = userId,
-
-                    Status = true,
-                    // TimerInSeconden = dto.TimerInSeconden // Voeg toe als je die in DTO hebt
+                    TimerInSeconden = dto.TimerInSeconden,
+                    VeilingsmeesterID = veilingmeesterId,
+                    Status = true
                 };
 
-                await _service.CreateVeilingAsync(dto, userId);
+                await _service.CreateVeilingAsync(dto, veilingmeesterId);
 
-                return Ok(veiling);
+                return Ok(new { message = "Veiling aangemaakt", veiling });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { message = "Databasefout: Veiling kon niet worden aangemaakt.", error = ex.Message });
+                return StatusCode(500, new { message = "Veiling kon niet worden aangemaakt.", error = ex.Message });
             }
         }
 
-        // ================= BIEDEN (Alleen Ingelogde Klanten) =================
+        // ================= BIEDEN =================
 
-        // POST: api/veiling/Bid
         [HttpPost("Bid")]
-        [Authorize] // <--- Iedereen met een account mag bieden
+        [Authorize]
         public async Task<IActionResult> PlaceBid(CreateBidDTO dto)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -117,9 +113,8 @@ namespace TreeMarket_Klas4_Group7.Controllers
             }
         }
 
-        // ================= UPDATE (Alleen Veilingsmeester/Admin) =================
+        // ================= UPDATE STATUS =================
 
-        // PUT: api/veiling/UpdateStatus/5
         [HttpPut("UpdateStatus/{id}")]
         [Authorize(Roles = "Veilingsmeester, Admin")]
         public async Task<IActionResult> UpdateStatus(int id, UpdateStatusDTO dto)
