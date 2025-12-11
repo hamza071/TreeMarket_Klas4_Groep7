@@ -2,10 +2,10 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
-using TreeMarket_Klas4_Groep7.Data;
+using backend.Data;
 using backend.Interfaces;
-using TreeMarket_Klas4_Groep7.Models;
-using TreeMarket_Klas4_Groep7.Services;
+using backend.Models;
+using backend.Services;
 //
 var builder = WebApplication.CreateBuilder(args);
 

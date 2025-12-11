@@ -4,10 +4,10 @@ using Microsoft.AspNetCore.Identity; // Nodig voor UserManager
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
-using TreeMarket_Klas4_Groep7.Data;
-using TreeMarket_Klas4_Groep7.Models;
+using backend.Data;
+using backend.Models;
 
-namespace TreeMarket_Klas4_Groep7.Controllers
+namespace backend.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]

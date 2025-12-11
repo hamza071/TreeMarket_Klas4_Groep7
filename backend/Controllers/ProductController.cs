@@ -3,12 +3,12 @@ using Microsoft.AspNetCore.Authorization; // <--- NODIG VOOR BEVEILIGING
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
-using TreeMarket_Klas4_Groep7.Data;
-using TreeMarket_Klas4_Groep7.Models;
-using TreeMarket_Klas4_Groep7.Models.DTO;
-using TreeMarket_Klas4_Groep7.Services;
+using backend.Data;
+using backend.Models;
+using backend.Models.DTO;
+using backend.Services;
 
-namespace TreeMarket_Klas4_Groep7.Controllers
+namespace backend.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]

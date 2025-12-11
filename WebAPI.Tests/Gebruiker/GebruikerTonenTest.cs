@@ -4,11 +4,11 @@
 //using Microsoft.Extensions.Configuration;
 //using Moq;
 //using System.Collections.Generic;
-//using TreeMarket_Klas4_Groep7.Controllers;
-//using TreeMarket_Klas4_Groep7.Data;
+//using backend.Controllers;
+//using backend.Data;
 //using backend.Interfaces;
-//using TreeMarket_Klas4_Groep7.Models;
-//using TreeMarket_Klas4_Groep7.Models.DTO;
+//using backend.Models;
+//using backend.Models.DTO;
 //using Xunit;
 
 //namespace WebAPI.Tests.TGebruiker

@@ -1,10 +1,10 @@
 ﻿using backend.Interfaces;
 using Microsoft.AspNetCore.Mvc;
-using TreeMarket_Klas4_Groep7.Services;
-using TreeMarket_Klas4_Groep7.Models;
-using TreeMarket_Klas4_Groep7.Services;
+using backend.Services;
+using backend.Models;
+using backend.Services;
 
-namespace TreeMarket_Klas4_Groep7.Controllers
+namespace backend.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]

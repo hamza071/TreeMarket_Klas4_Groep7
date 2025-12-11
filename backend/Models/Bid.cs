@@ -2,7 +2,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace TreeMarket_Klas4_Groep7.Models
+namespace backend.Models
 {
     public class Bid
     {

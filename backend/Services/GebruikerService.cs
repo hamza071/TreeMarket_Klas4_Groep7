@@ -1,10 +1,10 @@
 ﻿using backend.Interfaces;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using TreeMarket_Klas4_Groep7.Data;
-using TreeMarket_Klas4_Groep7.Models; // Zorg dat deze erbij staat voor 'Gebruiker'
+using backend.Data;
+using backend.Models; // Zorg dat deze erbij staat voor 'Gebruiker'
 
-namespace TreeMarket_Klas4_Groep7.Services
+namespace backend.Services
 {
     public class GebruikerService: IGebruikerController
     {

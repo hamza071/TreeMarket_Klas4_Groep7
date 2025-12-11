@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json.Serialization;
 
-namespace TreeMarket_Klas4_Groep7.Models
+namespace backend.Models
 {
     // 1. De Parent tabel erft van IdentityUser
     public class Gebruiker : IdentityUser

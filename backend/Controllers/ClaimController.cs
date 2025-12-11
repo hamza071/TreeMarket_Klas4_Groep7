@@ -1,16 +1,16 @@
 ﻿using backend.Interfaces;
-using TreeMarket_Klas4_Groep7.Services;
+using backend.Services;
 using Microsoft.AspNetCore.Authorization; // <--- BELANGRIJK
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
-using TreeMarket_Klas4_Groep7.Data;
-using TreeMarket_Klas4_Groep7.Models;
-using TreeMarket_Klas4_Groep7.Models.DTO;
-using Claim = TreeMarket_Klas4_Groep7.Models.Claim;
+using backend.Data;
+using backend.Models;
+using backend.Models.DTO;
+using Claim = backend.Models.Claim;
 
 
-namespace TreeMarket_Klas4_Groep7.Controllers
+namespace backend.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]

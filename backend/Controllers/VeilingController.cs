@@ -3,9 +3,9 @@
 //using Microsoft.AspNetCore.Mvc;
 //using Microsoft.EntityFrameworkCore;
 //using System.Security.Claims; // <--- NODIG OM ID UIT TOKEN TE HALEN
-//using TreeMarket_Klas4_Groep7.Data;
-//using TreeMarket_Klas4_Groep7.Models;
-//using TreeMarket_Klas4_Groep7.Models.DTO;
+//using backend.Data;
+//using backend.Models;
+//using backend.Models.DTO;
 
 //namespace TreeMarket_Klas4_Group7.Controllers
 //{

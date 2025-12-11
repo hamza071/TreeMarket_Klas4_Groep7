@@ -7,10 +7,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using TreeMarket_Klas4_Groep7.Controllers;
-using TreeMarket_Klas4_Groep7.Models;
-using TreeMarket_Klas4_Groep7.Models.DTO;
-using TreeMarket_Klas4_Groep7.Services;
+using backend.Controllers;
+using backend.Models;
+using backend.Models.DTO;
+using backend.Services;
 using security = System.Security.Claims;
 
 
