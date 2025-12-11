@@ -17,6 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\backend\backend.csproj" />
     <ProjectReference Include="..\TreeMarket_Klas4_Groep7\backend.csproj" />
   </ItemGroup>
 

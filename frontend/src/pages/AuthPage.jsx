@@ -163,7 +163,7 @@ function AuthPage() {
                 }
 
                 setServerSuccess("Succesvol ingelogd!");
-                navigate("/dashboard");
+                window.location.href = "/home";
 
             } catch (err) {
                 console.error(err);

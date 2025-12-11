@@ -31,7 +31,7 @@ namespace WebAPI.Tests.TProduct
 
             var controller = new ProductController(mockService.Object);
 
-            // --- MOCK DE GEBRUIKER (BELANGRIJK!) ---
+            // --- Mock aanmaken voor de leverancier ---
             var user = new security.ClaimsPrincipal(new security.ClaimsIdentity(new security.Claim[]
             {
                 new security.Claim(security.ClaimTypes.NameIdentifier, "leverancier-123")
