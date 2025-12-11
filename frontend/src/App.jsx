@@ -19,9 +19,7 @@ import IdUser from "./pages/CRUD/IdUser";
 import DeleteUser from "./pages/CRUD/DeleteUser";
 import Logout from "./pages/Logout";
 
-// ========================
-// Navigatie per rol
-// ========================
+
 
 // KLANT
 const NAVIGATION_ITEMS_KLANT = [
