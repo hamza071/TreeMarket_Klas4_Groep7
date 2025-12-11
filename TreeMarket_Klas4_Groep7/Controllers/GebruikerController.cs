@@ -41,7 +41,7 @@ namespace TreeMarket_Klas4_Groep7.Controllers
             // De wachtwoord wordt gehashed binnen de database
             try
             {
-                await _service.AddUserAsync(klant, dto.Wachtwoord, "Admin");
+                await _service.AddUserAsync(klant, dto.Wachtwoord, "Klant");
                 return Ok(new { message = "Klant succesvol geregistreerd!" });
             }
             // Als het mislukt (bijv. wachtwoord te zwak), stuur fouten terug
