@@ -7,6 +7,11 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <Content Include="Interfaces\.vs\Interfaces\v17\DocumentLayout.json" />
+      <Content Include="Interfaces\.vs\VSWorkspaceState.json" />
+    </ItemGroup>
+
+    <ItemGroup>
         <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.0" />
 
         <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.0" />
@@ -27,6 +32,13 @@
         <Folder Include="wwwroot\" />
         <Folder Include="wwwroot\" />
         <Folder Include="wwwroot\" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Include="Interfaces\.vs\Interfaces\CopilotIndices\17.14.1204.46620\CodeChunks.db" />
+      <None Include="Interfaces\.vs\Interfaces\CopilotIndices\17.14.1204.46620\SemanticSymbols.db" />
+      <None Include="Interfaces\.vs\Interfaces\FileContentIndex\43146d3a-3350-4b23-8de9-e74fbe3f4444.vsidx" />
+      <None Include="Interfaces\.vs\slnx.sqlite" />
     </ItemGroup>
 
 </Project>

@@ -53,7 +53,7 @@ namespace TreeMarket_Klas4_Groep7.Controllers
 
         // ================= CREATE / UPDATE =================
         [HttpPost("CreateProduct")]
-        [Authorize] // alleen ingelogde leveranciers mogen
+        [Authorize] // alleen ingelogde gebruikers mogen
         public async Task<IActionResult> PostProduct([FromForm] ProductUploadDto productDto)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -88,7 +88,12 @@ namespace TreeMarket_Klas4_Groep7.Controllers
                 var leverancier = await _context.Leverancier
                     .FirstOrDefaultAsync(l => l.Id == userId);
 
-                if (leverancier == null)
+                var isAdmin = User.IsInRole("Admin");
+
+                // -------------------- Dummy ID voor admin --------------------
+                string leverancierId = leverancier?.Id ?? (isAdmin ? "admin-01" : null);
+
+                if (leverancierId == null)
                 {
                     return BadRequest("Er bestaat geen Leverancier-profiel voor deze gebruiker.");
                 }
@@ -100,7 +105,7 @@ namespace TreeMarket_Klas4_Groep7.Controllers
                     Hoeveelheid = productDto.Quantity,
                     MinimumPrijs = productDto.MinPrice,
                     Dagdatum = DateTime.UtcNow,
-                    LeverancierID = leverancier.Id,
+                    LeverancierID = leverancierId,
                     Foto = fotoUrl
                 };
 
@@ -111,7 +116,6 @@ namespace TreeMarket_Klas4_Groep7.Controllers
             }
             catch (DbUpdateException dbEx)
             {
-                // database fouten (tracking of primary key issues)
                 return StatusCode(500, new { message = "Databasefout.", error = dbEx.InnerException?.Message ?? dbEx.Message });
             }
             catch (Exception ex)
