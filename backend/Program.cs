@@ -6,7 +6,6 @@ using backend.Data;
 using backend.Interfaces;
 using backend.Models;
 using backend.Services;
-//
 var builder = WebApplication.CreateBuilder(args);
 
 // 1. Database configuratie
