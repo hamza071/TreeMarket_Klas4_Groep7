@@ -36,6 +36,25 @@ namespace TreeMarket_Klas4_Groep7.Controllers
                 return StatusCode(500, new { message = "Databasefout.", error = ex.Message });
             }
         }
+        public async Task<List<ProductMetVeilingmeesterDto>> GetProductenVanVandaagAsync()
+        {
+            var today = DateTime.UtcNow.Date;
+
+            return await _context.Product
+                .Where(p => p.Dagdatum.Date == today)
+                .Select(p => new ProductMetVeilingmeesterDto
+                {
+                    ProductId = p.ProductId,                   // <- hier was het p.Id
+                    Name = p.Artikelkenmerken ?? "Geen naam",
+                    Description = "Omschrijving nog toevoegen",
+                    Lots = p.Hoeveelheid,
+                    MinimumPrijs = p.MinimumPrijs,
+                    Image = p.Foto,
+                    Status = "pending",
+                    LeverancierNaam = p.Leverancier != null ? p.Leverancier.Bedrijf : null
+                })
+                .ToListAsync();
+        }
 
         [HttpGet("leverancier")]
         public async Task<IActionResult> GetMetLeverancier()
