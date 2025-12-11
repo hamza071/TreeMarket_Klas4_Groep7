@@ -12,6 +12,7 @@ namespace backend.Data
     public class ApiContext : IdentityDbContext<Gebruiker>
     {
         public DbSet<Product> Product { get; set; }
+        public DbSet<Product> Products { get; set; }
         // DbSet<Gebruiker> hoeft eigenlijk niet meer (zit in IdentityDbContext als 'Users'), 
         // maar je mag hem laten staan als je oude code 'context.Gebruiker' gebruikt.
         public DbSet<Gebruiker> Gebruiker { get; set; }

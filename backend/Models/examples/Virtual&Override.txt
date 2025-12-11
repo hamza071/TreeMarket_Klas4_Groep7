@@ -1,0 +1,9 @@
+Wat betekent Virtual?
+
+Wanneer wordt virtual gebruikt?
+//In de parent klasse
+//Virtual geeft aan dat een property of methode in de subklasse zit en dat het overgeschreven kan worden.
+        //Virtual is nodig voor lazy loading.
+        //Zonder virtual kan je een property of methode niet overriden.
+        //Virual lijkt op overriding, maar virtual wordt gebruikt in de parent klasse, maar override in de child klasse
+        //Zonder virtual kun je geen override gebruiken.
