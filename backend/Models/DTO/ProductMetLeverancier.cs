@@ -1,4 +1,4 @@
-﻿namespace TreeMarket_Klas4_Groep7.Models.DTO
+﻿namespace backend.Models.DTO
 {
     // ✅ DTO voor Product + gekoppelde Leverancier
     // Ideaal voor lijstweergave of overzicht waarbij leverancier info nodig is

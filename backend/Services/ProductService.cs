@@ -1,6 +1,6 @@
-﻿using TreeMarket_Klas4_Groep7.Data;
-using TreeMarket_Klas4_Groep7.Models;
-using TreeMarket_Klas4_Groep7.Models.DTO;
+﻿using backend.Data;
+using backend.Models;
+using backend.Models.DTO;
 using Microsoft.EntityFrameworkCore;
 using backend.Interfaces;
 

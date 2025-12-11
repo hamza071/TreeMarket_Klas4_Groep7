@@ -1,4 +1,4 @@
-﻿namespace TreeMarket_Klas4_Groep7.Models.DTO
+﻿namespace backend.Models.DTO
 {
     // ✅ DTO = Data Transfer Object
     // Wordt gebruikt om alleen de noodzakelijke Product-data naar de frontend te sturen

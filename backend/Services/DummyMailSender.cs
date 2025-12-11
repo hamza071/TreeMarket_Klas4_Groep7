@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Identity;
-using TreeMarket_Klas4_Groep7.Models;
+using backend.Models;
 
-namespace TreeMarket_Klas4_Groep7.Services
+namespace backend.Services
 {
     public class DummyEmailSender : IEmailSender<Gebruiker>
     {

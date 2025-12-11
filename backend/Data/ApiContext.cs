@@ -3,10 +3,10 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore; // <--- NIEUW: Deze moet erbij!
 using System.Security.Cryptography;
-using TreeMarket_Klas4_Groep7.Models;
-using TreeMarket_Klas4_Groep7.Models.DTO;
+using backend.Models;
+using backend.Models.DTO;
 
-namespace TreeMarket_Klas4_Groep7.Data
+namespace backend.Data
 {
     // AANGEPAST: Erft nu van IdentityDbContext<Gebruiker> in plaats van DbContext
     public class ApiContext : IdentityDbContext<Gebruiker>
