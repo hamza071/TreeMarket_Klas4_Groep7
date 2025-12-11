@@ -36,7 +36,7 @@ namespace TreeMarket_Klas4_Groep7.Controllers
                 return StatusCode(500, new { message = "Databasefout.", error = ex.Message });
             }
         }
-        public async Task<List<ProductMetVeilingmeesterDto>> GetProductenVanVandaagAsync()
+        private async Task<List<ProductMetVeilingmeesterDto>> GetProductenVanVandaagAsync()
         {
             var today = DateTime.UtcNow.Date;
 

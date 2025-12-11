@@ -3,34 +3,32 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using TreeMarket_Klas4_Groep7.Data;
-using backend.Interfaces;
 using TreeMarket_Klas4_Groep7.Models;
 using TreeMarket_Klas4_Groep7.Services;
-//
+
 var builder = WebApplication.CreateBuilder(args);
 
+// ==========================
 // 1. Database configuratie
-// Zorg dat je connection string in appsettings.json klopt!
-var connectionString = builder.Configuration.GetConnectionString("LocalExpress") 
+// ==========================
+var connectionString = builder.Configuration.GetConnectionString("LocalExpress")
     ?? throw new InvalidOperationException("Connection string not found.");
 
 builder.Services.AddDbContext<ApiContext>(options =>
     options.UseSqlServer(connectionString));
 
-// ============================================================
-// 2. IDENTITY CONFIGURATIE (Volgens de Slides)
-// ============================================================
-
-// Slide 3: AddIdentity vervangt je handmatige configuratie
+// ==========================
+// 2. Identity configuratie
+// ==========================
 builder.Services.AddIdentity<Gebruiker, IdentityRole>()
     .AddEntityFrameworkStores<ApiContext>()
     .AddDefaultTokenProviders();
 
-// Slide 5: Extra services toevoegen
+// Extra services
 builder.Services.AddScoped<RoleManager<IdentityRole>>();
 builder.Services.AddTransient<IEmailSender<Gebruiker>, DummyEmailSender>();
 
-// Slide 11: Authenticatie instellen op Bearer Token
+// Authenticatie instellen op Bearer Token
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = IdentityConstants.BearerScheme;
@@ -41,20 +39,28 @@ builder.Services.AddAuthentication(options =>
     options.BearerTokenExpiration = TimeSpan.FromMinutes(60.0);
 });
 
-// Authorization aanzetten
 builder.Services.AddAuthorization();
 
-// ============================================================
+// ==========================
+// 3. Controllers en services
+// ==========================
+builder.Services.AddScoped<IProductController, ProductService>();
+builder.Services.AddScoped<IGebruikerController, GebruikerService>();
+builder.Services.AddScoped<IVeilingController, VeilingService>();
+builder.Services.AddScoped<ILeverancierController, LeverancierService>();
+builder.Services.AddScoped<IClaimController, ClaimService>();
+builder.Services.AddScoped<IDashboardController, DashboardService>();
 
-// Services toevoegen
-builder.Services.AddControllersWithViews();
+builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
-// Swagger instellen (Slide 11)
+// ==========================
+// 4. Swagger configuratie
+// ==========================
 builder.Services.AddSwaggerGen(options =>
 {
     options.SwaggerDoc("v1", new OpenApiInfo { Title = "TreeMarket API", Version = "v1" });
-    
+
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Name = "Authorization",
@@ -63,7 +69,7 @@ builder.Services.AddSwaggerGen(options =>
         Type = SecuritySchemeType.Http,
         Scheme = "Bearer"
     });
-    
+
     options.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
         {
@@ -76,16 +82,9 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
-// ============== De Controller klasses maakt gebruik van een interface :)==============
-// Je eigen services
-builder.Services.AddScoped<IProductController, ProductService>();
-builder.Services.AddScoped<IGebruikerController, GebruikerService>();
-builder.Services.AddScoped<IVeilingController, VeilingService>();
-builder.Services.AddScoped<ILeverancierController, LeverancierService>();
-builder.Services.AddScoped<IClaimController, ClaimService>();
-builder.Services.AddScoped<IDashboardController, DashboardService>();
-
-// CORS beleid
+// ==========================
+// 5. CORS beleid
+// ==========================
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
@@ -98,17 +97,15 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// ============================================================
-// 3. SEEDING: Admin en Rollen aanmaken bij opstarten
-// (Slide 6 & 8)
-// ============================================================
+// ==========================
+// 6. Database seeding
+// ==========================
 using (var scope = app.Services.CreateScope())
 {
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
     var userManager = scope.ServiceProvider.GetRequiredService<UserManager<Gebruiker>>();
 
-    // Rollen aanmaken
-    string[] roles = ["Admin", "Klant", "Leverancier", "Veilingsmeester"];
+    string[] roles = { "Admin", "Klant", "Leverancier", "Veilingsmeester" };
     foreach (var role in roles)
     {
         if (!await roleManager.RoleExistsAsync(role))
@@ -117,7 +114,6 @@ using (var scope = app.Services.CreateScope())
         }
     }
 
-    // Admin aanmaken
     var adminEmail = "admin@treemarket.nl";
     if (await userManager.FindByEmailAsync(adminEmail) == null)
     {
@@ -128,18 +124,18 @@ using (var scope = app.Services.CreateScope())
             EmailConfirmed = true,
             Naam = "Super Admin"
         };
-        
-        // Identity hasht het wachtwoord automatisch
+
         var result = await userManager.CreateAsync(user, "AppelKruimel1234!");
-        
         if (result.Succeeded)
         {
             await userManager.AddToRoleAsync(user, "Admin");
         }
     }
 }
-// ============================================================
 
+// ==========================
+// 7. Middleware pipeline
+// ==========================
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -149,12 +145,13 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseCors("AllowAll");
 
-// ZET DEZE AAN: Dit maakt de /login en /register endpoints
-app.MapIdentityApi<Gebruiker>();
-
 app.UseAuthentication();
 app.UseAuthorization();
 
+// Identity endpoints (login, register, etc.)
+app.MapIdentityApi<Gebruiker>();
+
+// Controllers
 app.MapControllers();
 
 app.Run();
