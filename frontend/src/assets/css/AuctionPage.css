@@ -1,0 +1,86 @@
+.auction-page {
+    padding: 2rem;
+    font-family: sans-serif;
+}
+
+    .auction-page h1 {
+        margin-bottom: 1.5rem;
+        font-size: 2rem;
+        color: #234d20;
+    }
+
+.auction-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 1.5rem;
+}
+
+.auction-card {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    padding: 1rem;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+    .auction-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    .auction-card h2 {
+        font-size: 1.2rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .auction-card p {
+        font-size: 0.95rem;
+        color: #4f6059;
+        margin-bottom: 0.3rem;
+    }
+
+.lot-detail {
+    margin-top: 2rem;
+    background: #f9f9f9;
+    padding: 1.5rem;
+    border-radius: 12px;
+    max-width: 500px;
+}
+
+    .lot-detail img {
+        width: 100%;
+        height: auto;
+        margin-bottom: 1rem;
+        border-radius: 8px;
+    }
+
+    .lot-detail label {
+        display: block;
+        margin-bottom: 1rem;
+        font-weight: 500;
+    }
+
+    .lot-detail input {
+        width: 100%;
+        padding: 0.5rem;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+        margin-top: 0.3rem;
+    }
+
+    .lot-detail button {
+        margin-right: 0.5rem;
+        padding: 0.6rem 1.2rem;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        background: #234d20;
+        color: white;
+        font-weight: 600;
+    }
+
+        .lot-detail button:last-child {
+            background: #ccc;
+            color: #333;
+        }
