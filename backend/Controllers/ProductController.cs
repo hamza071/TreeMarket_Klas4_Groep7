@@ -6,7 +6,6 @@ using System.Security.Claims;
 using TreeMarket_Klas4_Groep7.Data;
 using TreeMarket_Klas4_Groep7.Models;
 using TreeMarket_Klas4_Groep7.Models.DTO;
-using TreeMarket_Klas4_Groep7.Services;
 
 namespace TreeMarket_Klas4_Groep7.Controllers
 {
@@ -14,21 +13,37 @@ namespace TreeMarket_Klas4_Groep7.Controllers
     [ApiController]
     public class ProductController : ControllerBase
     {
-        private readonly IProductController _service;
-        private readonly ApiContext _context; // ✅ Voeg context toe
+        private readonly ApiContext _context;
 
-        public ProductController(IProductController service, ApiContext context)
+        public ProductController(ApiContext context)
         {
-            _service = service;
             _context = context;
         }
 
+        // GET: api/Product/vandaag
         [HttpGet("vandaag")]
         public async Task<IActionResult> GetVandaag()
         {
             try
             {
-                var producten = await _service.GetProductenVanVandaagAsync();
+                var today = DateTime.UtcNow.Date;
+
+                var producten = await _context.Product
+                    .Where(p => p.Dagdatum.Date == today)
+                    .Select(p => new ProductMetVeilingmeesterDto
+                    {
+                        ProductId = p.ProductId,
+                        Naam = p.ProductNaam,
+                        Varieteit = p.Varieteit,
+                        Omschrijving = p.Omschrijving,
+                        Hoeveelheid = p.Hoeveelheid,
+                        MinimumPrijs = p.MinimumPrijs,
+                        Foto = p.Foto,
+                        Status = "pending",
+                        LeverancierNaam = p.Leverancier != null ? p.Leverancier.Bedrijf : null
+                    })
+                    .ToListAsync();
+
                 return Ok(producten);
             }
             catch (Exception ex)
@@ -36,32 +51,29 @@ namespace TreeMarket_Klas4_Groep7.Controllers
                 return StatusCode(500, new { message = "Databasefout.", error = ex.Message });
             }
         }
-        private async Task<List<ProductMetVeilingmeesterDto>> GetProductenVanVandaagAsync()
-        {
-            var today = DateTime.UtcNow.Date;
 
-            return await _context.Product
-                .Where(p => p.Dagdatum.Date == today)
-                .Select(p => new ProductMetVeilingmeesterDto
-                {
-                    ProductId = p.ProductId,                   // <- hier was het p.Id
-                    Name = p.Artikelkenmerken ?? "Geen naam",
-                    Description = "Omschrijving nog toevoegen",
-                    Lots = p.Hoeveelheid,
-                    MinimumPrijs = p.MinimumPrijs,
-                    Image = p.Foto,
-                    Status = "pending",
-                    LeverancierNaam = p.Leverancier != null ? p.Leverancier.Bedrijf : null
-                })
-                .ToListAsync();
-        }
-
+        // GET: api/Product/leverancier
         [HttpGet("leverancier")]
         public async Task<IActionResult> GetMetLeverancier()
         {
             try
             {
-                var producten = await _service.GetProductenMetLeverancierAsync();
+                var producten = await _context.Product
+                    .Include(p => p.Leverancier)
+                    .Select(p => new ProductMetVeilingmeesterDto
+                    {
+                        ProductId = p.ProductId,
+                        Naam = p.ProductNaam,
+                        Varieteit = p.Varieteit,
+                        Omschrijving = p.Omschrijving,
+                        Hoeveelheid = p.Hoeveelheid,
+                        MinimumPrijs = p.MinimumPrijs,
+                        Foto = p.Foto,
+                        Status = "pending",
+                        LeverancierNaam = p.Leverancier != null ? p.Leverancier.Bedrijf : null
+                    })
+                    .ToListAsync();
+
                 return Ok(producten);
             }
             catch (Exception ex)
@@ -70,59 +82,56 @@ namespace TreeMarket_Klas4_Groep7.Controllers
             }
         }
 
-        // ================= CREATE / UPDATE =================
+        // POST: api/Product/CreateProduct
         [HttpPost("CreateProduct")]
-        [Authorize] // alleen ingelogde gebruikers mogen
+        [Authorize]
         public async Task<IActionResult> PostProduct([FromForm] ProductUploadDto productDto)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (userId == null) return Unauthorized("Je bent niet ingelogd.");
+            if (userId == null)
+                return Unauthorized("Je bent niet ingelogd.");
 
             try
             {
-                // -------------------- Image Upload --------------------
+                // Foto uploaden
                 string fotoUrl;
-                if (productDto.Image != null)
+                if (productDto.Foto != null)
                 {
                     var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images");
                     if (!Directory.Exists(uploadsFolder))
                         Directory.CreateDirectory(uploadsFolder);
 
-                    var uniqueFileName = Guid.NewGuid() + Path.GetExtension(productDto.Image.FileName);
+                    var uniqueFileName = Guid.NewGuid() + Path.GetExtension(productDto.Foto.FileName);
                     var filePath = Path.Combine(uploadsFolder, uniqueFileName);
 
                     using (var stream = new FileStream(filePath, FileMode.Create))
                     {
-                        await productDto.Image.CopyToAsync(stream);
+                        await productDto.Foto.CopyToAsync(stream);
                     }
 
                     fotoUrl = "/images/" + uniqueFileName;
                 }
                 else
                 {
-                    fotoUrl = "/images/default.png"; // default afbeelding
+                    fotoUrl = "/images/default.png";
                 }
 
-                // -------------------- Leverancier ophalen --------------------
-                var leverancier = await _context.Leverancier
-                    .FirstOrDefaultAsync(l => l.Id == userId);
-
+                // Leverancier ophalen
+                var leverancier = await _context.Leverancier.FirstOrDefaultAsync(l => l.Id == userId);
                 var isAdmin = User.IsInRole("Admin");
-
-                // -------------------- Dummy ID voor admin --------------------
                 string leverancierId = leverancier?.Id ?? (isAdmin ? "admin-01" : null);
 
                 if (leverancierId == null)
-                {
                     return BadRequest("Er bestaat geen Leverancier-profiel voor deze gebruiker.");
-                }
 
-                // -------------------- Product aanmaken --------------------
+                // Product aanmaken
                 var product = new Product
                 {
-                    Artikelkenmerken = productDto.Variety ?? "",
-                    Hoeveelheid = productDto.Quantity,
-                    MinimumPrijs = productDto.MinPrice,
+                    ProductNaam = productDto.ProductNaam ?? "",
+                    Varieteit = productDto.Varieteit ?? "",
+                    Omschrijving = productDto.Omschrijving ?? "",
+                    Hoeveelheid = productDto.Hoeveelheid,
+                    MinimumPrijs = productDto.MinimumPrijs,
                     Dagdatum = DateTime.UtcNow,
                     LeverancierID = leverancierId,
                     Foto = fotoUrl
@@ -131,7 +140,25 @@ namespace TreeMarket_Klas4_Groep7.Controllers
                 _context.Product.Add(product);
                 await _context.SaveChangesAsync();
 
-                return Ok(product);
+                // Return correct DTO voor frontend
+                var productDtoResponse = new ProductMetVeilingmeesterDto
+                {
+                    ProductId = product.ProductId,
+                    Naam = product.ProductNaam,
+                    Varieteit = product.Varieteit,
+                    Omschrijving = product.Omschrijving,
+                    Hoeveelheid = product.Hoeveelheid,
+                    MinimumPrijs = product.MinimumPrijs,
+                    Foto = product.Foto,
+                    Status = "pending",
+                    LeverancierNaam = leverancier?.Bedrijf ?? (isAdmin ? "Admin" : null)
+                };
+
+                return Ok(new
+                {
+                    message = "Product succesvol aangemaakt!",
+                    product = productDtoResponse
+                });
             }
             catch (DbUpdateException dbEx)
             {

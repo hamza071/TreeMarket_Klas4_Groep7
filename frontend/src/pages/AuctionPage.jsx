@@ -22,10 +22,7 @@ function AuctionPage() {
                 }
 
                 const data = await response.json();
-
-                // Zorg dat het altijd een array is
                 const list = Array.isArray(data) ? data : [data];
-
                 setLots(list);
             } catch (err) {
                 console.error("Error fetching lots:", err);
@@ -38,11 +35,9 @@ function AuctionPage() {
         fetchLots();
     }, []);
 
-    // ------------- RENDER STATES -------------
     if (loading) return <p>Kavels worden geladen…</p>;
     if (error) return <p style={{ color: "red" }}>{error}</p>;
 
-    // Filter op pending kavels
     const pendingLots = lots.filter(
         (lot) => lot.status?.toLowerCase() === "pending" || !lot.status
     );
@@ -51,10 +46,9 @@ function AuctionPage() {
         return <p>Geen kavels beschikbaar om te publiceren.</p>;
     }
 
-    // ------------- VEILING AANMAKEN -------------
     const createVeiling = async (lot) => {
         const payload = {
-            startPrijs: (lot.minimumPrijs || lot.MinimumPrijs || 0) + 1,
+            startPrijs: (lot.minimumPrijs || 0) + 1,
             prijsStap: 1,
             productID: lot.productId,
             veilingsmeesterID: 1, // dummy ID, geen auth
@@ -81,10 +75,7 @@ function AuctionPage() {
                 return alert("Kon veiling niet aanmaken.");
             }
 
-            // Succes → toevoegen aan actieve veilingen
             setVeilingen((prev) => [...prev, data]);
-
-            // Verwijder lot uit pending lijst
             setLots((prev) =>
                 prev.filter((l) => l.productId !== lot.productId)
             );
@@ -94,36 +85,36 @@ function AuctionPage() {
         }
     };
 
-    // ------------- RENDER UI -------------
     return (
         <div className="auction-page">
             <header className="section-header">
                 <h1>Te publiceren kavels</h1>
-                <p>
-                    Bekijk de kavels die door leveranciers zijn toegevoegd.
-                </p>
+                <p>Bekijk de kavels die door leveranciers zijn toegevoegd.</p>
             </header>
 
             <div className="auction-grid">
                 {pendingLots.map((lot) => (
                     <article key={lot.productId} className="auction-card">
-                        <h2>{lot.name || lot.artikelkenmerken || "Geen naam"}</h2>
-                        <p>{lot.description || "Geen beschrijving beschikbaar."}</p>
-                        <span>{lot.lots || lot.hoeveelheid || 0} stuks</span>
+                        <h2>{lot.naam || "Geen naam"}</h2>
+                        <p>{lot.omschrijving || "Geen beschrijving beschikbaar."}</p>
+                        <p>{lot.hoeveelheid || 0} stuks</p>
+                        {lot.varieteit && <p>Variëteit: {lot.varieteit}</p>}
 
-                        {lot.image && (
+                        {lot.foto && (
                             <img
                                 src={
-                                    lot.image.startsWith("http")
-                                        ? lot.image
-                                        : `https://localhost:7054${lot.image}`
+                                    lot.foto.startsWith("http")
+                                        ? lot.foto
+                                        : `https://localhost:7054${lot.foto}`
                                 }
-                                alt={lot.name || "Productfoto"}
+                                alt={lot.naam || "Productfoto"}
                                 className="auction-card-image"
                             />
                         )}
 
-                        <p>{lot.leverancierNaam ? `Leverancier: ${lot.leverancierNaam}` : ""}</p>
+                        {lot.leverancierNaam && (
+                            <p>Leverancier: {lot.leverancierNaam}</p>
+                        )}
 
                         <button
                             className="primary-action"

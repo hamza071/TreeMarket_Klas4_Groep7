@@ -1,15 +1,21 @@
-﻿using Microsoft.AspNetCore.Http; // Nodig voor IFormFile
-
-namespace TreeMarket_Klas4_Groep7.Models.DTO
+﻿namespace TreeMarket_Klas4_Groep7.Models.DTO
 {
     public class ProductDto
     {
         public int ProductId { get; set; }
-        public string Foto { get; set; } // <-- dit is cruciaal voor file upload
-        public string artikelkenmerken { get; set; }
+
+        public string Foto { get; set; }
+
+        public string Naam { get; set; }           // Productnaam
+        public string Varieteit { get; set; }      // Type/variëteit
+        public string Omschrijving { get; set; }   // Beschrijving
+
         public int Hoeveelheid { get; set; }
         public decimal MinimumPrijs { get; set; }
-        public DateTime dagdatum { get; set; } = DateTime.Now;
-        public string leverancierID { get; set; }
+
+        public DateTime Dagdatum { get; set; } = DateTime.Now;
+
+        // Wordt automatisch gevuld door backend
+        public string LeverancierID { get; set; }
     }
 }

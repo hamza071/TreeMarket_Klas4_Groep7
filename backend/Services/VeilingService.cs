@@ -55,8 +55,7 @@ namespace TreeMarket_Klas4_Groep7.Services
                 ProductID = product.ProductId,
                 StartPrijs = dto.StartPrijs,
                 HuidigePrijs = dto.StartPrijs,
-                // Tip: Je DTO heeft ook 'PrijsStap', dus die kun je hier gebruiken in plaats van hardcoded '1'
-                PrijsStap = dto.PrijsStap, 
+                TimerInSeconden = dto.TimerInSeconden, 
                 VeilingsmeesterID = userId,
                 Status = true
             };
