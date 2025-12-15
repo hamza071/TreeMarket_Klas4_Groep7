@@ -42,7 +42,7 @@ const NAVIGATION_ITEMS_LEVERANCIER = [
 const NAVIGATION_ITEMS_VEILINGSMEESTER = [
     { id: "home", label: "Home" },
     { id: "about", label: "About" },
-    { id: "upload", label: "Upload Veiling" },
+    { id: "veiling", label: "Veiling" },
     { id: "dashboard", label: "Dashboard" },
 ];
 
