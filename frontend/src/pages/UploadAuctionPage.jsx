@@ -1,152 +1,143 @@
-﻿import { useState } from 'react';
+﻿import { useState, useEffect } from 'react';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import '../assets/css/UploadAuctionPage.css';
 
-const defaultForm = {
-    title: '',
-    variety: '',
-    quantity: '',
-    description: '',
-    image: null,
-    minPrice: '',
-};
+function AuctionDetailPage() {
+    const { code } = useParams(); // productId
+    const navigate = useNavigate();
+    const location = useLocation();
+    const [lot, setLot] = useState(location.state?.lot || null);
+    const [closingTime, setClosingTime] = useState(3600); // default 1 uur
+    const [loading, setLoading] = useState(!lot);
 
-function UploadAuctionPage() {
-    const [form, setForm] = useState(defaultForm);
+    useEffect(() => {
+        // Als lot nog niet via state is meegegeven, ophalen via API
+        const fetchLot = async () => {
+            if (!lot) {
+                try {
+                    const response = await fetch(`https://localhost:7054/api/Product/${code}`);
+                    if (!response.ok) throw new Error('Kavel niet gevonden');
+                    const data = await response.json();
+                    setLot(data);
+                } catch (err) {
+                    alert(err.message);
+                    navigate('/veiling');
+                } finally {
+                    setLoading(false);
+                }
+            }
+        };
+        fetchLot();
+    }, [lot, code, navigate]);
 
-    const handleChange = (e) => {
-        const { name, value, files } = e.target;
-        if (name === 'image') {
-            setForm(prev => ({ ...prev, image: files[0] }));
-        } else {
-            setForm(prev => ({ ...prev, [name]: value }));
+    if (loading) return <p>Kavel wordt geladen…</p>;
+    if (!lot) return null;
+
+    // Beginprijs automatisch = MinimumPrijs + 1
+    const startPrice = lot.minimumPrijs + 1;
+
+    const handlePublish = async () => {
+        if (!closingTime || closingTime <= 0) {
+            return alert('Vul een geldige sluitingstijd in.');
         }
-    };
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
+        const token = localStorage.getItem('token');
+        if (!token) return alert('Je bent niet ingelogd.');
 
-        // Frontend-validatie
-        if (!form.title.trim()) return alert("Productnaam is verplicht.");
-        if (!form.quantity || Number(form.quantity) < 1) return alert("Aantal moet minimaal 1 zijn.");
-        if (!form.minPrice || Number(form.minPrice) <= 0) return alert("Minimumprijs moet groter dan 0 zijn.");
-
-        const formData = new FormData();
-        formData.append("ProductNaam", form.title.trim());
-        formData.append("Varieteit", form.variety?.trim() ?? "");
-        formData.append("Omschrijving", form.description?.trim() ?? "");
-        formData.append("Hoeveelheid", Number(form.quantity));
-        formData.append("MinimumPrijs", parseFloat(form.minPrice));
-        if (form.image) formData.append("Foto", form.image);
+        const payload = {
+            productID: lot.productId,
+            startPrijs: startPrice,
+            timerInSeconden: Number(closingTime)
+        };
 
         try {
-            const token = localStorage.getItem("token");
-            if (!token) return alert("Je bent niet ingelogd.");
-
-            const response = await fetch("https://localhost:7054/api/Product/CreateProduct", {
-                method: "POST",
+            const response = await fetch('https://localhost:7054/api/Veiling/CreateVeiling', {
+                method: 'POST',
                 headers: {
-                    "Authorization": `Bearer ${token}`
-                    // Content-Type **niet** instellen bij FormData
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`
                 },
-                body: formData
+                body: JSON.stringify(payload)
             });
 
-            const text = await response.text();
-            console.log("Server response:", text);
+            if (!response.ok) {
+                const text = await response.text();
+                return alert('Fout bij aanmaken veiling: ' + text);
+            }
 
-            if (!response.ok) return alert("Fout vanuit server: " + text);
-
-            alert("Kavel is succesvol geüpload!");
-            setForm(defaultForm);
-
-        } catch (error) {
-            console.error("Fout bij upload:", error);
-            alert("Er ging iets mis: " + error.message);
+            const data = await response.json();
+            console.log('Veiling aangemaakt:', data);
+            alert('Veiling succesvol aangemaakt!');
+            navigate('/veiling');
+        } catch (err) {
+            console.error('Error creating veiling:', err);
+            alert('Er ging iets mis: ' + err.message);
         }
     };
 
     return (
         <div className="upload-page">
             <header className="section-header">
-                <h1>Upload nieuwe veiling (leverancier)</h1>
-                <p id="upload-intro">
-                    Voer je kavelgegevens in. Minimumprijs wordt door jou ingesteld.
-                </p>
+                <h1>Kavel publiceren (veilingmeester)</h1>
             </header>
 
-            <form className="upload-form" aria-describedby="upload-intro" onSubmit={handleSubmit}>
+            <form className="upload-form" onSubmit={e => e.preventDefault()}>
                 <fieldset className="form-grid">
-                    <legend className="sr-only">Kavelgegevens</legend>
-
                     <label className="form-field">
                         <span className="form-label">Productnaam</span>
-                        <input
-                            name="title"
-                            value={form.title}
-                            onChange={handleChange}
-                            required
-                            placeholder="Bijv. Dahlia Summer"
-                        />
+                        <input value={lot.naam} disabled />
                     </label>
 
                     <label className="form-field">
                         <span className="form-label">Variëteit</span>
-                        <input
-                            name="variety"
-                            value={form.variety}
-                            onChange={handleChange}
-                            placeholder="Kleur of soort"
-                        />
+                        <input value={lot.varieteit || '-'} disabled />
                     </label>
 
                     <label className="form-field">
                         <span className="form-label">Aantal stuks</span>
-                        <input
-                            type="number"
-                            name="quantity"
-                            value={form.quantity}
-                            onChange={handleChange}
-                            min="1"
-                            required
-                        />
+                        <input value={lot.hoeveelheid} disabled />
                     </label>
 
-                    <label className="form-field full-width">
+                    <label className="form-field">
                         <span className="form-label">Omschrijving</span>
-                        <textarea
-                            name="description"
-                            value={form.description}
-                            onChange={handleChange}
-                            rows="4"
-                        />
+                        <textarea value={lot.omschrijving || '-'} disabled rows={3} />
                     </label>
 
-                    <label className="form-field full-width">
-                        <span className="form-label">Minimumprijs (€)</span>
+                    <label className="form-field">
+                        <span className="form-label">Beginprijs (€)</span>
+                        <input value={startPrice} disabled />
+                    </label>
+
+                    <label className="form-field">
+                        <span className="form-label">Sluitingstijd (seconden)</span>
                         <input
                             type="number"
-                            name="minPrice"
-                            value={form.minPrice}
-                            onChange={handleChange}
-                            min="0.01"
-                            step="0.01"
-                            required
+                            value={closingTime}
+                            onChange={e => setClosingTime(e.target.value)}
+                            min="1"
                         />
                     </label>
 
-                    <label className="form-field full-width">
-                        <span className="form-label">Upload afbeelding</span>
-                        <input type="file" name="image" accept="image/*" onChange={handleChange} />
-                    </label>
+                    {lot.foto && (
+                        <img
+                            src={lot.foto.startsWith('http') ? lot.foto : `https://localhost:7054${lot.foto}`}
+                            alt={lot.naam}
+                            className="auction-card-image"
+                        />
+                    )}
                 </fieldset>
 
                 <div className="form-actions">
-                    <button type="button" className="link-button">Opslaan als concept</button>
-                    <button type="submit" className="primary-action">Kavel toevoegen</button>
+                    <button type="button" className="primary-action" onClick={handlePublish}>
+                        Publiceer kavel
+                    </button>
+                    <button type="button" className="link-button" onClick={() => navigate('/veiling')}>
+                        Annuleer
+                    </button>
                 </div>
             </form>
         </div>
     );
 }
 
-export default UploadAuctionPage;
+export default AuctionDetailPage;
