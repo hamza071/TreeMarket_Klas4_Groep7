@@ -102,11 +102,7 @@ function AuctionPage() {
 
                         {lot.foto && (
                             <img
-                                src={
-                                    lot.foto.startsWith("http")
-                                        ? lot.foto
-                                        : `https://localhost:7054${lot.foto}`
-                                }
+                                src={lot.foto ? `https://localhost:7054${lot.foto}` : "/images/default.png"}
                                 alt={lot.naam || "Productfoto"}
                                 className="auction-card-image"
                             />
