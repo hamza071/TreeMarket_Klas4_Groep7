@@ -36,8 +36,15 @@ public class Veiling
     public int ProductID { get; set; }
     public Product Product { get; set; }
 
-    [Required]
-    [ForeignKey(nameof(Veilingsmeester))]
-    public string VeilingsmeesterID { get; set; }
-    public Veilingsmeester Veilingsmeester { get; set; }
+    //    [Required]
+    //    [ForeignKey(nameof(Veilingsmeester))]
+    //    public string VeilingsmeesterID { get; set; }
+    //    public Veilingsmeester Veilingsmeester { get; set; }
+    //
+
+    // TEMPORARY: later echte veilingmeester-relatie
+    public string? VeilingsmeesterID { get; set; }
+
+    // public Veilingsmeester Veilingsmeester { get; set; }
+
 }

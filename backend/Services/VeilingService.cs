@@ -10,6 +10,7 @@ using Microsoft.EntityFrameworkCore;
 namespace TreeMarket_Klas4_Groep7.Services
 {
     public class VeilingService : IVeilingController
+
     {
         private readonly ApiContext _context;
 
@@ -41,13 +42,14 @@ namespace TreeMarket_Klas4_Groep7.Services
 
             return veiling;
         }
+   
 
         // Maak veiling aan (Aangepast naar VeilingDto om error in Controller te fixen)
         public async Task<Veiling> CreateVeilingAsync(VeilingDto dto, string userId)
         {
             // AANGEPAST: dto.ProductID (met hoofdletter D, zoals in je DTO)
-            var product = await _context.Products.FindAsync(dto.ProductID); 
-    
+            var product = await _context.Products.FindAsync(dto.ProductID);
+
             if (product == null) throw new KeyNotFoundException("Product niet gevonden");
 
             var veiling = new Veiling
@@ -55,8 +57,8 @@ namespace TreeMarket_Klas4_Groep7.Services
                 ProductID = product.ProductId,
                 StartPrijs = dto.StartPrijs,
                 HuidigePrijs = dto.StartPrijs,
-                TimerInSeconden = dto.TimerInSeconden, 
-                VeilingsmeesterID = userId,
+                TimerInSeconden = dto.TimerInSeconden,
+                VeilingsmeesterID = null, // tijdelijke fix , later userId gebruiken
                 Status = true
             };
 
@@ -65,6 +67,7 @@ namespace TreeMarket_Klas4_Groep7.Services
 
             return veiling;
         }
+
         public async Task<Bid> PlaceBidAsync(CreateBidDTO dto, string userId)
         {
             // OOK HIER DE FIX: FindAsync zoekt automatisch op de Primary Key (VeilingID)
