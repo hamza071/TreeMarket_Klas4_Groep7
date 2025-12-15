@@ -19,7 +19,7 @@ function AuctionDetailPage({ lots, updateLot }) {
     }, [lot, navigate]);
 
     if (!lot) return null;
-
+    ////////j
     const handlePublish = () => {
         if (!startPrice || !closingTime) return alert('Vul alle velden in!');
         if (Number(startPrice) <= lot.minPrice) return alert('Beginprijs moet hoger zijn dan minimumprijs');
