@@ -60,11 +60,11 @@ namespace TreeMarket_Klas4_Groep7.Data
                 .HasForeignKey(p => p.LeverancierID)
                 .OnDelete(DeleteBehavior.Restrict); 
 
-            //modelBuilder.Entity<Veiling>()
-            //    .HasOne(v => v.Veilingsmeester)
-            //    .WithMany()
-            //    .HasForeignKey(v => v.VeilingsmeesterID)
-            //    .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<Veiling>()
+                .HasOne(v => v.Veilingsmeester)
+                .WithMany()
+                .HasForeignKey(v => v.VeilingsmeesterID)
+                .OnDelete(DeleteBehavior.Restrict);
 
             // Cascade delete voorkomen
             foreach (var fk in modelBuilder.Model.GetEntityTypes()
