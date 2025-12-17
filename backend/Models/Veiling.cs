@@ -11,33 +11,29 @@ public class Veiling
 
     [Required]
     [Column(TypeName = "decimal(18,2)")]
-    [Range(0.01, double.MaxValue)]
     public decimal StartPrijs { get; set; }
 
     [Required]
     [Column(TypeName = "decimal(18,2)")]
-    [Range(0.01, double.MaxValue)]
     public decimal HuidigePrijs { get; set; }
 
-    // ✅ MOET bestaan, maar NIET uit frontend komen
     [Required]
     [Column(TypeName = "decimal(18,2)")]
-    [Range(0.01, double.MaxValue)]
     public decimal PrijsStap { get; set; }
 
-    public int PrijsStrategie { get; set; } = 0;
+    public int PrijsStrategie { get; set; }
 
     [Required]
-    [Range(1, int.MaxValue)]
     public int TimerInSeconden { get; set; }
 
+    // ---------- RELATIES ----------
+
     [Required]
-    [ForeignKey(nameof(Product))]
     public int ProductID { get; set; }
     public Product Product { get; set; }
 
+    // ✅ FK naar Veilingsmeester.Id (INT)
     [Required]
-    [ForeignKey(nameof(Veilingsmeester))]
     public string VeilingsmeesterID { get; set; }
     public Veilingsmeester Veilingsmeester { get; set; }
 }

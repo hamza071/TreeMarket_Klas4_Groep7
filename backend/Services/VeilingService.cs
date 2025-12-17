@@ -45,18 +45,25 @@ namespace TreeMarket_Klas4_Groep7.Services
         // Maak veiling aan (Aangepast naar VeilingDto om error in Controller te fixen)
         public async Task<Veiling> CreateVeilingAsync(VeilingDto dto, string userId)
         {
-            // AANGEPAST: dto.ProductID (met hoofdletter D, zoals in je DTO)
-            var product = await _context.Products.FindAsync(dto.ProductID); 
-    
+            // 1. Product check
+            var product = await _context.Products.FindAsync(dto.ProductID);
             if (product == null) throw new KeyNotFoundException("Product niet gevonden");
 
+            // 2. Veilingsmeester check
+            var veilingsmeester = await _context.Veilingsmeester
+                .FirstOrDefaultAsync(v => v.Id == userId); // ✅ gebruik Id (string) van IdentityUser
+
+            if (veilingsmeester == null)
+                throw new KeyNotFoundException("Ingelogde gebruiker is geen veilingsmeester.");
+
+            // 3. Veiling aanmaken
             var veiling = new Veiling
             {
                 ProductID = product.ProductId,
                 StartPrijs = dto.StartPrijs,
                 HuidigePrijs = dto.StartPrijs,
-                TimerInSeconden = dto.TimerInSeconden, 
-                VeilingsmeesterID = userId,
+                TimerInSeconden = dto.TimerInSeconden,
+                VeilingsmeesterID = veilingsmeester.Id, // ✅ Id is string, FK in Veiling moet ook string zijn
                 Status = true
             };
 
