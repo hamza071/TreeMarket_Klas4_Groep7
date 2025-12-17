@@ -117,19 +117,3 @@
         font-weight: 700;
         color: #2c6046;
     }
-
-/* Lot-afbeelding detailpagina */
-.lot-image {
-    margin-top: 2rem;
-    display: flex;
-    justify-content: center; /* centreert de afbeelding */
-}
-
-    .lot-image img {
-        width: 100%; /* past zich aan containerbreedte aan */
-        max-width: 600px; /* maximaal 600px breed */
-        max-height: 400px; /* maximaal 400px hoog */
-        object-fit: cover; /* crop indien nodig, behoud aspect ratio */
-        border-radius: 12px; /* optioneel, zachte hoeken */
-        box-shadow: 0 6px 18px rgba(27, 58, 44, 0.2); /* optionele schaduw */
-    }

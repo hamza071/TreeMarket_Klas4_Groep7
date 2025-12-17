@@ -1,13 +1,12 @@
 ﻿import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import "../assets/css/AuctionPage.css";
 
 function AuctionPage() {
     const [lots, setLots] = useState([]);
+    const [veilingen, setVeilingen] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    const navigate = useNavigate();
     const API_URL = "https://localhost:7054/api/Product/vandaag";
 
     useEffect(() => {
@@ -39,7 +38,6 @@ function AuctionPage() {
     if (loading) return <p>Kavels worden geladen…</p>;
     if (error) return <p style={{ color: "red" }}>{error}</p>;
 
-    // Alleen pending kavels tonen
     const pendingLots = lots.filter(
         (lot) => lot.status?.toLowerCase() === "pending" || !lot.status
     );
@@ -48,9 +46,43 @@ function AuctionPage() {
         return <p>Geen kavels beschikbaar om te publiceren.</p>;
     }
 
-    const handleStartVeiling = (lot) => {
-        // Navigeren naar AuctionDetailPage met de lot data in state
-        navigate(`/veiling/${lot.productId}`, { state: { lot } });
+    const createVeiling = async (lot) => {
+        const payload = {
+            startPrijs: (lot.minimumPrijs || 0) + 1,
+            prijsStap: 1,
+            productID: lot.productId,
+            veilingsmeesterID: 1, // dummy ID, geen auth
+            timerInSeconden: 3600,
+        };
+
+        try {
+            const response = await fetch(
+                "https://localhost:7054/api/Veiling/CreateVeiling",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Accept: "application/json",
+                    },
+                    body: JSON.stringify(payload),
+                }
+            );
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                console.error("Veiling fout:", data);
+                return alert("Kon veiling niet aanmaken.");
+            }
+
+            setVeilingen((prev) => [...prev, data]);
+            setLots((prev) =>
+                prev.filter((l) => l.productId !== lot.productId)
+            );
+        } catch (err) {
+            console.error("Error creating veiling:", err);
+            alert("Er ging iets mis bij het aanmaken van de veiling.");
+        }
     };
 
     return (
@@ -68,17 +100,13 @@ function AuctionPage() {
                         <p>{lot.hoeveelheid || 0} stuks</p>
                         {lot.varieteit && <p>Variëteit: {lot.varieteit}</p>}
 
-                        <img
-                            src={
-                                lot.foto
-                                    ? lot.foto.startsWith("http")
-                                        ? lot.foto
-                                        : `https://localhost:7054${lot.foto}`
-                                    : "/images/default.png"
-                            }
-                            alt={lot.naam || "Productfoto"}
-                            className="auction-card-image"
-                        />
+                        {lot.foto && (
+                            <img
+                                src={lot.foto ? `https://localhost:7054${lot.foto}` : "/images/default.png"}
+                                alt={lot.naam || "Productfoto"}
+                                className="auction-card-image"
+                            />
+                        )}
 
                         {lot.leverancierNaam && (
                             <p>Leverancier: {lot.leverancierNaam}</p>
@@ -86,13 +114,26 @@ function AuctionPage() {
 
                         <button
                             className="primary-action"
-                            onClick={() => handleStartVeiling(lot)}
+                            onClick={() => createVeiling(lot)}
                         >
                             Start veiling
                         </button>
                     </article>
                 ))}
             </div>
+
+            {veilingen.length > 0 && (
+                <section>
+                    <h2>Actieve veilingen</h2>
+                    <ul>
+                        {veilingen.map((v) => (
+                            <li key={v.veilingID}>
+                                Veiling {v.veilingID} – Startprijs: €{v.startPrijs} – Timer: {v.timerInSeconden} sec
+                            </li>
+                        ))}
+                    </ul>
+                </section>
+            )}
         </div>
     );
 }
