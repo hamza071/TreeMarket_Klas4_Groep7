@@ -9,7 +9,9 @@ namespace backend.Interfaces
     {
         Task<VeilingResponseDto> CreateVeilingAsync(VeilingDto dto, string userId);
 
-        Task<List<Veiling>> GetAllAsync();
+        // Hier aangepast van List<Veiling> naar List<VeilingResponseDto>
+        Task<List<VeilingResponseDto>> GetAllAsync();
+
         Task<Veiling> GetByIdAsync(int veilingId);
         Task<Bid> PlaceBidAsync(CreateBidDTO dto, string userId);
         Task<Veiling> UpdateStatusAsync(int veilingId, bool status);

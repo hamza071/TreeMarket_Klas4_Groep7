@@ -161,5 +161,14 @@ namespace TreeMarket_Klas4_Group7.Controllers
                 return StatusCode(500, new { message = "Databasefout: Kon status niet aanpassen.", error = ex.Message });
             }
         }
+
+        // ================= VEILING OPHALEN =================
+
+        [HttpGet("GetVeilingen")]
+        public async Task<ActionResult<List<VeilingResponseDto>>> GetVeilingen()
+        {
+            var veilingen = await _service.GetAllAsync(); // Zorg dat je service dit returnt als VeilingResponseDto
+            return Ok(veilingen);
+        }
     }
 }
