@@ -2,29 +2,17 @@
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import '../assets/css/UploadAuctionPage.css';
 
-function AuctionDetailPage({ lots }) {
-    const { code } = useParams();
+function AuctionDetailPage() {
+    const { code } = useParams(); // dit is productId
     const navigate = useNavigate();
     const location = useLocation();
 
     const [lot, setLot] = useState(null);
-    const [startPrice, setStartPrice] = useState('');   
-    const [closingTime, setClosingTime] = useState(10); // standaard 10 seconden
+    const [startPrice, setStartPrice] = useState('');
+    const [closingTime, setClosingTime] = useState(10);
 
+    // Haal kavel op via API
     useEffect(() => {
-        if (location.state?.lot) {
-            setLot(location.state.lot);
-            setStartPrice(location.state.lot.minimumPrijs + 1);
-            return;
-        }
-
-        const foundLot = lots?.find(l => l.productId?.toString() === code);
-        if (foundLot) {
-            setLot(foundLot);
-            setStartPrice(foundLot.minimumPrijs + 1);
-            return;
-        }
-
         const fetchLot = async () => {
             try {
                 const response = await fetch(`https://localhost:7054/api/Product/${code}`, {
@@ -33,49 +21,52 @@ function AuctionDetailPage({ lots }) {
                 if (!response.ok) throw new Error('Kavel niet gevonden');
                 const data = await response.json();
                 setLot(data);
-                setStartPrice(data.minimumPrijs + 1);
+                setStartPrice((data.minimumPrijs || 0) + 1);
+                setClosingTime(10);
             } catch (err) {
                 alert(err.message);
                 navigate('/veiling');
             }
         };
+
+        // Prioriteit voor navigation state
+        if (location.state?.lot) {
+            setLot(location.state.lot);
+            setStartPrice(location.state.lot.minimumPrijs + 1);
+            return;
+        }
+
         fetchLot();
-    }, [code, lots, navigate, location.state]);
+    }, [code, navigate, location.state]);
 
     if (!lot) return <p>Laden van kavel…</p>;
 
+    // Publiceer kaveilingvel
     const handlePublish = async () => {
-        if (!startPrice || !closingTime)
-            return alert('Vul alle velden in!');
+        if (!startPrice || !closingTime) return alert('Vul alle velden in!');
 
         const prijsStap = Math.max(1, Math.ceil(startPrice * 0.1));
-
-        // ✅ Geldige VeilingsmeesterID ophalen (hardcoded of via localStorage)
         const veilingsmeesterID = localStorage.getItem("veilingsmeesterId") || "29685004-81a1-44b6-b7f3-973dd5f60fc0";
+        const token = localStorage.getItem("token");
+        if (!token) return alert("Je bent niet ingelogd.");
 
         const payload = {
             productID: lot.productId,
             startPrijs: Number(startPrice),
-            prijsStap: prijsStap,
+            prijsStap,
             timerInSeconden: Number(closingTime),
-            veilingsmeesterID,
+            veilingsmeesterID
         };
 
-        const token = localStorage.getItem("token");
-        if (!token) return alert("Je bent niet ingelogd.");
-
         try {
-            const response = await fetch(
-                "https://localhost:7054/api/Veiling/CreateVeiling",
-                {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "Authorization": `Bearer ${token}`
-                    },
-                    body: JSON.stringify(payload)
-                }
-            );
+            const response = await fetch("https://localhost:7054/api/Veiling/CreateVeiling", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
+                body: JSON.stringify(payload)
+            });
 
             if (!response.ok) {
                 const text = await response.text();
@@ -85,7 +76,15 @@ function AuctionDetailPage({ lots }) {
             const data = await response.json();
             console.log("Veiling aangemaakt:", data);
 
-            navigate(`/veiling/${lot.productId}`);
+            // ✅ Verwijder de kavel eerst uit de view zodat het lijkt alsof hij weg is
+            setLot(null);
+
+            // ✅ Notificatie
+            alert(`Veiling succesvol gepubliceerd! VeilingID: ${data.veilingID}`);
+
+            // ✅ Daarna navigeren (optioneel)
+            navigate('/veiling');
+
         } catch (err) {
             console.error("Error creating veiling:", err);
             alert("Er ging iets mis: " + err.message);
@@ -95,7 +94,7 @@ function AuctionDetailPage({ lots }) {
     return (
         <div className="upload-page">
             <header className="section-header">
-                <h1>Kavel publiceren (veilingmeester)</h1>
+                <h1>Veiling publiceren (veilingmeester)</h1>
             </header>
 
             <form className="upload-form" onSubmit={e => e.preventDefault()}>
@@ -128,7 +127,7 @@ function AuctionDetailPage({ lots }) {
 
                 <div className="form-actions">
                     <button type="button" className="primary-action" onClick={handlePublish}>
-                        Publiceer kavel
+                        Publiceer veiling
                     </button>
                     <button type="button" className="link-button" onClick={() => navigate('/veiling')}>
                         Annuleer
@@ -136,7 +135,6 @@ function AuctionDetailPage({ lots }) {
                 </div>
             </form>
 
-            {/* ✅ Afbeelding max grootte en cropped */}
             <div className="lot-image" style={{
                 maxWidth: '600px',
                 maxHeight: '400px',
@@ -147,12 +145,7 @@ function AuctionDetailPage({ lots }) {
                 <img
                     src={lot.foto ? (lot.foto.startsWith('http') ? lot.foto : `https://localhost:7054${lot.foto}`) : '/images/default.png'}
                     alt={lot.naam || 'Productfoto'}
-                    style={{
-                        width: '100%',
-                        height: '100%',
-                        objectFit: 'cover', // crop en schaal
-                        display: 'block'
-                    }}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
                 />
             </div>
 

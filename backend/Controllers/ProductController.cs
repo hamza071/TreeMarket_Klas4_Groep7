@@ -169,5 +169,40 @@ namespace TreeMarket_Klas4_Groep7.Controllers
                 return StatusCode(500, new { message = "Serverfout.", error = ex.Message });
             }
         }
+
+        // GET: api/Product/{id}
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetProductById(int id)
+        {
+            try
+            {
+                var product = await _context.Product
+                    .Include(p => p.Leverancier)
+                    .FirstOrDefaultAsync(p => p.ProductId == id);
+
+                if (product == null)
+                    return NotFound(new { message = $"Product {id} niet gevonden." });
+
+                var productDto = new ProductMetVeilingmeesterDto
+                {
+                    ProductId = product.ProductId,
+                    Naam = product.ProductNaam,
+                    Varieteit = product.Varieteit,
+                    Omschrijving = product.Omschrijving,
+                    Hoeveelheid = product.Hoeveelheid,
+                    MinimumPrijs = product.MinimumPrijs,
+                    Foto = product.Foto,
+                    Status = "pending",
+                    LeverancierNaam = product.Leverancier?.Bedrijf
+                };
+
+                return Ok(productDto);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Serverfout.", error = ex.Message });
+            }
+        }
+
     }
 }

@@ -3,9 +3,10 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using System.Security.Claims;
 using TreeMarket_Klas4_Groep7.Models;
 using TreeMarket_Klas4_Groep7.Models.DTO;
-using System.Security.Claims;
+using TreeMarket_Klas4_Groep7.Services;
 
 namespace TreeMarket_Klas4_Group7.Controllers
 {
@@ -170,5 +171,25 @@ namespace TreeMarket_Klas4_Group7.Controllers
             var veilingen = await _service.GetAllAsync(); // Zorg dat je service dit returnt als VeilingResponseDto
             return Ok(veilingen);
         }
+
+        [HttpDelete("DeleteVeiling/{veilingId}")]
+        public async Task<IActionResult> DeleteVeiling(int veilingId)
+        {
+            try
+            {
+                await _service.DeleteVeilingAsync(veilingId);
+                return Ok(new { message = $"Veiling {veilingId} succesvol verwijderd." });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Fout bij verwijderen van veiling.", error = ex.Message });
+            }
+        }
+
+
     }
 }

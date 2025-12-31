@@ -127,5 +127,16 @@ namespace TreeMarket_Klas4_Groep7.Services
 
             return veiling;
         }
+
+        // verwijderen veiling
+        public async Task DeleteVeilingAsync(int veilingId)
+        {
+            var veiling = await _context.Veilingen.FindAsync(veilingId);
+            if (veiling == null) throw new KeyNotFoundException($"Veiling met ID {veilingId} niet gevonden.");
+
+            _context.Veilingen.Remove(veiling);
+            await _context.SaveChangesAsync();
+        }
+
     }
 }

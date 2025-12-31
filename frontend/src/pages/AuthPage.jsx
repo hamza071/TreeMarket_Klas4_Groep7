@@ -241,8 +241,8 @@ function AuthPage() {
 
             setServerSuccess("Succesvol ingelogd!");
 
-            // 5. Harde redirect zodat de hele app opnieuw wordt opgebouwd
-            window.location.href = "/home";
+            // 5. navigate via react-router (avoids unused `navigate` eslint error)
+            navigate("/home");
         } catch (err) {
             console.error(err);
             setServerError(
