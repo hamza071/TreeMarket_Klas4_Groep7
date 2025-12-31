@@ -5,6 +5,7 @@ using Microsoft.OpenApi.Models;
 using TreeMarket_Klas4_Groep7.Data;
 using TreeMarket_Klas4_Groep7.Models;
 using TreeMarket_Klas4_Groep7.Services;
+using System.Security.Claims;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -130,6 +131,34 @@ using (var scope = app.Services.CreateScope())
         {
             await userManager.AddToRoleAsync(user, "Admin");
         }
+    }
+
+    // ==========================
+    // Toevoegen test Veilingsmeester
+    // ==========================
+    var testEmail = "test@treemarket.nl";
+    var testUser = await userManager.FindByEmailAsync(testEmail);
+    if (testUser == null)
+    {
+        testUser = new Gebruiker
+        {
+            UserName = testEmail,
+            Email = testEmail,
+            EmailConfirmed = true,
+            Naam = "Veilingsmeester Test"
+        };
+
+        var createResult = await userManager.CreateAsync(testUser, "Veiling123!");
+        if (createResult.Succeeded)
+        {
+            Console.WriteLine("Test gebruiker aangemaakt: " + testEmail);
+        }
+    }
+
+    if (!await userManager.IsInRoleAsync(testUser, "Veilingsmeester"))
+    {
+        await userManager.AddToRoleAsync(testUser, "Veilingsmeester");
+        Console.WriteLine("Rol Veilingsmeester toegevoegd aan: " + testEmail);
     }
 }
 

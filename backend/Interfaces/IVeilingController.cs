@@ -7,8 +7,8 @@ namespace backend.Interfaces
 {
     public interface IVeilingController
     {
-        Task<Veiling> CreateVeilingAsync(VeilingDto dto, string userId);
-        
+        Task<VeilingResponseDto> CreateVeilingAsync(VeilingDto dto, string userId);
+
         Task<List<Veiling>> GetAllAsync();
         Task<Veiling> GetByIdAsync(int veilingId);
         Task<Bid> PlaceBidAsync(CreateBidDTO dto, string userId);

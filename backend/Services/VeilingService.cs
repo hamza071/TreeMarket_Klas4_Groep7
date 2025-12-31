@@ -42,35 +42,43 @@ namespace TreeMarket_Klas4_Groep7.Services
             return veiling;
         }
 
-        // Maak veiling aan (Aangepast naar VeilingDto om error in Controller te fixen)
-        public async Task<Veiling> CreateVeilingAsync(VeilingDto dto, string userId)
+        // Maak veiling aan (ZONDER autorisatie-logica)
+        public async Task<VeilingResponseDto> CreateVeilingAsync(VeilingDto dto, string userId)
         {
-            // 1. Product check
-            var product = await _context.Products.FindAsync(dto.ProductID);
-            if (product == null) throw new KeyNotFoundException("Product niet gevonden");
+            // Product ophalen
+            var product = await _context.Products
+                .FirstOrDefaultAsync(p => p.ProductId == dto.ProductID);
+            if (product == null)
+                throw new KeyNotFoundException("Product niet gevonden.");
 
-            // 2. Veilingsmeester check
-            var veilingsmeester = await _context.Veilingsmeester
-                .FirstOrDefaultAsync(v => v.Id == userId); // ✅ gebruik Id (string) van IdentityUser
-
-            if (veilingsmeester == null)
-                throw new KeyNotFoundException("Ingelogde gebruiker is geen veilingsmeester.");
-
-            // 3. Veiling aanmaken
+            // Nieuwe veiling aanmaken
             var veiling = new Veiling
             {
-                ProductID = product.ProductId,
                 StartPrijs = dto.StartPrijs,
                 HuidigePrijs = dto.StartPrijs,
                 TimerInSeconden = dto.TimerInSeconden,
-                VeilingsmeesterID = veilingsmeester.Id, // ✅ Id is string, FK in Veiling moet ook string zijn
-                Status = true
+                Status = true,
+                ProductID = product.ProductId,
+                VeilingsmeesterID = userId
             };
 
-            await _context.Veiling.AddAsync(veiling);
+            _context.Veilingen.Add(veiling);
             await _context.SaveChangesAsync();
 
-            return veiling;
+            // DTO maken om terug te sturen
+            var response = new VeilingResponseDto
+            {
+                VeilingID = veiling.VeilingID,
+                Status = veiling.Status,
+                StartPrijs = veiling.StartPrijs,
+                HuidigePrijs = veiling.HuidigePrijs,
+                TimerInSeconden = veiling.TimerInSeconden,
+                ProductID = product.ProductId,
+                ProductNaam = product.ProductNaam,
+                Foto = product.Foto
+            };
+
+            return response;
         }
         public async Task<Bid> PlaceBidAsync(CreateBidDTO dto, string userId)
         {

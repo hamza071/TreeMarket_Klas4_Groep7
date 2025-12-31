@@ -22,10 +22,11 @@ namespace TreeMarket_Klas4_Groep7.Data
         public DbSet<Claim> Claim { get; set; }
         public DbSet<Leverancier> Leverancier { get; set; }
         public DbSet<Bid> Bids { get; set; }
-        
+        public DbSet<Veiling> Veilingen { get; set; }
+
         // Vergeet de andere sub-types niet als je die apart wilt kunnen aanroepen!
         public DbSet<Klant> Klant { get; set; }
-        public DbSet<Veilingsmeester> Veilingsmeester { get; set; }
+        //public DbSet<Veilingsmeester> Veilingsmeester { get; set; } // tijdelijk verwijderd
 
 
         public ApiContext(DbContextOptions<ApiContext> options) : base(options)
@@ -58,13 +59,14 @@ namespace TreeMarket_Klas4_Groep7.Data
                 .HasOne(p => p.Leverancier)
                 .WithMany(l => l.Producten) 
                 .HasForeignKey(p => p.LeverancierID)
-                .OnDelete(DeleteBehavior.Restrict); 
+                .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<Veiling>()
                 .HasOne(v => v.Veilingsmeester)
                 .WithMany()
                 .HasForeignKey(v => v.VeilingsmeesterID)
                 .OnDelete(DeleteBehavior.Restrict);
+
 
             // Cascade delete voorkomen
             foreach (var fk in modelBuilder.Model.GetEntityTypes()

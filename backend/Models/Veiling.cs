@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.AspNetCore.Identity;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using TreeMarket_Klas4_Groep7.Models;
 
@@ -32,8 +33,8 @@ public class Veiling
     public int ProductID { get; set; }
     public Product Product { get; set; }
 
-    // ✅ FK naar Veilingsmeester.Id (INT)
+    // ✅ FK naar Identity gebruiker
     [Required]
     public string VeilingsmeesterID { get; set; }
-    public Veilingsmeester Veilingsmeester { get; set; }
+    public Gebruiker Veilingsmeester { get; set; }
 }

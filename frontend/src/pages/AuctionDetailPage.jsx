@@ -8,8 +8,8 @@ function AuctionDetailPage({ lots }) {
     const location = useLocation();
 
     const [lot, setLot] = useState(null);
-    const [startPrice, setStartPrice] = useState('');
-    const [closingTime, setClosingTime] = useState(3600); // standaard 1 uur
+    const [startPrice, setStartPrice] = useState('');   
+    const [closingTime, setClosingTime] = useState(10); // standaard 10 seconden
 
     useEffect(() => {
         if (location.state?.lot) {
@@ -122,7 +122,7 @@ function AuctionDetailPage({ lots }) {
                             value={closingTime}
                             onChange={e => setClosingTime(e.target.value)}
                         />
-                        <small>Standaard 1 uur</small>
+                        <small>Standaard 10 seconden</small>
                     </label>
                 </fieldset>
 

@@ -68,7 +68,7 @@ function UploadAuctionPage() {
     return (
         <div className="upload-page">
             <header className="section-header">
-                <h1>Upload nieuwe veiling (leverancier)</h1>
+                <h1>Upload nieuwe kavel (leverancier)</h1>
                 <p id="upload-intro">
                     Voer je kavelgegevens in. Minimumprijs wordt door jou ingesteld.
                 </p>
