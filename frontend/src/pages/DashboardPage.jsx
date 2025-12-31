@@ -3,7 +3,6 @@ import { useEffect, useState } from 'react';
 function DashboardPage() {
     const [lotsState, setLotsState] = useState([]);
 
-    // Fetch veilingen van backend
     useEffect(() => {
         const fetchVeilingen = async () => {
             try {
@@ -15,20 +14,39 @@ function DashboardPage() {
                 });
                 const data = await response.json();
 
-                // Alleen actieve veilingen
-                const activeLots = data
+                const lots = data
                     .filter(lot => lot.status === true)
-                    .map(lot => ({
-                        ...lot,
-                        startTimestamp: new Date(lot.startTimestamp).getTime() || Date.now(),
-                        closingTimestamp: new Date(lot.startTimestamp).getTime() + (lot.timerInSeconden * 1000) || Date.now() + (lot.timerInSeconden * 1000),
-                        currentPrice: lot.startPrijs ?? 0,
-                        minPrice: lot.startPrijs ?? 0,
-                        closing: Math.max(0, Math.ceil(((new Date(lot.startTimestamp).getTime() + (lot.timerInSeconden * 1000)) - Date.now()) / 1000))
-                    }))
-                    .sort((a, b) => b.veilingID - a.veilingID); // nieuwste eerst
+                    .map(lot => {
+                        // Backend moet altijd startTimestamp en timerInSeconden geven
+                        const startTimestamp = new Date(lot.startTimestamp).getTime();
+                        const timerInSeconden = lot.timerInSeconden;
+                        const startPrice = lot.startPrijs ?? 0;
+                        const minPrice = lot.minPrice ?? startPrice;
 
-                setLotsState(activeLots);
+                        const elapsed = (Date.now() - startTimestamp) / 1000;
+                        const remainingTime = Math.max(0, timerInSeconden - elapsed);
+
+                        const priceRange = startPrice - minPrice;
+                        const currentPrice =
+                            remainingTime > 0
+                                ? Math.max(minPrice, startPrice - (priceRange * (elapsed / timerInSeconden)))
+                                : minPrice;
+
+                        return {
+                            ...lot,
+                            startTimestamp,
+                            timerInSeconden,
+                            closingTimestamp: startTimestamp + timerInSeconden * 1000,
+                            closing: Math.ceil(remainingTime),
+                            startPrice,
+                            minPrice,
+                            currentPrice,
+                            status: remainingTime <= 0 ? 'afgesloten' : 'actief'
+                        };
+                    })
+                    .sort((a, b) => b.veilingID - a.veilingID);
+
+                setLotsState(lots);
             } catch (err) {
                 console.error('Fout bij ophalen van veilingen:', err);
             }
@@ -37,25 +55,29 @@ function DashboardPage() {
         fetchVeilingen();
     }, []);
 
-    // Timer, prijsupdate en automatische verwijdering van afgeronde veilingen
+    // Timer update
     useEffect(() => {
         const interval = setInterval(() => {
             const now = Date.now();
+
             setLotsState(prevLots =>
                 prevLots.map(lot => {
-                    const remainingTime = Math.max(0, Math.ceil((lot.closingTimestamp - now) / 1000));
-                    const elapsed = lot.timerInSeconden - remainingTime;
-                    const priceRange = lot.startPrijs - lot.minPrice;
+                    if (!lot.startTimestamp || !lot.timerInSeconden) return lot;
+
+                    const elapsed = (now - lot.startTimestamp) / 1000;
+                    const remainingTime = Math.max(0, lot.timerInSeconden - elapsed);
+
+                    const priceRange = lot.startPrice - lot.minPrice;
                     const currentPrice =
                         remainingTime > 0
-                            ? Math.max(lot.minPrice, lot.startPrijs - (priceRange * (elapsed / lot.timerInSeconden)))
+                            ? Math.max(lot.minPrice, lot.startPrice - (priceRange * (elapsed / lot.timerInSeconden)))
                             : lot.minPrice;
 
                     return {
                         ...lot,
-                        closing: remainingTime,
+                        closing: Math.ceil(remainingTime),
                         currentPrice,
-                        // ✅ geen verwijdering, lot blijft staan ook bij closing === 0
+                        status: remainingTime <= 0 ? 'afgesloten' : 'actief'
                     };
                 })
             );
@@ -63,6 +85,7 @@ function DashboardPage() {
 
         return () => clearInterval(interval);
     }, []);
+
 
     const featuredLot = lotsState[0];
     const featuredTime = featuredLot?.closing ?? 0;
