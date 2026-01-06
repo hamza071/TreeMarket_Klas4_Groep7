@@ -1,26 +1,16 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
-using System.Security.Cryptography;
 using backend.Models;
-using backend.Models.DTO;
 
 namespace backend.Data
 {
-    // AANGEPAST: Erft nu van IdentityDbContext<Gebruiker> in plaats van DbContext
     public class ApiContext : IdentityDbContext<Gebruiker>
     {
         public DbSet<Product> Product { get; set; }
-        // DbSet<Gebruiker> hoeft eigenlijk niet meer (zit in IdentityDbContext als 'Users'), 
-        // maar je mag hem laten staan als je oude code 'context.Gebruiker' gebruikt.
         public DbSet<Dashboard> Dashboard { get; set; }
         public DbSet<Claim> Claim { get; set; }
         public DbSet<Bid> Bids { get; set; }
         public DbSet<Veiling> Veiling { get; set; }
-
-        // Vergeet de andere sub-types niet als je die apart wilt kunnen aanroepen!
-
 
         public ApiContext(DbContextOptions<ApiContext> options) : base(options)
         {
@@ -28,23 +18,17 @@ namespace backend.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            // BELANGRIJK: Deze 'base' call moet als EERSTE staan.
-            // Dit zorgt ervoor dat Identity alle tabellen (AspNetRoles, etc.) aanmaakt.
+            // BELANGRIJK: base call eerst
             base.OnModelCreating(modelBuilder);
 
-            // === JOUW TABEL NAMEN ===
-            // Hiermee overschrijf je de standaard Identity namen (zoals AspNetUsers)
-            // Nu wordt er een discriminator gebruikt.
-
+            // TPH: alles in AspNetUsers
             modelBuilder.Entity<Gebruiker>()
-            .HasDiscriminator<string>("GebruikerType")
-            .HasValue<Gebruiker>("Gebruiker")
-            .HasValue<Klant>("Klant")
-            .HasValue<Leverancier>("Leverancier")
-            .HasValue<Veilingsmeester>("Veilingsmeester");
+                .HasDiscriminator<string>("GebruikerType")
+                .HasValue<Klant>("Klant")
+                .HasValue<Leverancier>("Leverancier")
+                .HasValue<Veilingsmeester>("Veilingsmeester");
 
-
-            // Relaties configureren
+            // Relaties
             modelBuilder.Entity<Veiling>()
                 .HasOne(v => v.Product)
                 .WithMany(p => p.Veilingen)
@@ -63,8 +47,7 @@ namespace backend.Data
                 .HasForeignKey(v => v.VeilingsmeesterID)
                 .OnDelete(DeleteBehavior.Restrict);
 
-
-            // Cascade delete voorkomen}
+            // Cascade delete voorkomen voor subtypes
             foreach (var fk in modelBuilder.Model.GetEntityTypes()
                   .SelectMany(t => t.GetForeignKeys())
                   .Where(fk => fk.PrincipalEntityType.ClrType.IsSubclassOf(typeof(Gebruiker))))
@@ -72,7 +55,7 @@ namespace backend.Data
                 fk.DeleteBehavior = DeleteBehavior.Restrict;
             }
 
-            // Decimals instellen
+            // Decimals
             modelBuilder.Entity<Claim>()
                 .Property(c => c.Prijs)
                 .HasColumnType("decimal(18,2)");
@@ -82,8 +65,6 @@ namespace backend.Data
             modelBuilder.Entity<Veiling>()
                 .Property(v => v.StartPrijs)
                 .HasColumnType("decimal(18,2)");
-
-            // (Je had HuidigePrijs uitgecommentarieerd, die laat ik hier ook weg)
         }
     }
 }
