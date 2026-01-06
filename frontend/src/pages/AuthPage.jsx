@@ -242,7 +242,7 @@ function AuthPage() {
             setServerSuccess("Succesvol ingelogd!");
 
             // 5. navigate via react-router (avoids unused `navigate` eslint error)
-            navigate("/home");
+            window.location.href = "/home";
         } catch (err) {
             console.error(err);
             setServerError(
@@ -250,7 +250,7 @@ function AuthPage() {
             );
         }
     };
-
+    
     // =========================
     // UI
     // =========================
