@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Identity;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using TreeMarket_Klas4_Groep7.Models;
+using backend.DTO;
 
 public class Veiling
 {

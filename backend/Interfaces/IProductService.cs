@@ -1,6 +1,5 @@
-﻿using backend.Models;
-using backend.Models.DTO;
-using TreeMarket_Klas4_Groep7.Models.DTO;
+﻿using backend.DTO;
+using backend.Models;
 
 namespace backend.Interfaces
 {

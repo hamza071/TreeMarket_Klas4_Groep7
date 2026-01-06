@@ -1,10 +1,10 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace backend.Models.DTO
+namespace backend.DTO
 {
-    public class LeverancierDto
+    public class KlantDto
     {
-        public int LeverancierId { get; set; }
+        public int GebruikerId { get; set; }
         [Required(ErrorMessage = "Naam mag niet leeg zijn.")]
         [StringLength(100, ErrorMessage = "Naam mag maximaal 100 tekens bevatten.")]
         public string Naam { get; set; }
@@ -15,21 +15,20 @@ namespace backend.Models.DTO
 
         public string? Telefoonnummer { get; set; }
 
-        [Required(ErrorMessage = "Bedrijf is verplicht.")]
-        public string Bedrijf { get; set; }
-
-        [Required(ErrorMessage = "KvK nummer is verplicht.")]
-        [RegularExpression(@"^\d{8}$", ErrorMessage = "KvK nummer moet 8 cijfers bevatten.")]
-        public string KvKNummer { get; set; }
-
-        [Required(ErrorMessage = "IBAN is verplicht.")]
-        [RegularExpression(@"^[A-Z]{2}\d{2}[A-Z0-9]{1,30}$", ErrorMessage = "Ongeldig IBAN nummer.")]
-        public string IBANnummer { get; set; }
-
         [Required(ErrorMessage = "Wachtwoord is verplicht.")]
         [MinLength(8, ErrorMessage = "Wachtwoord moet minimaal 8 tekens bevatten.")]
         [RegularExpression(@"^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).+$",
              ErrorMessage = "Wachtwoord moet minstens één hoofdletter, één cijfer en één speciaal teken bevatten.")]
         public string Wachtwoord { get; set; }
+
+        // DTO die veilig is om naar de frontend te sturen
+        public class GebruikerResponseDto
+        {
+            public int GebruikerId { get; set; }
+            public string Naam { get; set; }
+            public string Email { get; set; }
+            public string Rol { get; set; }
+            public string? Telefoonnummer { get; set; }
+        }
     }
 }

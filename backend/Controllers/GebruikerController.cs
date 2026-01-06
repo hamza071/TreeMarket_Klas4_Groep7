@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Numerics;
 using backend.Data;
 using backend.Models;
-using backend.Models.DTO;
+using backend.DTO;
 
 namespace backend.Controllers
 {

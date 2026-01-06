@@ -1,14 +1,14 @@
 ﻿using backend.Data;
+using backend.DTO;
 using backend.Interfaces;
 using backend.Models;
-using backend.Models.DTO;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using TreeMarket_Klas4_Groep7.Models;
-using TreeMarket_Klas4_Groep7.Models.DTO;
+using backend.Models;
+using backend.DTO;
 using TreeMarket_Klas4_Group7.Controllers;
 
 namespace backend.Services

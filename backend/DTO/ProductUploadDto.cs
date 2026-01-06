@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using System.ComponentModel.DataAnnotations;
 
-namespace backend.Models.DTO
+namespace backend.DTO
 {
     // DTO voor product uploads (via FormData)
     public class ProductUploadDto

@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore; // <--- NIEUW: Deze moet erbij!
 using System.Security.Cryptography;
 using backend.Models;
-using backend.Models.DTO;
+using backend.DTO;
 
 namespace backend.Data
 {

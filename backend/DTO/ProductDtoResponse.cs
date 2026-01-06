@@ -1,4 +1,4 @@
-﻿namespace backend.Models.DTO
+﻿namespace backend.DTO
 {
     public class ProductDtoResponse
     {

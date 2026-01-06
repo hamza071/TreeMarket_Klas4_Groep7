@@ -1,4 +1,4 @@
-﻿namespace TreeMarket_Klas4_Groep7.Models.DTO
+﻿namespace backend.DTO
 {
     public class ProductMetLeverancierDto
     {

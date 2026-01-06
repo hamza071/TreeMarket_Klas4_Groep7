@@ -1,5 +1,5 @@
-﻿using backend.Models;
-using backend.Models.DTO;
+﻿using backend.DTO;
+using backend.Models;
 
 namespace backend.Interfaces
 {

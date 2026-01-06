@@ -6,8 +6,8 @@ using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using backend.Data;
 using backend.Models;
-using backend.Models.DTO;
 using Claim = backend.Models.Claim;
+using backend.DTO;
 
 
 namespace backend.Controllers

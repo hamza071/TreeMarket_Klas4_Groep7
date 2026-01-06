@@ -1,12 +1,11 @@
 ﻿using backend.Data;
+using backend.DTO;
 using backend.Interfaces;
 using backend.Models;
-using backend.Models.DTO;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
-using TreeMarket_Klas4_Groep7.Models.DTO;
 
 namespace backend.Services
 {

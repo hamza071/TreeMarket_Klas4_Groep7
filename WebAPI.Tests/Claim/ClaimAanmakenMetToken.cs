@@ -9,9 +9,9 @@ using System.Text;
 using System.Threading.Tasks;
 using backend.Controllers;
 using backend.Models;
-using backend.Models.DTO;
 using backend.Services;
 using security = System.Security.Claims;
+using backend.DTO;
 
 
 namespace WebAPI.Tests.TClaim
