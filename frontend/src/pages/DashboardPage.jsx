@@ -61,66 +61,53 @@ function DashboardPage() {
         fetchVeilingen();
     }, []);
 
-    // ⏱ Timer update (Zorgt dat elke PC exact gelijk loopt)
+    // ⏱ Timer update & auto-delete
     useEffect(() => {
         const interval = setInterval(() => {
-            const now = Date.now(); // Huidige tijd op de computer van de bezoeker
+            const now = Date.now();
 
             setLotsState(prevLots =>
                 prevLots
                     .map(lot => {
-                        // Als data mist, doe niets
                         if (!lot.startTimestamp || !lot.timerInSeconden) return lot;
 
-                        // 1. Bereken de harde eindtijd (Starttijd + Duur in ms)
-                        // Dit punt in de tijd is voor iedereen op de wereld gelijk.
-                        const startTimeMs = new Date(lot.startTimestamp).getTime();
-                        const durationMs = lot.timerInSeconden * 1000;
-                        const endTimeMs = startTimeMs + durationMs;
+                        const elapsed = Math.max(0, (now - lot.startTimestamp) / 1000);
+                        const remainingTime = Math.max(0, lot.timerInSeconden - elapsed);
 
-                        // 2. Bereken hoeveel tijd er nog over is (Eindtijd - NU)
-                        const msLeft = endTimeMs - now;
-                        const secondsLeft = Math.ceil(msLeft / 1000);
-
-                        // 3. Bereken de prijs (Lineair)
-                        // Verstreken tijd in seconden (mag niet kleiner dan 0 zijn)
-                        const elapsedSeconds = Math.max(0, (now - startTimeMs) / 1000);
-                        const progress = Math.min(elapsedSeconds / lot.timerInSeconden, 1);
-
+                        // Lineaire prijsdaling
+                        const progress = Math.min(elapsed / lot.timerInSeconden, 1);
                         const currentPrice =
-                            secondsLeft > 0
+                            remainingTime > 0
                                 ? lot.startPrice - (lot.startPrice - lot.minPrice) * progress
                                 : lot.minPrice;
 
-                        // 4. Logica voor verwijderen (zoals je het al had)
-                        const removeAt = secondsLeft > 0 ? null : lot.removeAt ?? now + AUTO_REMOVE_DELAY;
+                        const removeAt = remainingTime > 0 ? null : lot.removeAt ?? now + AUTO_REMOVE_DELAY;
 
                         return {
                             ...lot,
-                            closing: Math.max(0, secondsLeft), // Toon nooit -1
+                            closing: Math.ceil(remainingTime),
                             currentPrice,
-                            status: secondsLeft > 0 ? 'actief' : 'afgesloten',
+                            status: remainingTime > 0 ? 'actief' : 'afgesloten',
                             removeAt,
                         };
                     })
-                    // Je originele filter logica blijft behouden
                     .filter(lot => {
                         if (lot.removeAt && now >= lot.removeAt) {
-                            // Je DELETE logica
+                            // DELETE request naar backend
                             fetch(`https://localhost:7054/api/Veiling/DeleteVeiling/${lot.veilingID}`, {
                                 method: 'DELETE',
                                 headers: {
                                     Authorization: `Bearer ${localStorage.getItem('token')}`,
                                 },
-                            }).catch(err => console.error('Fout bij verwijderen:', err));
+                            }).catch(err => console.error('Fout bij verwijderen veiling:', err));
 
-                            return false;
+                            return false; // verwijder uit state
                         }
                         return true;
                     })
             );
-        }, 100); // Tip: Zet deze op 100ms of 200ms. Dan verspringt de seconde precies op tijd.
-//
+        }, 1000);
+
         return () => clearInterval(interval);
     }, []);
 
@@ -180,26 +167,26 @@ function DashboardPage() {
                 <div className="table-wrapper" role="region" aria-live="polite">
                     <table className="data-table">
                         <thead>
-                            <tr>
-                                <th>Kavel</th>
-                                <th>Naam</th>
-                                <th>Specificaties</th>
-                                <th>Aantal</th>
-                                <th>Huidige prijs (€)</th>
-                                <th>Sluiting</th>
-                            </tr>
+                        <tr>
+                            <th>Kavel</th>
+                            <th>Naam</th>
+                            <th>Specificaties</th>
+                            <th>Aantal</th>
+                            <th>Huidige prijs (€)</th>
+                            <th>Sluiting</th>
+                        </tr>
                         </thead>
                         <tbody>
-                            {lotsState.map(lot => (
-                                <tr key={lot.veilingID}>
-                                    <td>{lot.veilingID}</td>
-                                    <td>{lot.productNaam}</td>
-                                    <td>{lot.specs ?? '-'}</td>
-                                    <td>{lot.lots ?? 1}</td>
-                                    <td>€{lot.currentPrice?.toFixed(2)}</td>
-                                    <td>{lot.closing > 0 ? `${lot.closing}s` : 'Afgesloten'}</td>
-                                </tr>
-                            ))}
+                        {lotsState.map(lot => (
+                            <tr key={lot.veilingID}>
+                                <td>{lot.veilingID}</td>
+                                <td>{lot.productNaam}</td>
+                                <td>{lot.specs ?? '-'}</td>
+                                <td>{lot.lots ?? 1}</td>
+                                <td>€{lot.currentPrice?.toFixed(2)}</td>
+                                <td>{lot.closing > 0 ? `${lot.closing}s` : 'Afgesloten'}</td>
+                            </tr>
+                        ))}
                         </tbody>
                     </table>
                 </div>
