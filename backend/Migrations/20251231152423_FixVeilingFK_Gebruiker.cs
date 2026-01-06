@@ -10,14 +10,12 @@ namespace backend.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropForeignKey(
-                name: "FK_Veiling_Veilingsmeester_VeilingsmeesterID",
-                table: "Veiling");
-
-            migrationBuilder.RenameColumn(
-                name: "Artikelkenmerken",
+            migrationBuilder.AddColumn<string>(
+                name: "Varieteit",
                 table: "Product",
-                newName: "Varieteit");
+                type: "nvarchar(max)",
+                nullable: false,
+                defaultValue: "");
 
             migrationBuilder.AlterColumn<bool>(
                 name: "Status",
@@ -67,10 +65,9 @@ namespace backend.Migrations
                 name: "ProductNaam",
                 table: "Product");
 
-            migrationBuilder.RenameColumn(
+            migrationBuilder.DropColumn(
                 name: "Varieteit",
-                table: "Product",
-                newName: "Artikelkenmerken");
+                table: "Product"); // Verwijder de kolom i.p.v. rename
 
             migrationBuilder.AlterColumn<bool>(
                 name: "Status",
@@ -79,14 +76,6 @@ namespace backend.Migrations
                 nullable: true,
                 oldClrType: typeof(bool),
                 oldType: "bit");
-
-            migrationBuilder.AddForeignKey(
-                name: "FK_Veiling_Veilingsmeester_VeilingsmeesterID",
-                table: "Veiling",
-                column: "VeilingsmeesterID",
-                principalTable: "Veilingsmeester",
-                principalColumn: "Id",
-                onDelete: ReferentialAction.Restrict);
         }
     }
 }
