@@ -155,6 +155,50 @@ namespace backend.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("Product", b =>
+                {
+                    b.Property<int>("ProductId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ProductId"));
+
+                    b.Property<DateTime>("Dagdatum")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Foto")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Hoeveelheid")
+                        .HasColumnType("int");
+
+                    b.Property<string>("LeverancierID")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<decimal>("MinimumPrijs")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("Omschrijving")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ProductNaam")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Varieteit")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("ProductId");
+
+                    b.HasIndex("LeverancierID");
+
+                    b.ToTable("Product");
+                });
+
             modelBuilder.Entity("TreeMarket_Klas4_Groep7.Models.Bid", b =>
                 {
                     b.Property<int>("BidID")
@@ -306,43 +350,7 @@ namespace backend.Migrations
                     b.UseTptMappingStrategy();
                 });
 
-            modelBuilder.Entity("TreeMarket_Klas4_Groep7.Models.Product", b =>
-                {
-                    b.Property<int>("ProductId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ProductId"));
-
-                    b.Property<string>("Artikelkenmerken")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("Dagdatum")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Foto")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("Hoeveelheid")
-                        .HasColumnType("int");
-
-                    b.Property<string>("LeverancierID")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<decimal>("MinimumPrijs")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.HasKey("ProductId");
-
-                    b.HasIndex("LeverancierID");
-
-                    b.ToTable("Product");
-                });
-
-            modelBuilder.Entity("TreeMarket_Klas4_Groep7.Models.Veiling", b =>
+            modelBuilder.Entity("Veiling", b =>
                 {
                     b.Property<int>("VeilingID")
                         .ValueGeneratedOnAdd()
@@ -365,7 +373,7 @@ namespace backend.Migrations
                     b.Property<decimal>("StartPrijs")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<bool?>("Status")
+                    b.Property<bool>("Status")
                         .HasColumnType("bit");
 
                     b.Property<int>("TimerInSeconden")
@@ -410,7 +418,7 @@ namespace backend.Migrations
                     b.ToTable("Leverancier", (string)null);
                 });
 
-            modelBuilder.Entity("TreeMarket_Klas4_Groep7.Models.Veilingsmeester", b =>
+            modelBuilder.Entity("Veilingsmeester", b =>
                 {
                     b.HasBaseType("TreeMarket_Klas4_Groep7.Models.Gebruiker");
 
@@ -471,6 +479,17 @@ namespace backend.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Product", b =>
+                {
+                    b.HasOne("TreeMarket_Klas4_Groep7.Models.Leverancier", "Leverancier")
+                        .WithMany("Producten")
+                        .HasForeignKey("LeverancierID")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Leverancier");
+                });
+
             modelBuilder.Entity("TreeMarket_Klas4_Groep7.Models.Bid", b =>
                 {
                     b.HasOne("TreeMarket_Klas4_Groep7.Models.Klant", "Klant")
@@ -479,7 +498,7 @@ namespace backend.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("TreeMarket_Klas4_Groep7.Models.Veiling", "Veiling")
+                    b.HasOne("Veiling", "Veiling")
                         .WithMany()
                         .HasForeignKey("VeilingID")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -498,7 +517,7 @@ namespace backend.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("TreeMarket_Klas4_Groep7.Models.Veiling", "Veiling")
+                    b.HasOne("Veiling", "Veiling")
                         .WithMany()
                         .HasForeignKey("VeilingId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -511,7 +530,7 @@ namespace backend.Migrations
 
             modelBuilder.Entity("TreeMarket_Klas4_Groep7.Models.Dashboard", b =>
                 {
-                    b.HasOne("TreeMarket_Klas4_Groep7.Models.Product", "Product")
+                    b.HasOne("Product", "Product")
                         .WithMany()
                         .HasForeignKey("ProductID")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -520,26 +539,15 @@ namespace backend.Migrations
                     b.Navigation("Product");
                 });
 
-            modelBuilder.Entity("TreeMarket_Klas4_Groep7.Models.Product", b =>
+            modelBuilder.Entity("Veiling", b =>
                 {
-                    b.HasOne("TreeMarket_Klas4_Groep7.Models.Leverancier", "Leverancier")
-                        .WithMany("Producten")
-                        .HasForeignKey("LeverancierID")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Leverancier");
-                });
-
-            modelBuilder.Entity("TreeMarket_Klas4_Groep7.Models.Veiling", b =>
-                {
-                    b.HasOne("TreeMarket_Klas4_Groep7.Models.Product", "Product")
+                    b.HasOne("Product", "Product")
                         .WithMany("Veilingen")
                         .HasForeignKey("ProductID")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("TreeMarket_Klas4_Groep7.Models.Veilingsmeester", "Veilingsmeester")
+                    b.HasOne("TreeMarket_Klas4_Groep7.Models.Gebruiker", "Veilingsmeester")
                         .WithMany()
                         .HasForeignKey("VeilingsmeesterID")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -568,16 +576,16 @@ namespace backend.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("TreeMarket_Klas4_Groep7.Models.Veilingsmeester", b =>
+            modelBuilder.Entity("Veilingsmeester", b =>
                 {
                     b.HasOne("TreeMarket_Klas4_Groep7.Models.Gebruiker", null)
                         .WithOne()
-                        .HasForeignKey("TreeMarket_Klas4_Groep7.Models.Veilingsmeester", "Id")
+                        .HasForeignKey("Veilingsmeester", "Id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("TreeMarket_Klas4_Groep7.Models.Product", b =>
+            modelBuilder.Entity("Product", b =>
                 {
                     b.Navigation("Veilingen");
                 });

@@ -8,9 +8,9 @@ namespace backend.Models.DTO
         public decimal StartPrijs { get; set; }
 
         [Required]
-        public int PrijsStap { get; set; }
+        public int ProductID { get; set; }
 
         [Required]
-        public int ProductID { get; set; }
+        public int TimerInSeconden { get; set; }
     }
 }

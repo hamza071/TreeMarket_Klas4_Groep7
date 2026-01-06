@@ -41,4 +41,11 @@
       <None Include="Interfaces\.vs\slnx.sqlite" />
     </ItemGroup>
 
+    <ItemGroup>
+      <None Include="Interfaces\.vs\Interfaces\CopilotIndices\17.14.1204.46620\CodeChunks.db" />
+      <None Include="Interfaces\.vs\Interfaces\CopilotIndices\17.14.1204.46620\SemanticSymbols.db" />
+      <None Include="Interfaces\.vs\Interfaces\FileContentIndex\43146d3a-3350-4b23-8de9-e74fbe3f4444.vsidx" />
+      <None Include="Interfaces\.vs\slnx.sqlite" />
+    </ItemGroup>
+
 </Project>

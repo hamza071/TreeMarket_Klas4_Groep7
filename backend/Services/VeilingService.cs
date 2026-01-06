@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using backend.Interfaces;
 using backend.Data;
@@ -18,59 +19,83 @@ namespace backend.Services
             _context = context;
         }
 
-        // Haal alle veilingen op (Eist de Interface)
-        public async Task<List<Veiling>> GetAllAsync()
+        // Haal alle actieve veilingen op (Return DTOs voor frontend)
+        public async Task<List<VeilingResponseDto>> GetAllAsync()
         {
-            return await _context.Veiling
+            var veilingen = await _context.Veilingen
                 .Include(v => v.Product)
+                .Where(v => v.Status) // Alleen actieve veilingen
                 .ToListAsync();
+
+            return veilingen.Select(v => new VeilingResponseDto
+            {
+                VeilingID = v.VeilingID,
+                Status = v.Status,
+                StartPrijs = v.StartPrijs,
+                HuidigePrijs = v.HuidigePrijs,
+                TimerInSeconden = v.TimerInSeconden,
+                ProductID = v.ProductID,
+                ProductNaam = v.Product.ProductNaam,
+                Foto = v.Product.Foto
+            }).ToList();
         }
 
-        // Haal 1 veiling op (Eist de Interface)
+        // Haal 1 veiling op (entity)
         public async Task<Veiling> GetByIdAsync(int id)
         {
-            var veiling = await _context.Veiling
+            var veiling = await _context.Veilingen
                 .Include(v => v.Product)
-                // HIER IS DE FIX: VeilingID in plaats van Id
-                .FirstOrDefaultAsync(v => v.VeilingID == id); 
+                .FirstOrDefaultAsync(v => v.VeilingID == id);
 
             if (veiling == null)
-            {
                 throw new KeyNotFoundException($"Veiling met ID {id} niet gevonden.");
-            }
 
             return veiling;
         }
 
-        // Maak veiling aan (Aangepast naar VeilingDto om error in Controller te fixen)
-        public async Task<Veiling> CreateVeilingAsync(VeilingDto dto, string userId)
+        // Maak veiling aan (ZONDER autorisatie-logica)
+        public async Task<VeilingResponseDto> CreateVeilingAsync(VeilingDto dto, string userId)
         {
-            // AANGEPAST: _context.Product (Enkelvoud!) in plaats van Products
-            var product = await _context.Product.FindAsync(dto.ProductID); 
-    
-            if (product == null) throw new KeyNotFoundException("Product niet gevonden");
+            var product = await _context.Products
+                .FirstOrDefaultAsync(p => p.ProductId == dto.ProductID);
+            if (product == null)
+                throw new KeyNotFoundException("Product niet gevonden.");
 
             var veiling = new Veiling
             {
-                ProductID = product.ProductId,
                 StartPrijs = dto.StartPrijs,
                 HuidigePrijs = dto.StartPrijs,
+                // Tip: Je DTO heeft ook 'PrijsStap', dus die kun je hier gebruiken in plaats van hardcoded '1'
                 PrijsStap = dto.PrijsStap, 
                 VeilingsmeesterID = userId,
                 Status = true
             };
 
-            await _context.Veiling.AddAsync(veiling);
+            _context.Veilingen.Add(veiling);
             await _context.SaveChangesAsync();
 
-            return veiling;
+            return new VeilingResponseDto
+            {
+                VeilingID = veiling.VeilingID,
+                Status = veiling.Status,
+                StartPrijs = veiling.StartPrijs,
+                HuidigePrijs = veiling.HuidigePrijs,
+                TimerInSeconden = veiling.TimerInSeconden,
+                ProductID = product.ProductId,
+                ProductNaam = product.ProductNaam,
+                Foto = product.Foto
+            };
         }
+
+        // Plaats een bod
         public async Task<Bid> PlaceBidAsync(CreateBidDTO dto, string userId)
         {
-            // OOK HIER DE FIX: FindAsync zoekt automatisch op de Primary Key (VeilingID)
-            var veiling = await _context.Veiling.FindAsync(dto.VeilingID);
-            
-            if (veiling == null) throw new KeyNotFoundException($"Veiling with id {dto.VeilingID} not found.");
+            var veiling = await _context.Veilingen.FindAsync(dto.VeilingID);
+            if (veiling == null)
+                throw new KeyNotFoundException($"Veiling with id {dto.VeilingID} not found.");
+
+            if (!veiling.Status)
+                throw new InvalidOperationException("Veiling is gesloten.");
 
             if (dto.Bod <= veiling.HuidigePrijs)
                 throw new InvalidOperationException("Bod moet hoger zijn dan de huidige prijs.");
@@ -90,15 +115,28 @@ namespace backend.Services
             return bid;
         }
 
+        // Update status veiling
         public async Task<Veiling> UpdateStatusAsync(int veilingId, bool status)
         {
-            var veiling = await _context.Veiling.FindAsync(veilingId);
-            if (veiling == null) throw new KeyNotFoundException($"Veiling with id {veilingId} not found.");
+            var veiling = await _context.Veilingen.FindAsync(veilingId);
+            if (veiling == null)
+                throw new KeyNotFoundException($"Veiling with id {veilingId} not found.");
 
             veiling.Status = status;
             await _context.SaveChangesAsync();
 
             return veiling;
         }
+
+        // verwijderen veiling
+        public async Task DeleteVeilingAsync(int veilingId)
+        {
+            var veiling = await _context.Veilingen.FindAsync(veilingId);
+            if (veiling == null) throw new KeyNotFoundException($"Veiling met ID {veilingId} niet gevonden.");
+
+            _context.Veilingen.Remove(veiling);
+            await _context.SaveChangesAsync();
+        }
+
     }
 }

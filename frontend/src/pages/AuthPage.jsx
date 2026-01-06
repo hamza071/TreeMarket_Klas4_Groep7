@@ -162,13 +162,19 @@ function AuthPage() {
                     }
                 }
 
-                setServerSuccess("Succesvol ingelogd!");
-                window.location.href = "/home";
+            // 4. rol in localStorage zodat App.jsx juiste menu kan tonen welke rol je hebt.
+            // Op ene andere manier werkt de rol niet samen met de token. Voor nu is het wel goed.
+            localStorage.setItem("role", role);
 
-            } catch (err) {
-                console.error(err);
-                setServerError("Er ging iets mis bij het inloggen.");
-            }
+            setServerSuccess("Succesvol ingelogd!");
+
+            // 5. navigate via react-router (avoids unused `navigate` eslint error)
+            navigate("/home");
+        } catch (err) {
+            console.error(err);
+            setServerError(
+                "Er ging iets mis bij het inloggen (server niet bereikbaar)."
+            );
         }
     };
 

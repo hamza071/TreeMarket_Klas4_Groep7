@@ -6,61 +6,57 @@ using backend.Interfaces;
 
 namespace backend.Services
 {
-    // ✅ Service class voor Product-logica
-    // Houdt LINQ-query’s netjes apart van de controller
-    public class ProductService: IProductController
+    public class ProductService : IProductController
     {
-        //Maakt gebruik van de ApiContext
         private readonly ApiContext _context;
 
         public ProductService(ApiContext context)
         {
-            _context = context; // DbContext injectie
+            _context = context;
         }
 
-        // ✅ Haal alle producten van vandaag op
+        // ===================== Haal producten van vandaag =====================
         public async Task<List<ProductDto>> GetProductenVanVandaagAsync()
         {
             var vandaag = DateTime.Today;
 
             return await _context.Product
-                .Where(p => p.Dagdatum.Date == vandaag)  // Filter: alleen producten van vandaag
-                .OrderBy(p => p.MinimumPrijs)           // Sorteer op minimumprijs
-                .Select(p => new ProductDto             // Projecteer naar DTO
+                .Where(p => p.Dagdatum.Date == vandaag)
+                .OrderBy(p => p.MinimumPrijs)
+                .Select(p => new ProductDto
                 {
                     ProductId = p.ProductId,
                     Foto = p.Foto,
-                    MinimumPrijs = p.MinimumPrijs,
-                    Hoeveelheid = p.Hoeveelheid
-                })
-                .ToListAsync(); // Voer query uit
-        }
-
-        // ✅ Haal producten op met Leverancier info
-        public async Task<List<ProductMetLeverancierDto>> GetProductenMetLeverancierAsync()
-        {
-            return await _context.Product
-                .Include(p => p.Leverancier) // Zorg dat Leverancier geladen wordt
-                .Select(p => new ProductMetLeverancierDto
-                {
-                    ProductId = p.ProductId,
-                    MinimumPrijs = p.MinimumPrijs,
-                    LeverancierNaam = p.Leverancier.Naam
+                    Hoeveelheid = p.Hoeveelheid,
+                    MinimumPrijs = p.MinimumPrijs
                 })
                 .ToListAsync();
         }
 
-        // ✅ Voeg een nieuw product toe of update een bestaand product
+        // ===================== Haal producten met leverancier info =====================
+        public async Task<List<ProductMetLeverancierDto>> GetProductenMetLeverancierAsync()
+        {
+            return await _context.Product
+                .Include(p => p.Leverancier)
+                .Select(p => new ProductMetLeverancierDto
+                {
+                    ProductId = p.ProductId,
+                    MinimumPrijs = p.MinimumPrijs,
+                    LeverancierNaam = p.Leverancier != null ? p.Leverancier.Bedrijf : null
+                })
+                .ToListAsync();
+        }
+
+        // ===================== Voeg product toe of update bestaand product =====================
         public async Task<Product?> AddOrUpdateProductAsync(Product product)
         {
             // ✅ Validatie
-            if (string.IsNullOrWhiteSpace(product.Artikelkenmerken)) return null;
+            if (string.IsNullOrWhiteSpace(product.ProductNaam)) return null;
             if (product.Hoeveelheid <= 0) return null;
             if (product.MinimumPrijs < 0) return null;
             if (product.Dagdatum.Date < DateTime.Today) return null;
             if (string.IsNullOrEmpty(product.LeverancierID)) return null;
 
-            // Add or update
             if (product.ProductId == 0)
             {
                 await _context.Product.AddAsync(product);
@@ -71,7 +67,9 @@ namespace backend.Services
                 if (productInDb != null)
                 {
                     productInDb.Foto = product.Foto;
-                    productInDb.Artikelkenmerken = product.Artikelkenmerken;
+                    productInDb.ProductNaam = product.ProductNaam;
+                    productInDb.Varieteit = product.Varieteit;
+                    productInDb.Omschrijving = product.Omschrijving;
                     productInDb.Hoeveelheid = product.Hoeveelheid;
                     productInDb.MinimumPrijs = product.MinimumPrijs;
                     productInDb.Dagdatum = product.Dagdatum;
@@ -87,12 +85,13 @@ namespace backend.Services
             return product;
         }
 
-
-        public async Task<Product> GetByIdAsync(int productId)
+        // ===================== Haal product op basis van ID =====================
+        public async Task<Product?> GetByIdAsync(int productId)
         {
             return await _context.Product.FindAsync(productId);
         }
 
+        // ===================== Verwijder product =====================
         public async Task<bool> DeleteAsync(int productId)
         {
             var product = await _context.Product.FindAsync(productId);

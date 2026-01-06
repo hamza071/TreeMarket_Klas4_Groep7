@@ -85,21 +85,23 @@ namespace backend.Controllers
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
+            // Maak Veilingsmeester direct aan, zonder extra IdentityUser
             var vm = new Veilingsmeester
             {
-                UserName = dto.Email,
-                Email = dto.Email,
                 Naam = dto.Naam,
-                PhoneNumber = dto.Telefoonnummer,
-                EmailConfirmed = true
+                UserName = dto.Email,         // IdentityUser property
+                Email = dto.Email,            // IdentityUser property
+                PhoneNumber = dto.Telefoonnummer, // IdentityUser property
+                EmailConfirmed = true,        // IdentityUser property
+                PlanDatum = DateTime.UtcNow
             };
 
             try
             {
+                // Gebruik bestaande AddUserAsync(Gebruiker, wachtwoord, rol)
                 await _service.AddUserAsync(vm, dto.Wachtwoord, "Veilingsmeester");
                 return Ok(new { message = "Veilingsmeester succesvol geregistreerd!" });
             }
-            // Als het mislukt (bijv. wachtwoord te zwak), stuur fouten terug
             catch (Exception ex)
             {
                 return BadRequest(ex.Message);
