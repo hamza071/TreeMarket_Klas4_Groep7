@@ -5,7 +5,7 @@ using backend.Models;
 
 namespace backend.Services
 {
-    public class LeverancierService : ILeverancierController
+    public class LeverancierService : ILeverancierService
     {
         private readonly UserManager<Gebruiker> _userManager;
 

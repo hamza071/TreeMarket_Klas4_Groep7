@@ -77,12 +77,12 @@ builder.Services.AddSwaggerGen(options =>
 
 // ============== De Controller klasses maakt gebruik van een interface :)==============
 // Je eigen services
-builder.Services.AddScoped<IProductController, ProductService>();
-builder.Services.AddScoped<IGebruikerController, GebruikerService>();
+builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddScoped<IGebruikerService, GebruikerService>();
 //builder.Services.AddScoped<IVeilingController, VeilingService>();
-builder.Services.AddScoped<ILeverancierController, LeverancierService>();
-builder.Services.AddScoped<IClaimController, ClaimService>();
-builder.Services.AddScoped<IDashboardController, DashboardService>();
+builder.Services.AddScoped<ILeverancierService, LeverancierService>();
+builder.Services.AddScoped<IClaimService, ClaimService>();
+builder.Services.AddScoped<IDashboardService, DashboardService>();
 
 // CORS beleid
 builder.Services.AddCors(options =>

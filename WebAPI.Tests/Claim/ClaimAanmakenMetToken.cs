@@ -23,7 +23,7 @@ namespace WebAPI.Tests.TClaim
         public async Task PostClaim_Succesvol_MetToken()
         {
             // Arrange
-            var mockService = new Mock<IClaimController>();
+            var mockService = new Mock<IClaimService>();
             mockService.Setup(s => s.CreateClaimAsync(It.IsAny<ClaimDto>(), "user-123"))
                        .ReturnsAsync((ClaimDto dto, string userId) => new Claim
                        {
@@ -64,7 +64,7 @@ namespace WebAPI.Tests.TClaim
         [Fact]
         public async Task PostClaim_Faalt_ZonderToken()
         {
-            var mockService = new Mock<IClaimController>();
+            var mockService = new Mock<IClaimService>();
             var controller = new ClaimController(mockService.Object);
 
             controller.ControllerContext = new ControllerContext

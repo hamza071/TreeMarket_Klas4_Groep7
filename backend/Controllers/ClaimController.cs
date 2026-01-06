@@ -16,9 +16,9 @@ namespace backend.Controllers
     [ApiController]
     public class ClaimController : ControllerBase
     {
-        private readonly IClaimController _service;
+        private readonly IClaimService _service;
 
-        public ClaimController(IClaimController service)
+        public ClaimController(IClaimService service)
         {
             _service = service;
         }

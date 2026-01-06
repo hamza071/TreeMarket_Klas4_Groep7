@@ -20,7 +20,7 @@ namespace WebAPI.Tests.TProduct
         public async Task ProductKanAangemaaktWorden_Succes()
         {
             // Arrange
-            var mockService = new Mock<IProductController>();
+            var mockService = new Mock<IProductService>();
 
             mockService.Setup(s => s.AddOrUpdateProductAsync(It.IsAny<Product>()))
                        .Returns<Product>(p =>

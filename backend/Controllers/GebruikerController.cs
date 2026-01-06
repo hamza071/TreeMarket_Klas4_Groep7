@@ -14,9 +14,9 @@ namespace backend.Controllers
     [ApiController]
     public class GebruikerController : ControllerBase
     {
-        private readonly IGebruikerController _service;
+        private readonly IGebruikerService _service;
 
-        public GebruikerController(IGebruikerController service)
+        public GebruikerController(IGebruikerService service)
         {
             _service = service;
         }

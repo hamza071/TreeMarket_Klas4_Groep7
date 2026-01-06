@@ -6,7 +6,7 @@ using backend.Models; // Zorg dat deze erbij staat voor 'Gebruiker'
 
 namespace backend.Services
 {
-    public class GebruikerService: IGebruikerController
+    public class GebruikerService: IGebruikerService
     {
         private readonly ApiContext _context;
         private readonly UserManager<Gebruiker> _userManager;

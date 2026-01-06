@@ -13,9 +13,9 @@ namespace backend.Controllers
     [ApiController]
     public class LeverancierController : ControllerBase
     {
-        private readonly ILeverancierController _service;
+        private readonly ILeverancierService _service;
 
-        public LeverancierController(ILeverancierController service)
+        public LeverancierController(ILeverancierService service)
         {
             _service = service;
         }

@@ -22,7 +22,7 @@ namespace WebAPI.Tests.TProduct
         public async Task ProductKanNietAangemaaktWorden_ZonderToken()
         {
             // Arrange
-            var mockService = new Mock<IProductController>();
+            var mockService = new Mock<IProductService>();
             mockService.Setup(s => s.AddOrUpdateProductAsync(It.IsAny<Product>()))
                        .Returns<Product>(p => Task.FromResult(p));
 
@@ -57,7 +57,7 @@ namespace WebAPI.Tests.TProduct
         public async Task KlantKanProductNietAanmaken()
         {
             // Arrange
-            var mockService = new Mock<IProductController>();
+            var mockService = new Mock<IProductService>();
             mockService.Setup(s => s.AddOrUpdateProductAsync(It.IsAny<Product>()))
                        .Returns<Product>(p => Task.FromResult(p));
 
@@ -102,7 +102,7 @@ namespace WebAPI.Tests.TProduct
         public async Task VeilingsmeesterKanProductNietAanmaken()
         {
             // Arrange
-            var mockService = new Mock<IProductController>();
+            var mockService = new Mock<IProductService>();
             mockService.Setup(s => s.AddOrUpdateProductAsync(It.IsAny<Product>()))
                        .Returns<Product>(p => Task.FromResult(p));
 
