@@ -14,10 +14,8 @@ namespace backend.Data
         public DbSet<Product> Product { get; set; }
         // DbSet<Gebruiker> hoeft eigenlijk niet meer (zit in IdentityDbContext als 'Users'), 
         // maar je mag hem laten staan als je oude code 'context.Gebruiker' gebruikt.
-        public DbSet<Gebruiker> Gebruiker { get; set; }
         public DbSet<Dashboard> Dashboard { get; set; }
         public DbSet<Claim> Claim { get; set; }
-        public DbSet<Leverancier> Leverancier { get; set; }
         public DbSet<Bid> Bids { get; set; }
         public DbSet<Veiling> Veiling { get; set; }
 
@@ -36,7 +34,7 @@ namespace backend.Data
 
             // === JOUW TABEL NAMEN ===
             // Hiermee overschrijf je de standaard Identity namen (zoals AspNetUsers)
-            // naar je eigen namen. Dit is goed!
+            // Nu wordt er een discriminator gebruikt.
 
             modelBuilder.Entity<Gebruiker>()
             .HasDiscriminator<string>("GebruikerType")
@@ -49,13 +47,13 @@ namespace backend.Data
             // Relaties configureren
             modelBuilder.Entity<Veiling>()
                 .HasOne(v => v.Product)
-                .WithMany(p => p.Veilingen) 
+                .WithMany(p => p.Veilingen)
                 .HasForeignKey(v => v.ProductID)
-                .OnDelete(DeleteBehavior.Restrict); 
+                .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<Product>()
                 .HasOne(p => p.Leverancier)
-                .WithMany(l => l.Producten) 
+                .WithMany(l => l.Producten)
                 .HasForeignKey(p => p.LeverancierID)
                 .OnDelete(DeleteBehavior.Restrict);
 
@@ -66,7 +64,7 @@ namespace backend.Data
                 .OnDelete(DeleteBehavior.Restrict);
 
 
-            // Cascade delete voorkomen
+            // Cascade delete voorkomen}
             foreach (var fk in modelBuilder.Model.GetEntityTypes()
                   .SelectMany(t => t.GetForeignKeys())
                   .Where(fk => fk.PrincipalEntityType.ClrType.IsSubclassOf(typeof(Gebruiker))))
@@ -84,7 +82,7 @@ namespace backend.Data
             modelBuilder.Entity<Veiling>()
                 .Property(v => v.StartPrijs)
                 .HasColumnType("decimal(18,2)");
-                
+
             // (Je had HuidigePrijs uitgecommentarieerd, die laat ik hier ook weg)
         }
     }

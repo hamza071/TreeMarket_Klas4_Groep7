@@ -57,7 +57,9 @@ public class ProductService : IProductService
 
         if (!isAdmin)
         {
-            var leverancier = await _context.Leverancier
+            //Maakt nu gebruik van de discriminator 
+            var leverancier = await _context.Users
+                .OfType<Leverancier>()
                 .FirstOrDefaultAsync(l => l.Id == userId);
 
             if (leverancier == null)
