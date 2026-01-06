@@ -6,13 +6,15 @@ namespace backend.Interfaces
 {
     public interface IProductService
     {
-        Task<List<ProductMetVeilingmeesterDto>> GetProductenVanVandaagAsync();
-        Task<List<ProductMetVeilingmeesterDto>> GetProductenMetLeverancierAsync();
+        Task<List<ProductMetVeilingmeesterDto>> GetVandaag();
+        // Get all products for today
+        Task<List<ProductMetVeilingmeesterDto>> GetMetLeverancier();
 
-        Task<Product> CreateProductAsync(ProductUploadDto dto, string userId, bool isAdmin);
-        Task<Product?> AddOrUpdateProductAsync(Product product);
+        // Get all products including supplier info
+        Task<ProductMetVeilingmeesterDto> PostProduct(ProductUploadDto productDto, string userId, bool isAdmin);
 
-        Task<ProductMetVeilingmeesterDto?> GetByIdAsync(int id);
+        // Get a product by its ID
+        Task<ProductMetVeilingmeesterDto?> GetProductById(int id);
     }
 
 }

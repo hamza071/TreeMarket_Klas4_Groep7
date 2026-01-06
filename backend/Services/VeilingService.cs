@@ -7,12 +7,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using backend.Data;
 using TreeMarket_Klas4_Groep7.Models;
-using backend.Models.DTO;
+using TreeMarket_Klas4_Groep7.Models.DTO;
 using TreeMarket_Klas4_Group7.Controllers;
 
-namespace TreeMarket_Klas4_Groep7.Services
+namespace backend.Services
 {
     public class VeilingService : IVeilingService
     {

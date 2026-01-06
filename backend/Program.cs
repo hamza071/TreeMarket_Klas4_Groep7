@@ -79,7 +79,7 @@ builder.Services.AddSwaggerGen(options =>
 // Je eigen services
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IGebruikerService, GebruikerService>();
-//builder.Services.AddScoped<IVeilingController, VeilingService>();
+builder.Services.AddScoped<IVeilingService, VeilingService>();
 builder.Services.AddScoped<ILeverancierService, LeverancierService>();
 builder.Services.AddScoped<IClaimService, ClaimService>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
