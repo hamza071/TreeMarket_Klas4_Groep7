@@ -1,6 +1,6 @@
 ﻿import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-//import { jwtDecode } from "jwt-decode";
+import { jwtDecode } from "jwt-decode";
 
 function AuthPage() {
     const [activeTab, setActiveTab] = useState("register");
@@ -102,8 +102,8 @@ function AuthPage() {
             }
         }
 
-            // =====================
-            // INLOGGEN
+        // =====================
+        // INLOGGEN
         // =====================
         else {
             try {
@@ -162,19 +162,13 @@ function AuthPage() {
                     }
                 }
 
-            // 4. rol in localStorage zodat App.jsx juiste menu kan tonen welke rol je hebt.
-            // Op ene andere manier werkt de rol niet samen met de token. Voor nu is het wel goed.
-            localStorage.setItem("role", role);
+                setServerSuccess("Succesvol ingelogd!");
+                window.location.href = "/home";
 
-            setServerSuccess("Succesvol ingelogd!");
-
-            // 5. navigate via react-router (avoids unused `navigate` eslint error)
-            navigate("/home");
-        } catch (err) {
-            console.error(err);
-            setServerError(
-                "Er ging iets mis bij het inloggen (server niet bereikbaar)."
-            );
+            } catch (err) {
+                console.error(err);
+                setServerError("Er ging iets mis bij het inloggen.");
+            }
         }
     };
 
