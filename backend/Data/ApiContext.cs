@@ -1,16 +1,32 @@
-﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore; // <--- NIEUW: Deze moet erbij!
+using System.Security.Cryptography;
 using backend.Models;
+using backend.Models.DTO;
 
 namespace backend.Data
 {
+    // AANGEPAST: Erft nu van IdentityDbContext<Gebruiker> in plaats van DbContext
     public class ApiContext : IdentityDbContext<Gebruiker>
     {
         public DbSet<Product> Product { get; set; }
+        public DbSet<Product> Products { get; set; }
+        // DbSet<Gebruiker> hoeft eigenlijk niet meer (zit in IdentityDbContext als 'Users'), 
+        // maar je mag hem laten staan als je oude code 'context.Gebruiker' gebruikt.
+        public DbSet<Gebruiker> Gebruiker { get; set; }
+
+        public DbSet<Veiling> Veiling { get; set; }
         public DbSet<Dashboard> Dashboard { get; set; }
         public DbSet<Claim> Claim { get; set; }
+        public DbSet<Leverancier> Leverancier { get; set; }
         public DbSet<Bid> Bids { get; set; }
-        public DbSet<Veiling> Veiling { get; set; }
+
+        // Vergeet de andere sub-types niet als je die apart wilt kunnen aanroepen!
+        public DbSet<Klant> Klant { get; set; }
+        public DbSet<Veilingsmeester> Veilingsmeester { get; set; }
+
 
         public ApiContext(DbContextOptions<ApiContext> options) : base(options)
         {
@@ -18,17 +34,20 @@ namespace backend.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            // BELANGRIJK: base call eerst
+            // BELANGRIJK: Deze 'base' call moet als EERSTE staan.
+            // Dit zorgt ervoor dat Identity alle tabellen (AspNetRoles, etc.) aanmaakt.
             base.OnModelCreating(modelBuilder);
 
-            // TPH: alles in AspNetUsers
-            modelBuilder.Entity<Gebruiker>()
-                .HasDiscriminator<string>("GebruikerType")
-                .HasValue<Klant>("Klant")
-                .HasValue<Leverancier>("Leverancier")
-                .HasValue<Veilingsmeester>("Veilingsmeester");
+            // === JOUW TABEL NAMEN ===
+            // Hiermee overschrijf je de standaard Identity namen (zoals AspNetUsers)
+            // naar je eigen namen. Dit is goed!
+            modelBuilder.Entity<Gebruiker>().ToTable("Gebruiker");
+            modelBuilder.Entity<Klant>().ToTable("Klant");
+            modelBuilder.Entity<Leverancier>().ToTable("Leverancier");
+            modelBuilder.Entity<Veilingsmeester>().ToTable("Veilingsmeester");
+            // ==============================
 
-            // Relaties
+            // Relaties configureren
             modelBuilder.Entity<Veiling>()
                 .HasOne(v => v.Product)
                 .WithMany(p => p.Veilingen)
@@ -47,7 +66,7 @@ namespace backend.Data
                 .HasForeignKey(v => v.VeilingsmeesterID)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // Cascade delete voorkomen voor subtypes
+            // Cascade delete voorkomen
             foreach (var fk in modelBuilder.Model.GetEntityTypes()
                   .SelectMany(t => t.GetForeignKeys())
                   .Where(fk => fk.PrincipalEntityType.ClrType.IsSubclassOf(typeof(Gebruiker))))
@@ -55,7 +74,7 @@ namespace backend.Data
                 fk.DeleteBehavior = DeleteBehavior.Restrict;
             }
 
-            // Decimals
+            // Decimals instellen
             modelBuilder.Entity<Claim>()
                 .Property(c => c.Prijs)
                 .HasColumnType("decimal(18,2)");
@@ -65,6 +84,8 @@ namespace backend.Data
             modelBuilder.Entity<Veiling>()
                 .Property(v => v.StartPrijs)
                 .HasColumnType("decimal(18,2)");
+
+            // (Je had HuidigePrijs uitgecommentarieerd, die laat ik hier ook weg)
         }
     }
 }

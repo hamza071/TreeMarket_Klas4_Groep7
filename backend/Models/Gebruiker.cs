@@ -23,15 +23,16 @@ namespace backend.Models
     }
 
     // 2. Klant (Child)
+    [Table("Klant")]
     public class Klant : Gebruiker
     {
         // Geen eigen ID nodig, hij gebruikt de 'Id' (string) van IdentityUser
-        
+
         // Je kunt hier specifieke klant-velden toevoegen als je wilt
     }
 
     // 3. Leverancier (Child)
- 
+    [Table("Leverancier")]
     public class Leverancier : Gebruiker
     {
         // Geen LeverancierId nodig, hij gebruikt de 'Id' van de ouder.
@@ -53,7 +54,7 @@ namespace backend.Models
     }
 
     // 4. Veilingsmeester (Child)
-
+    [Table("Veilingsmeester")]
     public class Veilingsmeester : Gebruiker
     {
         [Required]
