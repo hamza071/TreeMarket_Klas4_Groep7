@@ -4,7 +4,7 @@
 //De interfaces worden gelinked met de services! Zodat ze in de controller gebruik gemaakt worden.
 namespace backend.Interfaces
 {
-    public interface IGebruikerController
+    public interface IGebruikerService
     {
         //Kan geen async zetten omdat het de body van de functie nodig heeft.
         Task<Gebruiker> GetByEmailAsync(string email);

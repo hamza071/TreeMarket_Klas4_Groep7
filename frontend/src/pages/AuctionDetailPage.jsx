@@ -15,9 +15,7 @@ function AuctionDetailPage() {
     useEffect(() => {
         const fetchLot = async () => {
             try {
-                const response = await fetch(`https://localhost:7054/api/Product/${code}`, {
-                    headers: { Accept: "application/json" }
-                });
+                const response = await fetch(`https://localhost:7054/api/Product/${code}`, { headers: { Accept: "application/json" } });
                 if (!response.ok) throw new Error('Kavel niet gevonden');
                 const data = await response.json();
                 setLot(data);
@@ -29,9 +27,13 @@ function AuctionDetailPage() {
             }
         };
 
-    if (!lot) return null;
+        fetchLot(); // vergeet dit niet!
+    }, [code, navigate]);
+
+    if (!lot) return <p>Loading...</p>; // of return null;
+
     ////////j
-    const handlePublish = () => {
+    const handlePublish = async () => {
         if (!startPrice || !closingTime) return alert('Vul alle velden in!');
 
         const prijsStap = Math.max(1, Math.ceil(startPrice * 0.1));

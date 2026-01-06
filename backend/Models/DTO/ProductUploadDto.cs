@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using System.ComponentModel.DataAnnotations;
 
-namespace TreeMarket_Klas4_Groep7.Models.DTO
+namespace backend.Models.DTO
 {
     // DTO voor product uploads (via FormData)
     public class ProductUploadDto

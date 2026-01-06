@@ -1,105 +1,135 @@
 ﻿using backend.Data;
+using backend.Interfaces;
 using backend.Models;
 using backend.Models.DTO;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
-using backend.Interfaces;
 
-namespace backend.Services
+public class ProductService : IProductService
 {
-    public class ProductService : IProductController
+    private readonly ApiContext _context;
+
+    public ProductService(ApiContext context)
     {
-        private readonly ApiContext _context;
+        _context = context;
+    }
 
-        public ProductService(ApiContext context)
-        {
-            _context = context;
-        }
+    public async Task<List<ProductMetVeilingmeesterDto>> GetProductenVanVandaagAsync()
+    {
+        var today = DateTime.UtcNow.Date;
 
-        // ===================== Haal producten van vandaag =====================
-        public async Task<List<ProductDto>> GetProductenVanVandaagAsync()
-        {
-            var vandaag = DateTime.Today;
-
-            return await _context.Product
-                .Where(p => p.Dagdatum.Date == vandaag)
-                .OrderBy(p => p.MinimumPrijs)
-                .Select(p => new ProductDto
-                {
-                    ProductId = p.ProductId,
-                    Foto = p.Foto,
-                    Hoeveelheid = p.Hoeveelheid,
-                    MinimumPrijs = p.MinimumPrijs
-                })
-                .ToListAsync();
-        }
-
-        // ===================== Haal producten met leverancier info =====================
-        public async Task<List<ProductMetLeverancierDto>> GetProductenMetLeverancierAsync()
-        {
-            return await _context.Product
-                .Include(p => p.Leverancier)
-                .Select(p => new ProductMetLeverancierDto
-                {
-                    ProductId = p.ProductId,
-                    MinimumPrijs = p.MinimumPrijs,
-                    LeverancierNaam = p.Leverancier != null ? p.Leverancier.Bedrijf : null
-                })
-                .ToListAsync();
-        }
-
-        // ===================== Voeg product toe of update bestaand product =====================
-        public async Task<Product?> AddOrUpdateProductAsync(Product product)
-        {
-            // ✅ Validatie
-            if (string.IsNullOrWhiteSpace(product.ProductNaam)) return null;
-            if (product.Hoeveelheid <= 0) return null;
-            if (product.MinimumPrijs < 0) return null;
-            if (product.Dagdatum.Date < DateTime.Today) return null;
-            if (string.IsNullOrEmpty(product.LeverancierID)) return null;
-
-            if (product.ProductId == 0)
+        return await _context.Product
+            .Include(p => p.Leverancier)
+            .Where(p => p.Dagdatum.Date == today)
+            .Select(p => new ProductMetVeilingmeesterDto
             {
-                await _context.Product.AddAsync(product);
-            }
-            else
+                ProductId = p.ProductId,
+                Naam = p.ProductNaam,
+                Varieteit = p.Varieteit,
+                Omschrijving = p.Omschrijving,
+                Hoeveelheid = p.Hoeveelheid,
+                MinimumPrijs = p.MinimumPrijs,
+                Foto = p.Foto,
+                Status = "pending",
+                LeverancierNaam = p.Leverancier!.Bedrijf
+            })
+            .ToListAsync();
+    }
+
+    public async Task<List<ProductMetVeilingmeesterDto>> GetProductenMetLeverancierAsync()
+    {
+        return await _context.Product
+            .Include(p => p.Leverancier)
+            .Select(p => new ProductMetVeilingmeesterDto
             {
-                var productInDb = await _context.Product.FindAsync(product.ProductId);
-                if (productInDb != null)
-                {
-                    productInDb.Foto = product.Foto;
-                    productInDb.ProductNaam = product.ProductNaam;
-                    productInDb.Varieteit = product.Varieteit;
-                    productInDb.Omschrijving = product.Omschrijving;
-                    productInDb.Hoeveelheid = product.Hoeveelheid;
-                    productInDb.MinimumPrijs = product.MinimumPrijs;
-                    productInDb.Dagdatum = product.Dagdatum;
-                    productInDb.LeverancierID = product.LeverancierID;
-                }
-                else
-                {
-                    return null; // Product niet gevonden
-                }
-            }
+                ProductId = p.ProductId,
+                Naam = p.ProductNaam,
+                MinimumPrijs = p.MinimumPrijs,
+                LeverancierNaam = p.Leverancier!.Bedrijf
+            })
+            .ToListAsync();
+    }
 
-            await _context.SaveChangesAsync();
-            return product;
-        }
+    [Authorize(Roles = "Leverancier,Admin")]
+    public async Task<Product> CreateProductAsync(ProductUploadDto dto, string userId, bool isAdmin)
+    {
+        string leverancierId = userId;
 
-        // ===================== Haal product op basis van ID =====================
-        public async Task<Product?> GetByIdAsync(int productId)
+        if (!isAdmin)
         {
-            return await _context.Product.FindAsync(productId);
-        }
+            var leverancier = await _context.Leverancier
+                .FirstOrDefaultAsync(l => l.Id == userId);
 
-        // ===================== Verwijder product =====================
-        public async Task<bool> DeleteAsync(int productId)
+            if (leverancier == null)
+                throw new InvalidOperationException("Geen leverancier-profiel gevonden.");
+        }
+        // optioneel: Admin mag product aanmaken zonder leverancier-profiel
+        // of met een default leverancier
+
+        // -------- Image upload --------
+        string fotoUrl = "/images/default.png";
+
+        if (dto.Foto != null)
         {
-            var product = await _context.Product.FindAsync(productId);
-            if (product == null) return false;
+            var uploadsFolder = Path.Combine(
+                Directory.GetCurrentDirectory(),
+                "wwwroot/images");
 
-            _context.Product.Remove(product);
-            await _context.SaveChangesAsync();
-            return true;
+            Directory.CreateDirectory(uploadsFolder);
+
+            var uniqueFileName = Guid.NewGuid()
+                + Path.GetExtension(dto.Foto.FileName);
+
+            var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+            using var stream = new FileStream(filePath, FileMode.Create);
+            await dto.Foto.CopyToAsync(stream);
+
+            fotoUrl = "/images/" + uniqueFileName;
         }
+
+        var product = new Product
+        {
+            ProductNaam = dto.ProductNaam,
+            Varieteit = dto.Varieteit ?? "Onbekend",
+            Omschrijving = dto.Omschrijving ?? "Geen omschrijving",
+            Hoeveelheid = dto.Hoeveelheid,
+            MinimumPrijs = dto.MinimumPrijs,
+            Dagdatum = DateTime.UtcNow,
+            LeverancierID = leverancierId,
+            Foto = fotoUrl
+        };
+
+        _context.Product.Add(product);
+        await _context.SaveChangesAsync();
+
+        return product;
+    }
+
+
+    public async Task<Product?> AddOrUpdateProductAsync(Product product)
+    {
+        if (product.ProductId == 0)
+            await _context.Product.AddAsync(product);
+        else
+            _context.Product.Update(product);
+
+        await _context.SaveChangesAsync();
+        return product;
+    }
+
+    public async Task<ProductMetVeilingmeesterDto?> GetByIdAsync(int id)
+    {
+        return await _context.Product
+            .Include(p => p.Leverancier)
+            .Where(p => p.ProductId == id)
+            .Select(p => new ProductMetVeilingmeesterDto
+            {
+                ProductId = p.ProductId,
+                Naam = p.ProductNaam,
+                MinimumPrijs = p.MinimumPrijs,
+                LeverancierNaam = p.Leverancier!.Bedrijf
+            })
+            .FirstOrDefaultAsync();
     }
 }

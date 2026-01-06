@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore; // <--- NIEUW: Deze moet erbij!
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using System.Security.Cryptography;
 using backend.Models;
 using backend.Models.DTO;
@@ -12,21 +12,16 @@ namespace backend.Data
     public class ApiContext : IdentityDbContext<Gebruiker>
     {
         public DbSet<Product> Product { get; set; }
-        public DbSet<Product> Products { get; set; }
         // DbSet<Gebruiker> hoeft eigenlijk niet meer (zit in IdentityDbContext als 'Users'), 
         // maar je mag hem laten staan als je oude code 'context.Gebruiker' gebruikt.
         public DbSet<Gebruiker> Gebruiker { get; set; }
-
-        public DbSet<Veiling> Veiling { get; set; }
         public DbSet<Dashboard> Dashboard { get; set; }
         public DbSet<Claim> Claim { get; set; }
         public DbSet<Leverancier> Leverancier { get; set; }
         public DbSet<Bid> Bids { get; set; }
-        public DbSet<Veiling> Veilingen { get; set; }
+        public DbSet<Veiling> Veiling { get; set; }
 
         // Vergeet de andere sub-types niet als je die apart wilt kunnen aanroepen!
-        public DbSet<Klant> Klant { get; set; }
-        //public DbSet<Veilingsmeester> Veilingsmeester { get; set; } // tijdelijk verwijderd
 
 
         public ApiContext(DbContextOptions<ApiContext> options) : base(options)
@@ -42,11 +37,14 @@ namespace backend.Data
             // === JOUW TABEL NAMEN ===
             // Hiermee overschrijf je de standaard Identity namen (zoals AspNetUsers)
             // naar je eigen namen. Dit is goed!
-            modelBuilder.Entity<Gebruiker>().ToTable("Gebruiker");
-            modelBuilder.Entity<Klant>().ToTable("Klant");
-            modelBuilder.Entity<Leverancier>().ToTable("Leverancier");
-            modelBuilder.Entity<Veilingsmeester>().ToTable("Veilingsmeester");
-            // ==============================
+
+            modelBuilder.Entity<Gebruiker>()
+            .HasDiscriminator<string>("GebruikerType")
+            .HasValue<Gebruiker>("Gebruiker")
+            .HasValue<Klant>("Klant")
+            .HasValue<Leverancier>("Leverancier")
+            .HasValue<Veilingsmeester>("Veilingsmeester");
+
 
             // Relaties configureren
             modelBuilder.Entity<Veiling>()

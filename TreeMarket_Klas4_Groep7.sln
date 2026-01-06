@@ -4,6 +4,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 17.14.36511.14
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{54A90642-561A-4BB1-A94E-469ADEE60C69}") = "frontend", "FrontEnd\frontend.esproj", "{462EE049-9FE1-B47D-1B3E-22BACA5D9185}"
+	ProjectSection(ProjectDependencies) = postProject
+		{B5CEE1AB-68C5-FCEC-EA61-653FFB609ED2} = {B5CEE1AB-68C5-FCEC-EA61-653FFB609ED2}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebAPI.Tests", "WebAPI.Tests\WebAPI.Tests.csproj", "{EA4186AF-479B-4E10-B90B-85BF15B81DC9}"
 EndProject

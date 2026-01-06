@@ -6,8 +6,8 @@ using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using backend.Data;
 using backend.Models;
-using backend.Models.DTO;
 using Claim = backend.Models.Claim;
+using backend.Models.DTO;
 
 
 namespace backend.Controllers
@@ -16,9 +16,9 @@ namespace backend.Controllers
     [ApiController]
     public class ClaimController : ControllerBase
     {
-        private readonly IClaimController _service;
+        private readonly IClaimService _service;
 
-        public ClaimController(IClaimController service)
+        public ClaimController(IClaimService service)
         {
             _service = service;
         }

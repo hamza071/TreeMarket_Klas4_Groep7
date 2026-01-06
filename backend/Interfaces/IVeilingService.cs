@@ -5,7 +5,7 @@ using backend.Models.DTO;
 
 namespace backend.Interfaces
 {
-    public interface IVeilingController
+    public interface IVeilingService
     {
         Task<VeilingResponseDto> CreateVeilingAsync(VeilingDto dto, string userId);
 

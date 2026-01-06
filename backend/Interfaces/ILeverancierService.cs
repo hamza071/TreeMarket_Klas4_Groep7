@@ -2,7 +2,7 @@
 
 namespace backend.Interfaces
 {
-    public interface ILeverancierController
+    public interface ILeverancierService
     {
         Task<IEnumerable<Leverancier>> GetAllAsync();
         Task<Leverancier> GetByIdAsync(string id);

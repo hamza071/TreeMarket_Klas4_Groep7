@@ -11,6 +11,10 @@ namespace backend.Models.DTO
         public int ProductID { get; set; }
 
         [Required]
+        [Range(0.01, double.MaxValue)]
+        public decimal PrijsStap { get; set; }
+
+        [Required]
         public int TimerInSeconden { get; set; }
     }
 }

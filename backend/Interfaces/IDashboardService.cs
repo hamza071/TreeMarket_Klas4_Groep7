@@ -2,7 +2,7 @@
 
 namespace backend.Interfaces
 {
-    public interface IDashboardController
+    public interface IDashboardService
     {
         Task<IEnumerable<Dashboard>> GetAllAsync();
         Task<Dashboard?> GetByIdAsync(int id);

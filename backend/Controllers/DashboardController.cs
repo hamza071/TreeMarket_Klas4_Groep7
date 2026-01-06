@@ -10,9 +10,9 @@ namespace backend.Controllers
     [ApiController]
     public class DashboardsController : ControllerBase
     {
-        private readonly IDashboardController _service;
+        private readonly IDashboardService _service;
 
-        public DashboardsController(IDashboardController service)
+        public DashboardsController(IDashboardService service)
         {
             _service = service;
         }

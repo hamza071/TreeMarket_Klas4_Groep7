@@ -3,7 +3,7 @@ using backend.Models.DTO;
 
 namespace backend.Interfaces
 {
-    public interface IClaimController
+    public interface IClaimService
     {
         Task<IEnumerable<Claim>> GetClaimsAsync();
         Task<Claim> CreateClaimAsync(ClaimDto dto, string userId);

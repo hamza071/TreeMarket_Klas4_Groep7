@@ -5,7 +5,7 @@ using backend.Models;
 
 namespace backend.Services
 {
-    public class DashboardService : IDashboardController
+    public class DashboardService : IDashboardService
     {
         private readonly ApiContext _context;
 

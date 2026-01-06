@@ -6,7 +6,7 @@ using backend.Models.DTO;
 
 namespace backend.Services
 {
-    public class ClaimService : IClaimController
+    public class ClaimService : IClaimService
     {
         private readonly ApiContext _context;
 
