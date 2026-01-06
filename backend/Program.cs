@@ -45,6 +45,15 @@ builder.Services.AddAuthorization();
 
 // ============================================================
 
+// ============== De Controller klasses maakt gebruik van een interface :)==============
+// Je eigen services
+builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddScoped<IGebruikerService, GebruikerService>();
+builder.Services.AddScoped<IVeilingService, VeilingService>();
+builder.Services.AddScoped<ILeverancierService, LeverancierService>();
+builder.Services.AddScoped<IClaimService, ClaimService>();
+builder.Services.AddScoped<IDashboardService, DashboardService>();
+
 // Services toevoegen
 builder.Services.AddControllersWithViews();
 builder.Services.AddEndpointsApiExplorer();
@@ -75,14 +84,7 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
-// ============== De Controller klasses maakt gebruik van een interface :)==============
-// Je eigen services
-builder.Services.AddScoped<IProductService, ProductService>();
-builder.Services.AddScoped<IGebruikerService, GebruikerService>();
-builder.Services.AddScoped<IVeilingService, VeilingService>();
-builder.Services.AddScoped<ILeverancierService, LeverancierService>();
-builder.Services.AddScoped<IClaimService, ClaimService>();
-builder.Services.AddScoped<IDashboardService, DashboardService>();
+
 
 // CORS beleid
 builder.Services.AddCors(options =>
@@ -103,14 +105,14 @@ var app = builder.Build();
 // ============================================================
 using (var scope = app.Services.CreateScope())
 {
-    // 1. HAAL EERST DE DATABASE CONTEXT OP
-    var context = scope.ServiceProvider.GetRequiredService<ApiContext>();
+    //// 1. HAAL EERST DE DATABASE CONTEXT OP
+    //var context = scope.ServiceProvider.GetRequiredService<ApiContext>();
     
-    // 2. VOER DE MIGRATIES UIT (MAAK TABELLEN AAN IN AZURE)
-    // Dit commando zorgt dat de database tabellen worden aangemaakt als ze nog niet bestaan.
-    context.Database.Migrate();
+    //// 2. VOER DE MIGRATIES UIT (MAAK TABELLEN AAN IN AZURE)
+    //// Dit commando zorgt dat de database tabellen worden aangemaakt als ze nog niet bestaan.
+    //context.Database.Migrate();
 
-    // ---------------------------------------------------------
+    //// ---------------------------------------------------------
 
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
     var userManager = scope.ServiceProvider.GetRequiredService<UserManager<Gebruiker>>();
@@ -145,6 +147,34 @@ using (var scope = app.Services.CreateScope())
             await userManager.AddToRoleAsync(user, "Admin");
         }
     }
+
+    // ==========================
+    // Toevoegen test Veilingsmeester
+    // ==========================
+    var testEmail = "test@treemarket.nl";
+    var testUser = await userManager.FindByEmailAsync(testEmail);
+    if (testUser == null)
+    {
+        testUser = new Gebruiker
+        {
+            UserName = testEmail,
+            Email = testEmail,
+            EmailConfirmed = true,
+            Naam = "Veilingsmeester Test"
+        };
+
+        var createResult = await userManager.CreateAsync(testUser, "Veiling123!");
+        if (createResult.Succeeded)
+        {
+            Console.WriteLine("Test gebruiker aangemaakt: " + testEmail);
+        }
+    }
+
+    if (!await userManager.IsInRoleAsync(testUser, "Veilingsmeester"))
+    {
+        await userManager.AddToRoleAsync(testUser, "Veilingsmeester");
+        Console.WriteLine("Rol Veilingsmeester toegevoegd aan: " + testEmail);
+    }
 }
 // ============================================================
 
@@ -154,14 +184,16 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseStaticFiles();
+
 app.UseHttpsRedirection();
 app.UseCors("AllowAll");
 
-// ZET DEZE AAN: Dit maakt de /login en /register endpoints
-app.MapIdentityApi<Gebruiker>();
-
 app.UseAuthentication();
 app.UseAuthorization();
+
+// ZET DEZE AAN: Dit maakt de /login en /register endpoints
+app.MapIdentityApi<Gebruiker>();
 
 app.MapControllers();
 

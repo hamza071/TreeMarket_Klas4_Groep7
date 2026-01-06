@@ -25,7 +25,7 @@ namespace backend.Data
         
         // Vergeet de andere sub-types niet als je die apart wilt kunnen aanroepen!
         public DbSet<Klant> Klant { get; set; }
-        public DbSet<Veilingsmeester> Veilingsmeester { get; set; }
+        //public DbSet<Veilingsmeester> Veilingsmeester { get; set; }
 
 
         public ApiContext(DbContextOptions<ApiContext> options) : base(options)

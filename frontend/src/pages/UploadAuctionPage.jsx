@@ -25,18 +25,18 @@ function UploadAuctionPage() {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        // Validatie
-        if (!form.title.trim()) return alert("Titel is verplicht.");
+        // Frontend-validatie
+        if (!form.title.trim()) return alert("Productnaam is verplicht.");
         if (!form.quantity || Number(form.quantity) < 1) return alert("Aantal moet minimaal 1 zijn.");
         if (!form.minPrice || Number(form.minPrice) <= 0) return alert("Minimumprijs moet groter dan 0 zijn.");
 
         const formData = new FormData();
-        formData.append("Title", form.title.trim());
-        if (form.variety) formData.append("Variety", form.variety.trim());
-        formData.append("Quantity", Number(form.quantity));        // string -> int
-        if (form.description) formData.append("Description", form.description.trim());
-        formData.append("MinPrice", parseFloat(form.minPrice));    // string -> decimal
-        if (form.image) formData.append("Image", form.image);
+        formData.append("ProductNaam", form.title.trim());
+        formData.append("Varieteit", form.variety?.trim() ?? "");
+        formData.append("Omschrijving", form.description?.trim() ?? "");
+        formData.append("Hoeveelheid", Number(form.quantity));
+        formData.append("MinimumPrijs", parseFloat(form.minPrice));
+        if (form.image) formData.append("Foto", form.image);
 
         try {
             const token = localStorage.getItem("token");
@@ -46,6 +46,7 @@ function UploadAuctionPage() {
                 method: "POST",
                 headers: {
                     "Authorization": `Bearer ${token}`
+                    // Content-Type **niet** instellen bij FormData
                 },
                 body: formData
             });
@@ -53,9 +54,7 @@ function UploadAuctionPage() {
             const text = await response.text();
             console.log("Server response:", text);
 
-            if (!response.ok) {
-                return alert("Fout vanuit server: " + text);
-            }
+            if (!response.ok) return alert("Fout vanuit server: " + text);
 
             alert("Kavel is succesvol geüpload!");
             setForm(defaultForm);
@@ -69,7 +68,7 @@ function UploadAuctionPage() {
     return (
         <div className="upload-page">
             <header className="section-header">
-                <h1>Upload nieuwe veiling (leverancier)</h1>
+                <h1>Upload nieuwe kavel (leverancier)</h1>
                 <p id="upload-intro">
                     Voer je kavelgegevens in. Minimumprijs wordt door jou ingesteld.
                 </p>

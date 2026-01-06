@@ -3,23 +3,28 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import '../assets/css/UploadAuctionPage.css';
 
 function AuctionDetailPage() {
-    const { code } = useParams(); // dit is productId
+    const { code } = useParams(); // productId
     const navigate = useNavigate();
     const location = useLocation();
 
     const [lot, setLot] = useState(null);
     const [startPrice, setStartPrice] = useState('');
+    const [minPrice, setMinPrice] = useState(0);
     const [closingTime, setClosingTime] = useState(10);
 
     // Haal kavel op via API
     useEffect(() => {
         const fetchLot = async () => {
             try {
-                const response = await fetch(`https://localhost:7054/api/Product/${code}`, { headers: { Accept: "application/json" } });
+                const response = await fetch(`https://localhost:7054/api/Product/${code}`, {
+                    headers: { Accept: "application/json" }
+                });
                 if (!response.ok) throw new Error('Kavel niet gevonden');
                 const data = await response.json();
+
                 setLot(data);
-                setStartPrice((data.minimumPrijs || 0) + 1);
+                setMinPrice(Number(data.minimumPrijs ?? 0)); // ✅ minPrice van backend
+                setStartPrice(Number(data.minimumPrijs ?? 0) + 1);
                 setClosingTime(10);
             } catch (err) {
                 alert(err.message);
@@ -27,14 +32,22 @@ function AuctionDetailPage() {
             }
         };
 
-        fetchLot(); // vergeet dit niet!
-    }, [code, navigate]);
+        if (location.state?.lot) {
+            setLot(location.state.lot);
+            setMinPrice(Number(location.state.lot.minimumPrijs ?? 0));
+            setStartPrice(Number(location.state.lot.minimumPrijs ?? 0) + 1);
+            return;
+        }
 
-    if (!lot) return <p>Loading...</p>; // of return null;
+        fetchLot();
+    }, [code, navigate, location.state]);
 
-    ////////j
+    if (!lot) return <p>Laden van kavel…</p>;
+
+    // Publiceer veiling
     const handlePublish = async () => {
         if (!startPrice || !closingTime) return alert('Vul alle velden in!');
+        if (Number(startPrice) <= minPrice) return alert(`Startprijs moet hoger zijn dan minimale prijs (€${minPrice})`);
 
         const prijsStap = Math.max(1, Math.ceil(startPrice * 0.1));
         const veilingsmeesterID = localStorage.getItem("veilingsmeesterId") || "29685004-81a1-44b6-b7f3-973dd5f60fc0";
@@ -44,6 +57,7 @@ function AuctionDetailPage() {
         const payload = {
             productID: lot.productId,
             startPrijs: Number(startPrice),
+            minPrijs: Number(minPrice), // ✅ toevoeging van minimale prijs
             prijsStap,
             timerInSeconden: Number(closingTime),
             veilingsmeesterID
@@ -67,15 +81,9 @@ function AuctionDetailPage() {
             const data = await response.json();
             console.log("Veiling aangemaakt:", data);
 
-            // ✅ Verwijder de kavel eerst uit de view zodat het lijkt alsof hij weg is
             setLot(null);
-
-            // ✅ Notificatie
             alert(`Veiling succesvol gepubliceerd! VeilingID: ${data.veilingID}`);
-
-            // ✅ Daarna navigeren (optioneel)
             navigate('/veiling');
-
         } catch (err) {
             console.error("Error creating veiling:", err);
             alert("Er ging iets mis: " + err.message);
@@ -101,8 +109,9 @@ function AuctionDetailPage() {
                             type="number"
                             value={startPrice}
                             onChange={e => setStartPrice(e.target.value)}
-                            placeholder={`> ${lot.minimumPrijs}`}
+                            placeholder={`> ${minPrice}`}
                         />
+                        <small>Minimale prijs: €{minPrice}</small>
                     </label>
 
                     <label className="form-field">
