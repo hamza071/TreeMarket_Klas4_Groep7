@@ -120,7 +120,7 @@ function DashboardPage() {
                     })
             );
         }, 100); // Tip: Zet deze op 100ms of 200ms. Dan verspringt de seconde precies op tijd.
-
+//
         return () => clearInterval(interval);
     }, []);
 
