@@ -1,4 +1,4 @@
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace TreeMarket_Klas4_Groep7.Models.DTO
 {
@@ -12,5 +12,11 @@ namespace TreeMarket_Klas4_Groep7.Models.DTO
 
         [Required]
         public int TimerInSeconden { get; set; }
+
+        // 🔥 DEZE ONTBREEKT NU
+        public DateTime StartTimestamp { get; set; }
+
+        [Required]
+        public decimal MinPrijs { get; set; }
     }
 }

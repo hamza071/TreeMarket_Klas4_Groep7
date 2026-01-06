@@ -18,6 +18,11 @@ public class Veiling
     [Column(TypeName = "decimal(18,2)")]
     public decimal HuidigePrijs { get; set; }
 
+
+    [Required]
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal MinPrijs { get; set; } = 0; // default = 0
+
     [Required]
     [Column(TypeName = "decimal(18,2)")]
     public decimal PrijsStap { get; set; }
@@ -26,6 +31,9 @@ public class Veiling
 
     [Required]
     public int TimerInSeconden { get; set; }
+
+    [Required]
+    public DateTime StartTimestamp { get; set; }
 
     // ---------- RELATIES ----------
 

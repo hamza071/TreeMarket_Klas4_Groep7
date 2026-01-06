@@ -19,12 +19,12 @@ namespace TreeMarket_Klas4_Groep7.Services
             _context = context;
         }
 
-        // Haal alle actieve veilingen op (Return DTOs voor frontend)
+        // Haal alle actieve veilingen op (DTO voor frontend)
         public async Task<List<VeilingResponseDto>> GetAllAsync()
         {
             var veilingen = await _context.Veilingen
                 .Include(v => v.Product)
-                .Where(v => v.Status) // Alleen actieve veilingen
+                .Where(v => v.Status) // alleen actieve veilingen
                 .ToListAsync();
 
             return veilingen.Select(v => new VeilingResponseDto
@@ -33,14 +33,16 @@ namespace TreeMarket_Klas4_Groep7.Services
                 Status = v.Status,
                 StartPrijs = v.StartPrijs,
                 HuidigePrijs = v.HuidigePrijs,
+                MinPrijs = v.MinPrijs,
                 TimerInSeconden = v.TimerInSeconden,
                 ProductID = v.ProductID,
                 ProductNaam = v.Product.ProductNaam,
-                Foto = v.Product.Foto
+                Foto = v.Product.Foto,
+                StartTimestamp = v.StartTimestamp
             }).ToList();
         }
 
-        // Haal 1 veiling op (entity)
+        // Haal 1 veiling op
         public async Task<Veiling> GetByIdAsync(int id)
         {
             var veiling = await _context.Veilingen
@@ -53,11 +55,12 @@ namespace TreeMarket_Klas4_Groep7.Services
             return veiling;
         }
 
-        // Maak veiling aan (ZONDER autorisatie-logica)
+        // Maak veiling aan
         public async Task<VeilingResponseDto> CreateVeilingAsync(VeilingDto dto, string userId)
         {
             var product = await _context.Products
                 .FirstOrDefaultAsync(p => p.ProductId == dto.ProductID);
+
             if (product == null)
                 throw new KeyNotFoundException("Product niet gevonden.");
 
@@ -65,7 +68,9 @@ namespace TreeMarket_Klas4_Groep7.Services
             {
                 StartPrijs = dto.StartPrijs,
                 HuidigePrijs = dto.StartPrijs,
+                MinPrijs = dto.MinPrijs, // ✅ belangrijk voor prijsafloop
                 TimerInSeconden = dto.TimerInSeconden,
+                StartTimestamp = DateTime.UtcNow,
                 Status = true,
                 ProductID = product.ProductId,
                 VeilingsmeesterID = userId
@@ -80,10 +85,12 @@ namespace TreeMarket_Klas4_Groep7.Services
                 Status = veiling.Status,
                 StartPrijs = veiling.StartPrijs,
                 HuidigePrijs = veiling.HuidigePrijs,
+                MinPrijs = veiling.MinPrijs,
                 TimerInSeconden = veiling.TimerInSeconden,
                 ProductID = product.ProductId,
                 ProductNaam = product.ProductNaam,
-                Foto = product.Foto
+                Foto = product.Foto,
+                StartTimestamp = veiling.StartTimestamp
             };
         }
 
@@ -92,7 +99,7 @@ namespace TreeMarket_Klas4_Groep7.Services
         {
             var veiling = await _context.Veilingen.FindAsync(dto.VeilingID);
             if (veiling == null)
-                throw new KeyNotFoundException($"Veiling with id {dto.VeilingID} not found.");
+                throw new KeyNotFoundException($"Veiling met ID {dto.VeilingID} niet gevonden.");
 
             if (!veiling.Status)
                 throw new InvalidOperationException("Veiling is gesloten.");
@@ -115,12 +122,12 @@ namespace TreeMarket_Klas4_Groep7.Services
             return bid;
         }
 
-        // Update status veiling
+        // Update status veiling (open/gesloten)
         public async Task<Veiling> UpdateStatusAsync(int veilingId, bool status)
         {
             var veiling = await _context.Veilingen.FindAsync(veilingId);
             if (veiling == null)
-                throw new KeyNotFoundException($"Veiling with id {veilingId} not found.");
+                throw new KeyNotFoundException($"Veiling met ID {veilingId} niet gevonden.");
 
             veiling.Status = status;
             await _context.SaveChangesAsync();
@@ -128,15 +135,15 @@ namespace TreeMarket_Klas4_Groep7.Services
             return veiling;
         }
 
-        // verwijderen veiling
+        // Verwijder veiling
         public async Task DeleteVeilingAsync(int veilingId)
         {
             var veiling = await _context.Veilingen.FindAsync(veilingId);
-            if (veiling == null) throw new KeyNotFoundException($"Veiling met ID {veilingId} niet gevonden.");
+            if (veiling == null)
+                throw new KeyNotFoundException($"Veiling met ID {veilingId} niet gevonden.");
 
             _context.Veilingen.Remove(veiling);
             await _context.SaveChangesAsync();
         }
-
     }
 }
