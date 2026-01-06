@@ -1,4 +1,4 @@
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace backend.Models.DTO
 {
@@ -8,9 +8,15 @@ namespace backend.Models.DTO
         public decimal StartPrijs { get; set; }
 
         [Required]
-        public int PrijsStap { get; set; }
+        public int ProductID { get; set; }
 
         [Required]
-        public int ProductID { get; set; }
+        public int TimerInSeconden { get; set; }
+
+        //  DEZE ONTBREEKT NU
+        public DateTime StartTimestamp { get; set; }
+
+        [Required]
+        public decimal MinPrijs { get; set; }
     }
 }
