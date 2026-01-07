@@ -13,8 +13,11 @@ namespace backend.DTO
         [Required]
         public int TimerInSeconden { get; set; }
 
-        //  DEZE ONTBREEKT NU
+        [Required]
         public DateTime StartTimestamp { get; set; }
+
+        [Required]
+        public int Hoeveelheid { get; set; }
 
         [Required]
         public decimal MinPrijs { get; set; }

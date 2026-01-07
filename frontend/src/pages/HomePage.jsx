@@ -33,7 +33,7 @@ function HomePage() {
                         hoge contrasten is deze demo toegankelijk voor iedereen.
                     </p>
                     <div className="home-hero__actions">
-                        <button type="button" className="primary-action" onClick={() => navigate("/veiling")}>Bekijk veilingen</button>
+                        <button type="button" className="primary-action" onClick={() => navigate("/dashboard")}>Bekijk veilingen</button>
                         <button type="button" className="secondary-action" onClick={() => navigate("/about")}>Ontdek ons verhaal</button>
                     </div>
                 </div>

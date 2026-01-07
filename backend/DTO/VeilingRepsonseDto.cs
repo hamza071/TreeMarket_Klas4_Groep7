@@ -9,6 +9,7 @@
         public decimal MinPrijs { get; set; }
         public int TimerInSeconden { get; set; }
         public int ProductID { get; set; }
+        public int Hoeveelheid { get; set; }
 
         public DateTime StartTimestamp { get; set; }
 
