@@ -102,8 +102,8 @@ function AuthPage() {
             }
         }
 
-            // =====================
-            // INLOGGEN
+        // =====================
+        // INLOGGEN
         // =====================
         else {
             try {
@@ -128,23 +128,26 @@ function AuthPage() {
                     // Stap 2: Token opslaan
                     localStorage.setItem("token", data.accessToken);
 
-                    // Stap 3: Rol proberen te halen uit de Token (Snelle methode)
+                    // Stap 3: Rol proberen te halen uit de Token
                     let userRole = null;
                     try {
                         const decoded = jwtDecode(data.accessToken);
                         const roleKey = "http://schemas.microsoft.com/ws/2008/06/identity/claims/role";
                         userRole = decoded[roleKey] || decoded["role"];
-
-                        if (userRole) {
-                            localStorage.setItem("role", userRole);
-                        }
                     } catch (decodeErr) {
                         console.error("Kon token niet decoderen:", decodeErr);
                     }
 
-                    // Stap 4: Als token geen rol had, haal hem op via API (Fallback methode)
-                    // HIER GING HET MIS: Nu gebruiken we ook hier BASE_URL!
-                    if (!userRole) {
+                    // 🔹 Super Admin check
+                    if (formData.email.toLowerCase() === "admin@treemarket.nl") {
+                        userRole = "admin";
+                    }
+
+                    // Stap 4: Opslaan in localStorage
+                    if (userRole) {
+                        localStorage.setItem("role", userRole.toLowerCase());
+                    } else {
+                        // fallback via API als rol niet in token stond
                         try {
                             const roleResponse = await fetch(
                                 `${BASE_URL}/api/Gebruiker/RoleByEmail?email=${encodeURIComponent(formData.email)}`
