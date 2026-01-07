@@ -35,6 +35,7 @@ namespace backend.Controllers
         }
 
         // POST: api/Claim/PlaceClaim
+        //
         // AANGEPAST: De route heet nu 'PlaceClaim' zodat hij matcht met je React code.
         [HttpPost("PlaceClaim")]
         [Authorize] 
