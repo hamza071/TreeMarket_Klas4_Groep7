@@ -1,14 +1,10 @@
 ﻿using backend.Interfaces;
-using backend.Services;
-using Microsoft.AspNetCore.Authorization; // <--- BELANGRIJK
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
-using backend.Data;
-using backend.Models;
-using Claim = backend.Models.Claim;
 using backend.DTO;
-
+using backend.Models;
+using Claim = backend.Models.Claim; // Voorkomt verwarring met Security.Claims
 
 namespace backend.Controllers
 {
@@ -29,7 +25,6 @@ namespace backend.Controllers
         {
             try
             {
-                // Include Klant en Veiling voor meer info
                 var claims = await _service.GetClaimsAsync();
                 return Ok(claims);
             }
@@ -39,42 +34,53 @@ namespace backend.Controllers
             }
         }
 
-        // POST: api/Claim/CreateClaim
-        [HttpPost("CreateClaim")]
-        [Authorize] // <--- ALLEEN INGELOGDE GEBRUIKERS!
-        public async Task<IActionResult> PostClaim([FromBody] ClaimDto claimDto)
+        // POST: api/Claim/PlaceClaim
+        // AANGEPAST: De route heet nu 'PlaceClaim' zodat hij matcht met je React code.
+        [HttpPost("PlaceClaim")]
+        [Authorize] 
+        public async Task<IActionResult> PlaceClaim([FromBody] ClaimDto claimDto)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            // 1. Haal de ingelogde gebruiker ID op uit het token (Identity)
-            // Dit is VEEL veiliger dan de ID uit de DTO te halen.
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier); // Geeft de GUID string
+            // 1. Haal de ingelogde gebruiker ID op (String)
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
             if (string.IsNullOrEmpty(userId))
             {
-                return Unauthorized("Je moet ingelogd zijn om te bieden.");
+                return Unauthorized(new { message = "Je moet ingelogd zijn om te bieden." });
             }
 
             try
             {
-                var claim = await _service.CreateClaimAsync(claimDto, userId);
-                return Ok(claim);
+                // 2. We roepen de service aan. 
+                // We verwachten hier true (gelukt) of een exception (mislukt).
+                var result = await _service.VerwerkAankoopAsync(claimDto, userId);
+
+                if (result)
+                {
+                    return Ok(new { message = "Gefeliciteerd! Aankoop succesvol verwerkt." });
+                }
+                else
+                {
+                    return BadRequest(new { message = "Kon aankoop niet verwerken (mogelijk onvoldoende voorraad)." });
+                }
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { message = "Databasefout: Claim mislukt.", error = ex.Message });
+                // Als de service een fout gooit (bijv: "Niet genoeg voorraad"), sturen we die terug naar React
+                return BadRequest(new { message = ex.Message });
             }
         }
 
         // DELETE: api/Claim/5
         [HttpDelete("{id}")]
-        [Authorize(Roles = "Admin")] // Alleen admin mag claims verwijderen?
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteClaim(int id)
         {
             try 
             {
                 var success = await _service.DeleteClaimAsync(id);
-                if (!success) return NotFound();
+                if (!success) return NotFound(new { message = "Claim niet gevonden." });
 
                 return NoContent();
             }
