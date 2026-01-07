@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-
+//
 namespace backend.Models
 {
     public class Claim
@@ -13,6 +13,10 @@ namespace backend.Models
         [Required]
         [Column(TypeName = "decimal(18,2)")]
         public decimal Prijs { get; set; }
+
+        // === NIEUW: Dit veld ontbrak, waardoor je de foutmelding kreeg ===
+        [Required]
+        public int Aantal { get; set; } 
 
         // === AANPASSING: KlantId is nu een string (Identity) ===
         [ForeignKey(nameof(Klant))]
