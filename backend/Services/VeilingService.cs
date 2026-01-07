@@ -22,9 +22,10 @@ namespace backend.Services
         // Haal alle actieve veilingen op (DTO voor frontend)
         public async Task<List<VeilingResponseDto>> GetAllAsync()
         {
-            // 1. Haal alle actieve veilingen inclusief Product
+            // 1. Haal alle actieve veilingen inclusief Product EN LEVERANCIER
             var veilingen = await _context.Veiling
                 .Include(v => v.Product)
+                    .ThenInclude(p => p.Leverancier) // <--- CRUCIAAL: Leverancier ophalen
                 .Where(v => v.Status)
                 .ToListAsync();
 
@@ -41,7 +42,12 @@ namespace backend.Services
                 ProductNaam = v.Product?.ProductNaam ?? "",
                 Foto = v.Product?.Foto ?? "",
                 StartTimestamp = v.StartTimestamp,
-                Hoeveelheid = v.Product?.Hoeveelheid ?? 0 // alleen uit Product
+                Hoeveelheid = v.Product?.Hoeveelheid ?? 0,
+
+                // === HIER DE AANPASSING ===
+                // We mappen de bedrijfsnaam van de leverancier naar de DTO.
+                // Als er geen leverancier is gekoppeld, sturen we "Onbekend".
+                LeverancierNaam = v.Product?.Leverancier?.Bedrijf ?? "Onbekend"
             }).ToList();
         }
 
@@ -50,6 +56,7 @@ namespace backend.Services
         {
             var veiling = await _context.Veiling
                 .Include(v => v.Product)
+                    .ThenInclude(p => p.Leverancier) // Ook hier handig om te hebben
                 .FirstOrDefaultAsync(v => v.VeilingID == id);
 
             if (veiling == null)
@@ -61,7 +68,9 @@ namespace backend.Services
         // Maak veiling aan
         public async Task<VeilingResponseDto> CreateVeilingAsync(VeilingDto dto, string userId)
         {
+            // Product ophalen MET leverancier
             var product = await _context.Product
+                .Include(p => p.Leverancier) 
                 .FirstOrDefaultAsync(p => p.ProductId == dto.ProductID);
 
             if (product == null)
@@ -94,7 +103,10 @@ namespace backend.Services
                 ProductNaam = product.ProductNaam,
                 Foto = product.Foto,
                 StartTimestamp = veiling.StartTimestamp,
-                Hoeveelheid = product.Hoeveelheid // alleen uit Product
+                Hoeveelheid = product.Hoeveelheid,
+
+                // Direct goed teruggeven bij aanmaken
+                LeverancierNaam = product.Leverancier?.Bedrijf ?? "Onbekend"
             };
         }
 

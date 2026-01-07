@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using backend.DTO;
 using backend.Models;
-using Claim = backend.Models.Claim; // Voorkomt verwarring met Security.Claims
+using Claim = backend.Models.Claim; 
 
 namespace backend.Controllers
 {
@@ -34,16 +34,37 @@ namespace backend.Controllers
             }
         }
 
+        // === HIER WAS HET STUKJE DAT ONTBRAK ===
+        // GET: api/Claim/GetHistory
+        [HttpGet("GetHistory")]
+        public async Task<IActionResult> GetHistory(string productNaam, string leverancierNaam)
+        {
+            // Als er geen productnaam is, kunnen we niks zoeken
+            if (string.IsNullOrEmpty(productNaam))
+                return BadRequest("Productnaam is verplicht.");
+
+            try
+            {
+                // Roep de SQL Service aan
+                var history = await _service.GetHistoryAsync(productNaam, leverancierNaam);
+                return Ok(history);
+            }
+            catch (Exception ex)
+            {
+                // Log de fout en geef een nette melding terug
+                Console.WriteLine($"Fout bij historie ophalen: {ex.Message}");
+                return StatusCode(500, new { message = "Kon historie niet ophalen.", error = ex.Message });
+            }
+        }
+        // ========================================
+
         // POST: api/Claim/PlaceClaim
-        //
-        // AANGEPAST: De route heet nu 'PlaceClaim' zodat hij matcht met je React code.
         [HttpPost("PlaceClaim")]
         [Authorize] 
         public async Task<IActionResult> PlaceClaim([FromBody] ClaimDto claimDto)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            // 1. Haal de ingelogde gebruiker ID op (String)
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
             if (string.IsNullOrEmpty(userId))
@@ -53,8 +74,6 @@ namespace backend.Controllers
 
             try
             {
-                // 2. We roepen de service aan. 
-                // We verwachten hier true (gelukt) of een exception (mislukt).
                 var result = await _service.VerwerkAankoopAsync(claimDto, userId);
 
                 if (result)
@@ -68,7 +87,6 @@ namespace backend.Controllers
             }
             catch (Exception ex)
             {
-                // Als de service een fout gooit (bijv: "Niet genoeg voorraad"), sturen we die terug naar React
                 return BadRequest(new { message = ex.Message });
             }
         }

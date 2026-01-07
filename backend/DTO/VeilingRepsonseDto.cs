@@ -16,5 +16,8 @@
         // Product details
         public string ProductNaam { get; set; }
         public string Foto { get; set; }
+
+        // === DEZE REGEL MOET JE TOEVOEGEN: ===
+        public string LeverancierNaam { get; set; }
     }
 }

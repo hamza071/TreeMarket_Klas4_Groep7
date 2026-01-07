@@ -119,24 +119,53 @@ function DashboardPage() {
     // LOGICA VOOR DE POP-UP (MODAL)
     // ==========================================================
 
-    // Stap 1: Open Modal en zet de gegevens klaar (Standaard aantal = 1)
-    const handleInitialClick = () => {
+    // Stap 1: Open Modal en zet de gegevens klaar
+    const handleInitialClick = async () => {
         if (!featuredLot) return;
 
-        // HIER ZAT DE FOUT: We gebruiken nu 'hoeveelheid' uit je JSON
-        const maxAvailable = featuredLot.hoeveelheid ?? 1;
-        const initialAmount = 1;
-
+        // Reset
         setTransactionData({
             veilingId: featuredLot.veilingID,
             productNaam: featuredLot.productNaam,
             prijsPerStuk: featuredLot.currentPrice,
-            maxAantal: maxAvailable,
-            aantal: initialAmount,
-            totaalPrijs: featuredLot.currentPrice * initialAmount
+            maxAantal: featuredLot.hoeveelheid ?? 1,
+            aantal: 1,
+            totaalPrijs: featuredLot.currentPrice,
+            history: null
         });
 
         setShowModal(true);
+
+        try {
+            // PROBEER DE LEVERANCIERNAAM TE VINDEN
+            const levNaam = featuredLot.leverancierNaam
+                || featuredLot.product?.leverancier?.bedrijf
+                || featuredLot.product?.leverancier?.naam
+                || "Onbekend";
+
+            const prodNaam = featuredLot.productNaam;
+
+            console.log("Ophalen historie voor:", prodNaam, "van", levNaam);
+
+            const url = `https://localhost:7054/api/Claim/GetHistory?productNaam=${encodeURIComponent(prodNaam)}&leverancierNaam=${encodeURIComponent(levNaam)}`;
+
+            const response = await fetch(url, {
+                method: 'GET',
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem('token')}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if(response.ok) {
+                const histData = await response.json();
+                setTransactionData(prev => ({ ...prev, history: histData }));
+            } else {
+                console.warn("Historie ophalen mislukt:", response.status);
+            }
+        } catch (e) {
+            console.error("Fout bij ophalen historie:", e);
+        }
     };
 
     // Stap 2: Update functie voor het invulveld IN de modal
@@ -144,21 +173,16 @@ function DashboardPage() {
         const inputValue = e.target.value;
         const max = transactionData.maxAantal;
 
-        // Sta toe dat het veld leeg is (voor backspace)
         if (inputValue === "") {
             setTransactionData(prev => ({ ...prev, aantal: "" }));
             return;
         }
 
         let val = parseInt(inputValue);
-
-        // Validatie: check of het een geldig getal is
         if (isNaN(val)) val = 1;
+        if (val > max) val = max;
+        if (val < 1) val = 1;
 
-        if (val > max) val = max; // Niet hoger dan max
-        if (val < 1) val = 1;     // Niet lager dan 1
-
-        // Update state: nieuw aantal én nieuwe totaalprijs
         setTransactionData(prev => ({
             ...prev,
             aantal: val,
@@ -190,7 +214,6 @@ function DashboardPage() {
                 // UPDATE STATE: Verminder aantal én verwijder als het 0 is
                 setLotsState(currentLots => {
                     return currentLots.map(lot => {
-                        // 1. Zoek de juiste veiling en update het aantal
                         if (lot.veilingID === transactionData.veilingId) {
                             return {
                                 ...lot,
@@ -199,8 +222,6 @@ function DashboardPage() {
                         }
                         return lot;
                     })
-                        // 2. FILTER: Gooi alles weg wat 0 (of minder) stuks heeft
-                        // Hierdoor springt hij direct naar de volgende veiling!
                         .filter(lot => lot.hoeveelheid > 0);
                 });
 
@@ -252,7 +273,6 @@ function DashboardPage() {
                                 <span className="lot-number">#{featuredLot.veilingID}</span>
                             </div>
                             <h2>{featuredLot.productNaam}</h2>
-                            {/* AANGEPAST: hoeveelheid ipv lots */}
                             <p className="featured-quantity">Beschikbaar: {featuredLot.hoeveelheid ?? 1} stuks</p>
 
                             <div className="featured-footer" style={{display: 'flex', flexDirection: 'column', gap: '10px'}}>
@@ -297,7 +317,6 @@ function DashboardPage() {
                                 <td>{lot.veilingID}</td>
                                 <td>{lot.productNaam}</td>
                                 <td>{lot.specs ?? '-'}</td>
-                                {/* AANGEPAST: hoeveelheid ipv lots */}
                                 <td>{lot.hoeveelheid ?? 1}</td>
                                 <td>€{lot.currentPrice?.toFixed(2)}</td>
                                 <td>{lot.closing > 0 ? `${lot.closing}s` : 'Afgesloten'}</td>
@@ -345,6 +364,58 @@ function DashboardPage() {
                             <p style={{fontSize: '1.4rem', color: '#2ecc71'}}>
                                 <strong>Totaal: €{(transactionData.totaalPrijs || 0).toFixed(2)}</strong>
                             </p>
+
+                            {/* --- HISTORISCHE DATA VISUALISATIE --- */}
+                            {transactionData.history && (
+                                <div style={{textAlign: 'left', marginTop: '15px', borderTop: '1px solid #ddd', paddingTop: '10px', maxHeight: '250px', overflowY: 'auto'}}>
+                                    <small><strong>Historie (Laatste 10)</strong></small>
+
+                                    {/* Eigen Historie */}
+                                    <div style={{marginBottom: '10px'}}>
+                                        <span style={{fontSize: '0.8rem', color: '#555'}}>Deze aanbieder:</span>
+                                        <table style={styles.historyTable}>
+                                            <tbody>
+                                            {transactionData.history.eigenHistorie.map((h, i) => (
+                                                <tr key={i}>
+                                                    <td>{h.datum}</td>
+                                                    <td align="right">€{h.prijs.toFixed(2)}</td>
+                                                </tr>
+                                            ))}
+                                            {transactionData.history.eigenHistorie.length === 0 && (
+                                                <tr><td colSpan="2" style={{fontStyle:'italic'}}>Geen data</td></tr>
+                                            )}
+                                            </tbody>
+                                        </table>
+                                        <div style={{fontSize: '0.75rem', fontWeight: 'bold'}}>
+                                            Gemiddeld: €{transactionData.history.gemiddeldeEigen.toFixed(2)}
+                                        </div>
+                                    </div>
+
+                                    {/* Markt Historie */}
+                                    <div>
+                                        <span style={{fontSize: '0.8rem', color: '#555'}}>Alle aanbieders:</span>
+                                        <table style={styles.historyTable}>
+                                            <tbody>
+                                            {transactionData.history.marktHistorie.map((h, i) => (
+                                                <tr key={i}>
+                                                    <td>{h.aanbieder}</td>
+                                                    <td>{h.datum}</td>
+                                                    <td align="right">€{h.prijs.toFixed(2)}</td>
+                                                </tr>
+                                            ))}
+                                            {transactionData.history.marktHistorie.length === 0 && (
+                                                <tr><td colSpan="3" style={{fontStyle:'italic'}}>Geen data</td></tr>
+                                            )}
+                                            </tbody>
+                                        </table>
+                                        <div style={{fontSize: '0.75rem', fontWeight: 'bold'}}>
+                                            Markt Gemiddeld: €{transactionData.history.gemiddeldeMarkt.toFixed(2)}
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                            {/* -------------------------------------- */}
+
                         </div>
 
                         <div style={styles.buttons}>
@@ -366,13 +437,16 @@ const styles = {
     },
     modal: {
         backgroundColor: 'white', padding: '2rem', borderRadius: '12px',
-        width: '90%', maxWidth: '400px', textAlign: 'center',
+        width: '90%', maxWidth: '500px', // Iets breder voor de tabellen
+        maxHeight: '90vh', overflowY: 'auto', // Zodat het past op kleine schermen
+        textAlign: 'center',
         boxShadow: '0 4px 20px rgba(0,0,0,0.3)', color: '#333'
     },
     summary: { textAlign: 'left', margin: '1.5rem 0', lineHeight: '1.6' },
-    buttons: { display: 'flex', gap: '1rem', justifyContent: 'center' },
+    buttons: { display: 'flex', gap: '1rem', justifyContent: 'center', marginTop: '20px' },
     cancelBtn: { padding: '10px 20px', borderRadius: '8px', border: '1px solid #ccc', backgroundColor: '#f5f5f5', cursor: 'pointer', color: 'black' },
-    confirmBtn: { padding: '10px 20px', borderRadius: '8px', border: 'none', backgroundColor: '#2ecc71', color: 'white', fontWeight: 'bold', cursor: 'pointer' }
+    confirmBtn: { padding: '10px 20px', borderRadius: '8px', border: 'none', backgroundColor: '#2ecc71', color: 'white', fontWeight: 'bold', cursor: 'pointer' },
+    historyTable: { width: '100%', fontSize: '0.75rem', marginBottom: '5px' }
 };
 
 export default DashboardPage;

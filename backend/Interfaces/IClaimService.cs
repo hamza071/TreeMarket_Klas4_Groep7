@@ -7,6 +7,7 @@ namespace backend.Interfaces
     {
         // Voor de GET request
         Task<IEnumerable<Claim>> GetClaimsAsync();
+        Task<ProductHistoryResponse> GetHistoryAsync(string productNaam, string leverancierNaam);
 
         // Voor de POST request (AANGEPAST)
         // We veranderen de naam naar VerwerkAankoopAsync zodat hij matcht met je Service en Controller.
