@@ -7,9 +7,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using backend.Models;
-using backend.DTO;
-using TreeMarket_Klas4_Group7.Controllers;
 
 namespace backend.Services
 {
@@ -25,11 +22,13 @@ namespace backend.Services
         // Haal alle actieve veilingen op (DTO voor frontend)
         public async Task<List<VeilingResponseDto>> GetAllAsync()
         {
+            // 1. Haal alle actieve veilingen inclusief Product
             var veilingen = await _context.Veiling
                 .Include(v => v.Product)
-                .Where(v => v.Status) // alleen actieve veilingen
+                .Where(v => v.Status)
                 .ToListAsync();
 
+            // 2. Map in memory naar DTO
             return veilingen.Select(v => new VeilingResponseDto
             {
                 VeilingID = v.VeilingID,
@@ -39,9 +38,10 @@ namespace backend.Services
                 MinPrijs = v.MinPrijs,
                 TimerInSeconden = v.TimerInSeconden,
                 ProductID = v.ProductID,
-                ProductNaam = v.Product.ProductNaam,
-                Foto = v.Product.Foto,
-                StartTimestamp = v.StartTimestamp
+                ProductNaam = v.Product?.ProductNaam ?? "",
+                Foto = v.Product?.Foto ?? "",
+                StartTimestamp = v.StartTimestamp,
+                Hoeveelheid = v.Product?.Hoeveelheid ?? 0 // alleen uit Product
             }).ToList();
         }
 
@@ -61,7 +61,7 @@ namespace backend.Services
         // Maak veiling aan
         public async Task<VeilingResponseDto> CreateVeilingAsync(VeilingDto dto, string userId)
         {
-            var product = await _context.Products
+            var product = await _context.Product
                 .FirstOrDefaultAsync(p => p.ProductId == dto.ProductID);
 
             if (product == null)
@@ -71,7 +71,7 @@ namespace backend.Services
             {
                 StartPrijs = dto.StartPrijs,
                 HuidigePrijs = dto.StartPrijs,
-                MinPrijs = dto.MinPrijs, // ✅ belangrijk voor prijsafloop
+                MinPrijs = dto.MinPrijs,
                 TimerInSeconden = dto.TimerInSeconden,
                 StartTimestamp = DateTime.UtcNow,
                 Status = true,
@@ -93,7 +93,8 @@ namespace backend.Services
                 ProductID = product.ProductId,
                 ProductNaam = product.ProductNaam,
                 Foto = product.Foto,
-                StartTimestamp = veiling.StartTimestamp
+                StartTimestamp = veiling.StartTimestamp,
+                Hoeveelheid = product.Hoeveelheid // alleen uit Product
             };
         }
 
