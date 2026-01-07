@@ -1,0 +1,43 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+    <PropertyGroup>
+        <TargetFramework>net9.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <Content Include="Interfaces\.vs\Interfaces\v17\DocumentLayout.json" />
+      <Content Include="Interfaces\.vs\VSWorkspaceState.json" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.0" />
+
+        <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.0" />
+
+        <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.0" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.0">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+
+        <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="9.0.0" />
+        <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <Folder Include="wwwroot\" />
+        <Folder Include="wwwroot\" />
+        <Folder Include="wwwroot\" />
+        <Folder Include="wwwroot\" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Include="Interfaces\.vs\Interfaces\CopilotIndices\17.14.1204.46620\CodeChunks.db" />
+      <None Include="Interfaces\.vs\Interfaces\CopilotIndices\17.14.1204.46620\SemanticSymbols.db" />
+      <None Include="Interfaces\.vs\Interfaces\FileContentIndex\43146d3a-3350-4b23-8de9-e74fbe3f4444.vsidx" />
+      <None Include="Interfaces\.vs\slnx.sqlite" />
+    </ItemGroup>
+
+</Project>
