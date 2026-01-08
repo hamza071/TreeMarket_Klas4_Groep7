@@ -16,8 +16,7 @@ namespace backend.Services
         {
             _context = context;
         }
-
-        // De gewone methodes mogen vaak wel EF blijven (tenzij je ALLES om moet bouwen)
+        
         public async Task<IEnumerable<Claim>> GetClaimsAsync()
         {
             return await _context.Claim
@@ -59,21 +58,19 @@ namespace backend.Services
             return true;
         }
 
-        // =========================================================================
-        // HIERONDER IS HET 'RAW SQL' GEDEELTE VOOR DE HISTORIE (ZONDER EF)
-        // =========================================================================
+ 
         public async Task<ProductHistoryResponse> GetHistoryAsync(string productNaam, string leverancierNaam)
         {
             var connection = _context.Database.GetDbConnection();
             if (connection.State != ConnectionState.Open) await connection.OpenAsync();
 
-            // 1. MARKT HISTORIE
+            // 1. Algemene Historie
             var marktLijst = new List<HistoryDto>();
             string sqlMarkt = @"
                 SELECT TOP 50 c.Prijs, v.StartTimestamp, l.Bedrijf
                 FROM Claim c
                 JOIN Veiling v ON c.VeilingId = v.VeilingID
-                JOIN Product p ON v.ProductID = p.ProductId   -- <--- HIER ZAT DE FOUT (Was ProductProductId)
+                JOIN Product p ON v.ProductID = p.ProductId   
                 JOIN Leverancier l ON p.LeverancierID = l.Id
                 WHERE p.ProductNaam = @Naam
                 ORDER BY v.StartTimestamp DESC";
@@ -96,13 +93,13 @@ namespace backend.Services
                 }
             }
 
-            // 2. EIGEN HISTORIE
+            // 2. Eigen Historie
             var eigenLijst = new List<HistoryDto>();
             string sqlEigen = @"
                 SELECT TOP 50 c.Prijs, v.StartTimestamp, l.Bedrijf
                 FROM Claim c
                 JOIN Veiling v ON c.VeilingId = v.VeilingID
-                JOIN Product p ON v.ProductID = p.ProductId   -- <--- OOK HIER AANGEPAST
+                JOIN Product p ON v.ProductID = p.ProductId
                 JOIN Leverancier l ON p.LeverancierID = l.Id
                 WHERE p.ProductNaam = @Naam AND l.Bedrijf = @LevNaam
                 ORDER BY v.StartTimestamp DESC";
