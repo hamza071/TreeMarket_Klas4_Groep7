@@ -47,12 +47,27 @@ public class ProductController : ControllerBase
     }
 
     [HttpPost("CreateProduct")]
-    [Authorize(Roles = "Leverancier,Admin")]
+    [Authorize]
     public async Task<IActionResult> CreateProduct([FromForm] ProductUploadDto dto)
     {
+        // 1️⃣ Token validatie
+        if (User?.Identity == null || !User.Identity.IsAuthenticated)
+        {
+            return Unauthorized("Je bent niet ingelogd.");
+        }
+
+        // 2️⃣ Rol validatie (DIT is de fix)
+        if (!User.IsInRole("Leverancier") && !User.IsInRole("Admin"))
+        {
+            return Forbid();
+        }
+
+        // 3️⃣ UserId ophalen
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (userId == null)
+        {
             return Unauthorized("Je bent niet ingelogd.");
+        }
 
         try
         {
@@ -68,6 +83,7 @@ public class ProductController : ControllerBase
             return StatusCode(500, new { message = "Serverfout.", error = ex.Message });
         }
     }
+
 
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(int id)

@@ -23,7 +23,7 @@ function AuctionDetailPage() {
                 const data = await response.json();
 
                 setLot(data);
-                setMinPrice(Number(data.minimumPrijs ?? 0)); // ✅ minPrice van backend
+                setMinPrice(Number(data.minimumPrijs ?? 0)); // minPrice van backend
                 setStartPrice(Number(data.minimumPrijs ?? 0) + 1);
                 setClosingTime(10);
             } catch (err) {
@@ -57,7 +57,7 @@ function AuctionDetailPage() {
         const payload = {
             productID: lot.productId,
             startPrijs: Number(startPrice),
-            minPrijs: Number(minPrice), // ✅ toevoeging van minimale prijs
+            minPrijs: Number(minPrice), // toevoeging van minimale prijs
             prijsStap,
             timerInSeconden: Number(closingTime),
             veilingsmeesterID

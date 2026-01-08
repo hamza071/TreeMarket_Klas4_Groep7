@@ -1,73 +1,89 @@
-﻿//using backend.Interfaces;
-//using Microsoft.AspNetCore.Http;
-//using Microsoft.AspNetCore.Mvc;
-//using Moq;
-//using System;
-//using System.Collections.Generic;
-//using System.Linq;
-//using security =  System.Security.Claims;
-//using System.Text;
-//using System.Threading.Tasks;
-//using backend.Controllers;
-//using backend.Models;
-//using backend.Models.DTO;
+﻿using backend.Controllers;
+using backend.DTO;
+using backend.Interfaces;
+using backend.Models;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Moq;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Security.Claims;
+using System.Text;
+using System.Threading.Tasks;
+using security = System.Security.Claims;
 
-//namespace WebAPI.Tests.TProduct
-//{
-//    public class ProductAanmaken
-//    {
-//        [Fact]
-//        public async Task ProductKanAangemaaktWorden_Succes()
-//        {
-//            // Arrange
-//            var mockService = new Mock<IProductService>();
+namespace WebAPI.Tests.TProduct
+{
+    public class ProductAanmaken
+    {
+        [Fact]
+        public async Task ProductKanAangemaaktWorden_Succes()
+        {
+            // Arrange
+            var mockService = new Mock<IProductService>();
 
-//            mockService.Setup(s => s.AddOrUpdateProductAsync(It.IsAny<Product>()))
-//                       .Returns<Product>(p =>
-//                       {
-//                           p.ProductId = 1;
-//                           return Task.FromResult(p);
-//                       });
+            var expectedDto = new ProductMetVeilingmeesterDto
+            {
+                ProductId = 1,
+                Naam = "Test product",
+                Hoeveelheid = 5,
+                MinimumPrijs = 10,
+                Foto = "image.jpg",
+                Status = "pending",
+                LeverancierNaam = "Test Leverancier"
+            };
 
-//            var controller = new ProductController(mockService.Object);
+            mockService
+                .Setup(s => s.PostProduct(
+                    It.IsAny<ProductUploadDto>(),
+                    "leverancier-123",
+                    false))
+                .ReturnsAsync(expectedDto);
 
-//            // --- Mock aanmaken voor de leverancier ---
-//            var user = new security.ClaimsPrincipal(new security.ClaimsIdentity(new security.Claim[]
-//            {
-//                new security.Claim(security.ClaimTypes.NameIdentifier, "leverancier-123")
-//            }, "mock"));
+            var controller = new ProductController(mockService.Object);
 
-//            controller.ControllerContext = new ControllerContext
-//            {
-//                HttpContext = new DefaultHttpContext { User = user }
-//            };
+            // Mock user (Leverancier)
+            var user = new security.ClaimsPrincipal(
+           new security.ClaimsIdentity(new[]
+           {
+                    new security.Claim(security.ClaimTypes.NameIdentifier, "leverancier-123"),
+                    new security.Claim(security.ClaimTypes.Role, "Leverancier")
+           }, "mock"));
 
-//            var productDto = new ProductDto
-//            {
-//                Foto = "image.jpg",
-//                artikelkenmerken = "Test kenmerken",
-//                Hoeveelheid = 5,
-//                MinimumPrijs = 10,
-//                dagdatum = DateTime.Now,
-//                leverancierID = "leverancier-123" // leverancier is nodig om een product aan te kunnen maken.
-//            };
+            controller.ControllerContext = new ControllerContext
+            {
+                HttpContext = new DefaultHttpContext { User = user }
+            };
 
-//            // Act
-//            var result = await controller.PostProduct(productDto);
+            var dto = new ProductUploadDto
+            {
+                Hoeveelheid = 5,
+                MinimumPrijs = 10,
+                Foto = null
+            };
 
-//            // Assert
-//            var okResult = Assert.IsType<OkObjectResult>(result);
-//            var product = Assert.IsType<Product>(okResult.Value);
+            // Act
+            var result = await controller.CreateProduct(dto);
 
-//            Assert.Equal(1, product.ProductId);
-//            Assert.Equal("image.jpg", product.Foto);
-//            Assert.Equal("Test kenmerken", product.Artikelkenmerken);
-//            Assert.Equal(5, product.Hoeveelheid);
-//            Assert.Equal(10, product.MinimumPrijs);
+            // Assert
+            var okResult = Assert.IsType<OkObjectResult>(result);
 
-//            // Token user ID moet gebruikt worden:
-//            Assert.Equal("leverancier-123", product.LeverancierID);
-//        }
+            // 👇 anonymous object uitpakken
+            var value = okResult.Value!;
+            var productProperty = value.GetType().GetProperty("product");
+            Assert.NotNull(productProperty);
 
-//    }
-//}
+            var product = Assert.IsType<ProductMetVeilingmeesterDto>(
+                productProperty!.GetValue(value)
+            );
+
+            Assert.Equal(1, product.ProductId);
+            Assert.Equal("image.jpg", product.Foto);
+            Assert.Equal(5, product.Hoeveelheid);
+            Assert.Equal(10, product.MinimumPrijs);
+            Assert.Equal("pending", product.Status);
+        }
+
+    }
+}
