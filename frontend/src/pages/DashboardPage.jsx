@@ -309,6 +309,7 @@ function DashboardPage() {
                                 <th>Aantal</th>
                                 <th>Huidige prijs (€)</th>
                                 <th>Veiling start over</th> {/* kolomnaam aangepast */}
+                                <th>Sluitingstijd</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -324,6 +325,7 @@ function DashboardPage() {
                                         <td>{lot.hoeveelheid ?? 1}</td>
                                         <td>€{lot.currentPrice?.toFixed(2)}</td>
                                         <td>{timeUntilStart}s</td> {/* aftel timer tot start */}
+                                        <td>{lot.closing > 0 ? `${lot.closing}s` : 'Afgesloten'}</td>
                                     </tr>
                                 );
                             })}
