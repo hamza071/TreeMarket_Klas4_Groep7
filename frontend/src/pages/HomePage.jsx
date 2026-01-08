@@ -1,5 +1,5 @@
 import heroImage from '../assets/img/tulpenveld.jpg'
-import toadImage from '../assets/img/MLG Toad.jpg'
+import toadImage from '../assets/img/nederlandse-tuinier.jpg'
 import { useNavigate } from "react-router-dom";
 
 
