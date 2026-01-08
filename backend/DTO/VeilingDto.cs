@@ -11,10 +11,10 @@ namespace backend.DTO
         public int ProductID { get; set; }
 
         [Required]
-        public int TimerInSeconden { get; set; }
+        public int TimerInSeconden { get; set; } // duur van de veiling
 
         [Required]
-        public DateTime StartTimestamp { get; set; }
+        public DateTime StartTimestamp { get; set; } // geplande starttijd of nu
 
         [Required]
         public int Hoeveelheid { get; set; }

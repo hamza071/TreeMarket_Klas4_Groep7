@@ -302,26 +302,31 @@ function DashboardPage() {
                 <div className="table-wrapper" role="region" aria-live="polite">
                     <table className="data-table">
                         <thead>
-                        <tr>
-                            <th>Kavel</th>
-                            <th>Naam</th>
-                            <th>Specificaties</th>
-                            <th>Aantal</th>
-                            <th>Huidige prijs (€)</th>
-                            <th>Sluiting</th>
-                        </tr>
+                            <tr>
+                                <th>Kavel</th>
+                                <th>Naam</th>
+                                <th>Specificaties</th>
+                                <th>Aantal</th>
+                                <th>Huidige prijs (€)</th>
+                                <th>Veiling start over</th> {/* kolomnaam aangepast */}
+                            </tr>
                         </thead>
                         <tbody>
-                        {lotsState.map(lot => (
-                            <tr key={lot.veilingID}>
-                                <td>{lot.veilingID}</td>
-                                <td>{lot.productNaam}</td>
-                                <td>{lot.specs ?? '-'}</td>
-                                <td>{lot.hoeveelheid ?? 1}</td>
-                                <td>€{lot.currentPrice?.toFixed(2)}</td>
-                                <td>{lot.closing > 0 ? `${lot.closing}s` : 'Afgesloten'}</td>
-                            </tr>
-                        ))}
+                            {lotsState.map(lot => {
+                                const now = Date.now();
+                                const timeUntilStart = Math.max(0, Math.ceil((lot.startTimestamp - now) / 1000));
+
+                                return (
+                                    <tr key={lot.veilingID}>
+                                        <td>{lot.veilingID}</td>
+                                        <td>{lot.productNaam}</td>
+                                        <td>{lot.specs ?? '-'}</td>
+                                        <td>{lot.hoeveelheid ?? 1}</td>
+                                        <td>€{lot.currentPrice?.toFixed(2)}</td>
+                                        <td>{timeUntilStart}s</td> {/* aftel timer tot start */}
+                                    </tr>
+                                );
+                            })}
                         </tbody>
                     </table>
                 </div>
