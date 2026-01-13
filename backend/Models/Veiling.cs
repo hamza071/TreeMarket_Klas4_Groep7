@@ -36,13 +36,11 @@ public class Veiling
     [Required]
     public DateTime StartTimestamp { get; set; }
 
-    // ---------- RELATIES ----------
-
+    
     [Required]
     public int ProductID { get; set; }
     public Product Product { get; set; }
 
-    // ✅ FK naar Identity gebruiker
     [Required]
     public string VeilingsmeesterID { get; set; }
     public Gebruiker Veilingsmeester { get; set; }
