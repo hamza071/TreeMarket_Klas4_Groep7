@@ -21,7 +21,6 @@ namespace backend.DTO
              ErrorMessage = "Wachtwoord moet minstens één hoofdletter, één cijfer en één speciaal teken bevatten.")]
         public string Wachtwoord { get; set; }
 
-        // DTO die veilig is om naar de frontend te sturen
         public class GebruikerResponseDto
         {
             public int GebruikerId { get; set; }

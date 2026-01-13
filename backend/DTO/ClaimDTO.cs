@@ -5,12 +5,12 @@ namespace backend.DTO
     public class ClaimDto
     {
         [Required]
-        public decimal Prijs { get; set; }  // De prijs per stuk (of totaal, afhankelijk van je logica)
+        public decimal Prijs { get; set; }  
 
         [Required]
-        public int VeilingId { get; set; }  // Welke veiling is het?
+        public int VeilingId { get; set; }  
 
         [Required]
-        public int Aantal { get; set; }     // <--- NIEUW: Hoeveel stuks wil de klant?
+        public int Aantal { get; set; }     
     }
 }

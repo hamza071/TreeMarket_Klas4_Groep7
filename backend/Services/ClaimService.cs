@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using backend.Data;
 using backend.Models;
 using backend.DTO;
-using Microsoft.Data.SqlClient; // <--- Dit is het bewijs: we gebruiken SQL Client, geen EF!
+using Microsoft.Data.SqlClient; //We gebruiken SQL Client, geen EF!
 using System.Data;
 
 namespace backend.Services
