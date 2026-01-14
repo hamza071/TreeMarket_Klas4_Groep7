@@ -1,6 +1,5 @@
 import React from 'react';
 import heroImage from '../assets/img/hero-blossoms.jpg';
-import { API_URL } from './DeployLocal';
 export default function AboutPage() {
     return (
         <div className="about-page-wrapper" style={{ width: '100%' }}>
