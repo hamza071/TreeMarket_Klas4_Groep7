@@ -1,13 +1,14 @@
 ﻿import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
+import { API_URL } from './DeployLocal';
 
 function AuthPage() {
     const [activeTab, setActiveTab] = useState("register");
 
     const BASE_URL = import.meta.env.VITE_API_URL
         ? import.meta.env.VITE_API_URL.replace('/api', '')
-        : "https://localhost:7054";
+        : "${API_URL}";
 
     const [formData, setFormData] = useState({
         naam: "",

@@ -1,6 +1,7 @@
 ﻿import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "../assets/css/AuctionPage.css";
+import { API_URL } from './DeployLocal';
 
 function AuctionPage() {
     const [lots, setLots] = useState([]);
@@ -9,7 +10,7 @@ function AuctionPage() {
     const [expanded, setExpanded] = useState({});
 
     const navigate = useNavigate();
-    const API_URL = "https://localhost:7054/api/Product/vandaag";
+    const API_URL = "${API_URL}/api/Product/vandaag";
 
     const truncateWords = (text, maxWords = 10) => {
         if (!text) return { text: '', truncated: false };
@@ -61,7 +62,7 @@ function AuctionPage() {
                 try {
                     // Only attempt delete if we have a token (user likely authorized)
                     const headers = token ? { Authorization: `Bearer ${token}` } : {};
-                    const resp = await fetch(`https://localhost:7054/api/Product/${p.productId}`, {
+                    const resp = await fetch(`${API_URL}/api/Product/${p.productId}`, {
                         method: 'DELETE',
                         headers
                     });
@@ -142,7 +143,7 @@ function AuctionPage() {
                                     lot.foto
                                         ? lot.foto.startsWith("http")
                                             ? lot.foto
-                                            : `https://localhost:7054${lot.foto}`
+                                            : `${API_URL}${lot.foto}`
                                         : "/images/default.png"
                                 }
                                 alt={lot.naam || "Productfoto"}
