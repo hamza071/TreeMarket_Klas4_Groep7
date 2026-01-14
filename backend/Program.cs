@@ -14,7 +14,8 @@ var connectionString = builder.Configuration.GetConnectionString("LocalExpress")
     ?? throw new InvalidOperationException("Connection string not found.");
 
 builder.Services.AddDbContext<ApiContext>(options =>
-    options.UseSqlServer(connectionString));
+    options.UseSqlServer(connectionString, sql => sql.EnableRetryOnFailure())
+);
 
 // ============================================================
 // 2. IDENTITY CONFIGURATIE (Volgens de Slides)

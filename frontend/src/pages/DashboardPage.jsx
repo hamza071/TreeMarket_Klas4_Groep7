@@ -19,7 +19,7 @@ function DashboardPage() {
                 const response = await fetch('https://localhost:7054/api/Veiling/GetVeilingen', {
                     headers: {
                         Authorization: `Bearer ${localStorage.getItem('token')}`,
-                        'Content-Type': 'application/json',
+                        'Content-Type'    : 'application/json',
                     },
                 });
                 const data = await response.json();
@@ -150,13 +150,13 @@ function DashboardPage() {
 
         // Reset
         setTransactionData({
-            veilingId: featuredLot.veilingID,
-            productNaam: featuredLot.productNaam,
-            prijsPerStuk: featuredLot.currentPrice,
-            maxAantal: featuredLot.hoeveelheid ?? 1,
-            aantal: 1,
-            totaalPrijs: featuredLot.currentPrice,
-            history: null
+            veilingId    : featuredLot.veilingID,
+            productNaam   : featuredLot.productNaam,
+            prijsPerStuk  : featuredLot.currentPrice,
+            maxAantal     : featuredLot.hoeveelheid ?? 1,
+            aantal        : 1,
+            totaalPrijs   : featuredLot.currentPrice,
+            history        : null
         });
 
         setShowModal(true);
@@ -228,8 +228,8 @@ function DashboardPage() {
                 },
                 body: JSON.stringify({
                     veilingId: transactionData.veilingId,
-                    aantal: transactionData.aantal,
-                    prijs: transactionData.prijsPerStuk
+                    aantal   : transactionData.aantal,
+                    prijs    : transactionData.prijsPerStuk
                 })
             });
 
@@ -344,6 +344,7 @@ function DashboardPage() {
                                 <th>Specificaties</th>
                                 <th>Aantal</th>
                                 <th>Huidige prijs (€)</th>
+                                <th>Startdatum</th>
                                 <th>Veiling start over</th> {/* kolomnaam aangepast */}
                                 <th>Sluitingstijd</th>
                             </tr>
@@ -352,6 +353,7 @@ function DashboardPage() {
                             {upcomingLots.map(lot => {
                                 const now = Date.now();
                                 const timeUntilStart = Math.max(0, Math.ceil((lot.startTimestamp - now) / 1000));
+                                const startDateDisplay = lot.startTimestamp ? new Date(lot.startTimestamp).toLocaleString('nl-NL') : '-';
 
                                 return (
                                     <tr key={lot.veilingID}>
@@ -360,6 +362,7 @@ function DashboardPage() {
                                         <td>{lot.specs ?? '-'}</td>
                                         <td>{lot.hoeveelheid ?? 1}</td>
                                         <td>€{lot.currentPrice?.toFixed(2)}</td>
+                                        <td>{startDateDisplay}</td>
                                         <td>{timeUntilStart}s</td> {/* aftel timer tot start */}
                                         <td>{lot.closing > 0 ? `${lot.closing}s` : 'Afgesloten'}</td>
                                     </tr>

@@ -77,8 +77,13 @@ namespace backend.Services
                 throw new KeyNotFoundException("Product niet gevonden.");
 
             // 2. StartTimestamp bepalen: geplande of directe start
-            var startTimestamp = dto.StartTimestamp > DateTime.UtcNow
-                ? dto.StartTimestamp // geplande veiling
+            // Normalize incoming StartTimestamp to UTC to avoid Kind mismatches
+            var requestedStart = dto.StartTimestamp.Kind == DateTimeKind.Utc
+                ? dto.StartTimestamp
+                : DateTime.SpecifyKind(dto.StartTimestamp, DateTimeKind.Utc);
+
+            var startTimestamp = requestedStart > DateTime.UtcNow
+                ? requestedStart // geplande veiling
                 : DateTime.UtcNow;   // directe start
 
             // 3. Veiling aanmaken
@@ -89,7 +94,7 @@ namespace backend.Services
                 MinPrijs = dto.MinPrijs,
                 TimerInSeconden = dto.TimerInSeconden,
                 StartTimestamp = startTimestamp,
-                EindTimestamp = startTimestamp.AddSeconds(dto.TimerInSeconden), // handig voor featured/completed logic
+                //EindTimestamp = startTimestamp.AddSeconds(dto.TimerInSeconden), // handig voor featured/completed logic  
                 Status = true,
                 ProductID = product.ProductId,
                 VeilingsmeesterID = userId
@@ -111,7 +116,7 @@ namespace backend.Services
                 ProductNaam = product.ProductNaam,
                 Foto = product.Foto,
                 StartTimestamp = veiling.StartTimestamp,
-                EindTimestamp = veiling.EindTimestamp,
+                //EindTimestamp = veiling.EindTimestamp,
                 Hoeveelheid = product.Hoeveelheid,
 
                 // Direct goed teruggeven bij aanmaken

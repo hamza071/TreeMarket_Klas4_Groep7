@@ -2,6 +2,18 @@
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import '../assets/css/UploadAuctionPage.css';
 
+function formatLocalDatetimeInput(date) {
+    // returns 'YYYY-MM-DDTHH:MM' in local time for datetime-local input
+    const pad = (n) => n.toString().padStart(2, '0');
+    return (
+        date.getFullYear() + '-' +
+        pad(date.getMonth() + 1) + '-' +
+        pad(date.getDate()) + 'T' +
+        pad(date.getHours()) + ':' +
+        pad(date.getMinutes())
+    );
+}
+
 function AuctionDetailPage() {
     const { code } = useParams(); // productId
     const navigate = useNavigate();
@@ -11,7 +23,11 @@ function AuctionDetailPage() {
     const [startPrice, setStartPrice] = useState('');
     const [minPrice, setMinPrice] = useState(0);
     const [closingTime, setClosingTime] = useState(10);
-    const [startInSeconds, setStartInSeconds] = useState(0); // nieuw: geplande start
+
+    // Two options for scheduling: 'datetime' or 'seconds'
+    const [startMode, setStartMode] = useState('datetime'); // 'datetime' | 'seconds'
+    const [startDateTime, setStartDateTime] = useState(formatLocalDatetimeInput(new Date())); // default = now
+    const [startInSeconds, setStartInSeconds] = useState(0);
 
     // Haal kavel op via API
     useEffect(() => {
@@ -55,9 +71,24 @@ function AuctionDetailPage() {
         const token = localStorage.getItem("token");
         if (!token) return alert("Je bent niet ingelogd.");
 
-        // Bereken geplande starttijd
+        // Bereken geplande starttijd afhankelijk van gekozen mode
         const now = new Date();
-        const startTimestamp = new Date(now.getTime() + Number(startInSeconds) * 1000);
+        let startTimestamp;
+
+        if (startMode === 'seconds') {
+            const seconds = Number(startInSeconds) || 0;
+            if (seconds < 0) return alert('Start in seconden moet >= 0 zijn');
+            startTimestamp = new Date(now.getTime() + seconds * 1000);
+        } else {
+            // datetime mode
+            if (!startDateTime) {
+                startTimestamp = now;
+            } else {
+                startTimestamp = new Date(startDateTime);
+                if (isNaN(startTimestamp.getTime())) return alert('Ongeldige startdatum/tijd');
+                if (startTimestamp.getTime() < now.getTime()) return alert('Startdatum moet in de toekomst liggen of leeg zijn voor direct starten');
+            }
+        }
 
         const payload = {
             productID: lot.productId,
@@ -65,7 +96,8 @@ function AuctionDetailPage() {
             minPrijs: Number(minPrice),
             prijsStap,
             timerInSeconden: Number(closingTime),
-            startTimestamp, // geplande start
+            // stuur ISO-string zodat backend een correcte UTC timestamp ontvangt
+            startTimestamp: startTimestamp.toISOString(),
             veilingsmeesterID
         };
 
@@ -130,16 +162,50 @@ function AuctionDetailPage() {
                         <small>Standaard 10 seconden</small>
                     </label>
 
-                    <label className="form-field">
-                        <span className="form-label">Start over (seconden)</span>
-                        <input
-                            type="number"
-                            value={startInSeconds}
-                            onChange={e => setStartInSeconds(e.target.value)}
-                            min={0}
-                        />
-                        <small>0 = start direct</small>
-                    </label>
+                    {/* Start tijd keuze */}
+                    <div className="form-field">
+                        <span className="form-label">Start tijd</span>
+
+                        <div className="start-mode-toggle">
+                            <button
+                                type="button"
+                                className={`start-mode-option ${startMode === 'datetime' ? 'active' : ''}`}
+                                onClick={() => setStartMode('datetime')}
+                            >
+                                📅 Datum & tijd
+                            </button>
+
+                            <button
+                                type="button"
+                                className={`start-mode-option ${startMode === 'seconds' ? 'active' : ''}`}
+                                onClick={() => setStartMode('seconds')}
+                            >
+                                ⏱ Over enkele seconden
+                            </button>
+                        </div>
+
+                        {startMode === 'datetime' ? (
+                            <div className="start-mode-input">
+                                <input
+                                    type="datetime-local"
+                                    value={startDateTime}
+                                    onChange={e => setStartDateTime(e.target.value)}
+                                    min={formatLocalDatetimeInput(new Date())}
+                                />
+                                <small>Laat leeg om direct te starten</small>
+                            </div>
+                        ) : (
+                            <div className="start-mode-input">
+                                <input
+                                    type="number"
+                                    min={0}
+                                    value={startInSeconds}
+                                    onChange={e => setStartInSeconds(e.target.value)}
+                                />
+                                <small>Aantal seconden tot start (0 = direct)</small>
+                            </div>
+                        )}
+                    </div>
                 </fieldset>
 
                 <div className="form-actions">
