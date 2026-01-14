@@ -20,7 +20,7 @@ namespace backend.Services
             _context = context;
         }
 
-        // GET: api/Product/vandaag
+        
         [HttpGet("vandaag")]
         public async Task<List<ProductMetVeilingmeesterDto>> GetVandaag()
         {
@@ -45,7 +45,7 @@ namespace backend.Services
 
 
 
-        // GET: api/Product/leverancier
+       
         [HttpGet("leverancier")]
         public async Task<List<ProductMetVeilingmeesterDto>> GetMetLeverancier()
         {
@@ -67,7 +67,7 @@ namespace backend.Services
         }
 
 
-        // POST: api/Product/CreateProduct
+        
         [HttpPost("CreateProduct")]
         [Authorize]
         public async Task<ProductMetVeilingmeesterDto> PostProduct(ProductUploadDto productDto, string userId, bool isAdmin)
@@ -132,7 +132,7 @@ namespace backend.Services
             };
         }
 
-        // GET: api/Product/{id}
+        
         [HttpGet("{id}")]
         public async Task<ProductMetVeilingmeesterDto?> GetProductById(int id)
         {
@@ -141,7 +141,7 @@ namespace backend.Services
                 .FirstOrDefaultAsync(p => p.ProductId == id);
 
             if (product == null)
-                return null; // Controller can handle NotFound
+                return null; 
 
             return new ProductMetVeilingmeesterDto
             {
@@ -157,7 +157,7 @@ namespace backend.Services
             };
         }
 
-        // DELETE: api/Product/vandaag
+      
         [HttpDelete("vandaag")]
         public async Task<int> DeleteVandaag()
         {
@@ -175,7 +175,7 @@ namespace backend.Services
             return removed;
         }
 
-        // Delete single product by id
+    
         public async Task<bool> DeleteProduct(int id)
         {
             var product = await _context.Product.FindAsync(id);
