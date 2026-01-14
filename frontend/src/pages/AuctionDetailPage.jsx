@@ -172,7 +172,7 @@ function AuctionDetailPage() {
                                 className={`start-mode-option ${startMode === 'datetime' ? 'active' : ''}`}
                                 onClick={() => setStartMode('datetime')}
                             >
-                                📅 Datum & tijd
+                                Datum & tijd
                             </button>
 
                             <button
@@ -180,7 +180,7 @@ function AuctionDetailPage() {
                                 className={`start-mode-option ${startMode === 'seconds' ? 'active' : ''}`}
                                 onClick={() => setStartMode('seconds')}
                             >
-                                ⏱ Over enkele seconden
+                                Over enkele seconden
                             </button>
                         </div>
 
