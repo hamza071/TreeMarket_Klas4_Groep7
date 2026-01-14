@@ -8,7 +8,7 @@ using backend.Models;
 using backend.Services;
 var builder = WebApplication.CreateBuilder(args);
 //
-// 1. Database configuratie
+// Database configuratie
 // Zorg dat je connection string in appsettings.json klopt!
 var connectionString = builder.Configuration.GetConnectionString("LocalExpress") 
     ?? throw new InvalidOperationException("Connection string not found.");
@@ -17,20 +17,18 @@ builder.Services.AddDbContext<ApiContext>(options =>
     options.UseSqlServer(connectionString, sql => sql.EnableRetryOnFailure())
 );
 
-// ============================================================
-// 2. IDENTITY CONFIGURATIE (Volgens de Slides)
-// ============================================================
 
-// Slide 3: AddIdentity vervangt je handmatige configuratie
+
+//AddIdentity vervangt je handmatige configuratie
 builder.Services.AddIdentity<Gebruiker, IdentityRole>()
     .AddEntityFrameworkStores<ApiContext>()
     .AddDefaultTokenProviders();
 
-// Slide 5: Extra services toevoegen
+//Extra services toevoegen
 builder.Services.AddScoped<RoleManager<IdentityRole>>();
 builder.Services.AddTransient<IEmailSender<Gebruiker>, DummyEmailSender>();
 
-// Slide 11: Authenticatie instellen op Bearer Token
+//Authenticatie instellen op Bearer Token
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = IdentityConstants.BearerScheme;
@@ -44,9 +42,8 @@ builder.Services.AddAuthentication(options =>
 // Authorization aanzetten
 builder.Services.AddAuthorization();
 
-// ============================================================
 
-// ============== De Controller klasses maakt gebruik van een interface :)==============
+// De Controller klasses maakt gebruik van een interface
 // Je eigen services
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IGebruikerService, GebruikerService>();
@@ -59,7 +56,7 @@ builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddControllersWithViews();
 builder.Services.AddEndpointsApiExplorer();
 
-// Swagger instellen (Slide 11)
+// Swagger instellen 
 builder.Services.AddSwaggerGen(options =>
 {
     options.SwaggerDoc("v1", new OpenApiInfo { Title = "TreeMarket API", Version = "v1" });
@@ -100,20 +97,19 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// ============================================================
-// 3. SEEDING: Admin en Rollen aanmaken bij opstarten
-// (Slide 6 & 8)
-// ============================================================
+
+// SEEDING: Admin en Rollen aanmaken bij opstarten
+
 using (var scope = app.Services.CreateScope())
 {
-    //// 1. HAAL EERST DE DATABASE CONTEXT OP
+    // HAAL EERST DE DATABASE CONTEXT OP
     //var context = scope.ServiceProvider.GetRequiredService<ApiContext>();
     
-    //// 2. VOER DE MIGRATIES UIT (MAAK TABELLEN AAN IN AZURE)
-    //// Dit commando zorgt dat de database tabellen worden aangemaakt als ze nog niet bestaan.
+    //VOER DE MIGRATIES UIT (MAAK TABELLEN AAN IN AZURE)
+    //Dit commando zorgt dat de database tabellen worden aangemaakt als ze nog niet bestaan.
     //context.Database.Migrate();
 
-    //// ---------------------------------------------------------
+    
 
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
     var userManager = scope.ServiceProvider.GetRequiredService<UserManager<Gebruiker>>();
@@ -149,9 +145,9 @@ using (var scope = app.Services.CreateScope())
         }
     }
 
-    // ==========================
+ 
     // Toevoegen test Veilingsmeester
-    // ==========================
+    
     var testEmail = "test@treemarket.nl";
     var testUser = await userManager.FindByEmailAsync(testEmail);
     if (testUser == null)
@@ -177,7 +173,7 @@ using (var scope = app.Services.CreateScope())
         Console.WriteLine("Rol Veilingsmeester toegevoegd aan: " + testEmail);
     }
 }
-// ============================================================
+
 
 if (app.Environment.IsDevelopment())
 {
@@ -198,4 +194,4 @@ app.MapIdentityApi<Gebruiker>();
 
 app.MapControllers();
 
-app.Run();//
+app.Run();
