@@ -22,14 +22,14 @@ namespace backend.Services
         // Haal alle actieve veilingen op (DTO voor frontend)
         public async Task<List<VeilingResponseDto>> GetAllAsync()
         {
-            // 1. Haal alle actieve veilingen inclusief Product EN LEVERANCIER
+            //Haal alle actieve veilingen inclusief Product en leverancier
             var veilingen = await _context.Veiling
                 .Include(v => v.Product)
                     .ThenInclude(p => p.Leverancier) 
                 .Where(v => v.Status)
                 .ToListAsync();
 
-            // 2. Map in memory naar DTO
+            //Map in memory naar DTO
             return veilingen.Select(v => new VeilingResponseDto
             {
                 VeilingID = v.VeilingID,
@@ -45,7 +45,6 @@ namespace backend.Services
                 Hoeveelheid = v.Product?.Hoeveelheid ?? 0,
                 Omschrijving = v.Product?.Omschrijving ?? "",
 
-                // === HIER DE AANPASSING ===
                 // We mappen de bedrijfsnaam van de leverancier naar de DTO.
                 // Als er geen leverancier is gekoppeld, sturen we "Onbekend".
                 LeverancierNaam = v.Product?.Leverancier?.Bedrijf ?? "Onbekend"
@@ -57,7 +56,7 @@ namespace backend.Services
         {
             var veiling = await _context.Veiling
                 .Include(v => v.Product)
-                    .ThenInclude(p => p.Leverancier) // Ook hier handig om te hebben
+                    .ThenInclude(p => p.Leverancier) 
                 .FirstOrDefaultAsync(v => v.VeilingID == id);
 
             if (veiling == null)
@@ -69,7 +68,7 @@ namespace backend.Services
         // Maak veiling aan
         public async Task<VeilingResponseDto> CreateVeilingAsync(VeilingDto dto, string userId)
         {
-            // 1. Product ophalen MET leverancier
+            //Product ophalen MET leverancier
             var product = await _context.Product
                 .Include(p => p.Leverancier)
                 .FirstOrDefaultAsync(p => p.ProductId == dto.ProductID);
@@ -77,7 +76,7 @@ namespace backend.Services
             if (product == null)
                 throw new KeyNotFoundException("Product niet gevonden.");
 
-            // 2. StartTimestamp bepalen: geplande of directe start
+            // StartTimestamp bepalen: geplande of directe start
             // Normalize incoming StartTimestamp to UTC to avoid Kind mismatches
             var requestedStart = dto.StartTimestamp.Kind == DateTimeKind.Utc
                 ? dto.StartTimestamp
@@ -87,7 +86,7 @@ namespace backend.Services
                 ? requestedStart // geplande veiling
                 : DateTime.UtcNow;   // directe start
 
-            // 3. Veiling aanmaken
+            // Veiling aanmaken
             var veiling = new Veiling
             {
                 StartPrijs = dto.StartPrijs,
@@ -104,7 +103,7 @@ namespace backend.Services
             _context.Veiling.Add(veiling);
             await _context.SaveChangesAsync();
 
-            // 4. Response DTO
+            // Response DTO
             return new VeilingResponseDto
             {
                 VeilingID = veiling.VeilingID,
