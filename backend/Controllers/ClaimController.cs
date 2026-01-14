@@ -1,6 +1,6 @@
 ﻿using backend.Interfaces;
 using TreeMarket_Klas4_Groep7.Services;
-using Microsoft.AspNetCore.Authorization; // <--- BELANGRIJK
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
@@ -12,24 +12,26 @@ using Claim = TreeMarket_Klas4_Groep7.Models.Claim;
 
 namespace TreeMarket_Klas4_Groep7.Controllers
 {
+    // Definieert de route (api/Claim) en geeft aan dat dit een API controller is
     [Route("api/[controller]")]
     [ApiController]
     public class ClaimController : ControllerBase
     {
         private readonly IClaimController _service;
-
+        
+        // dependency injection van de service 
         public ClaimController(IClaimController service)
         {
             _service = service;
         }
 
         // GET: api/Claim
+        // Haalt alle claims op
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Claim>>> GetClaims()
         {
             try
             {
-                // Include Klant en Veiling voor meer info
                 var claims = await _service.GetClaimsAsync();
                 return Ok(claims);
             }
@@ -40,14 +42,14 @@ namespace TreeMarket_Klas4_Groep7.Controllers
         }
 
         // POST: api/Claim/CreateClaim
+        // Maakt een nieuwe claim aan
         [HttpPost("CreateClaim")]
-        [Authorize] // <--- ALLEEN INGELOGDE GEBRUIKERS!
+        [Authorize] 
         public async Task<IActionResult> PostClaim([FromBody] ClaimDto claimDto)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            // 1. Haal de ingelogde gebruiker ID op uit het token (Identity)
-            // Dit is VEEL veiliger dan de ID uit de DTO te halen.
+            // Haalt de userId op uit de token
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier); // Geeft de GUID string
 
             if (string.IsNullOrEmpty(userId))
@@ -66,13 +68,14 @@ namespace TreeMarket_Klas4_Groep7.Controllers
             }
         }
 
-        // DELETE: api/Claim/5
+        // DELETE: api/Claim/{id} | Claims verwijderen op basis van ID 
         [HttpDelete("{id}")]
-        [Authorize(Roles = "Admin")] // Alleen admin mag claims verwijderen?
+        [Authorize(Roles = "Admin")] // Alleen admin mag claims verwijderen maar dit is geen optie in de frontend 
         public async Task<IActionResult> DeleteClaim(int id)
         {
             try 
             {
+                // Probeert      de claim te verwijderen via de service
                 var success = await _service.DeleteClaimAsync(id);
                 if (!success) return NotFound();
 
