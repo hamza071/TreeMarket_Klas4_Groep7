@@ -11,6 +11,7 @@ function AuctionDetailPage() {
     const [startPrice, setStartPrice] = useState('');
     const [minPrice, setMinPrice] = useState(0);
     const [closingTime, setClosingTime] = useState(10);
+    const [startInSeconds, setStartInSeconds] = useState(0); // nieuw: geplande start
 
     // Haal kavel op via API
     useEffect(() => {
@@ -23,7 +24,7 @@ function AuctionDetailPage() {
                 const data = await response.json();
 
                 setLot(data);
-                setMinPrice(Number(data.minimumPrijs ?? 0)); // minPrice van backend
+                setMinPrice(Number(data.minimumPrijs ?? 0));
                 setStartPrice(Number(data.minimumPrijs ?? 0) + 1);
                 setClosingTime(10);
             } catch (err) {
@@ -54,12 +55,17 @@ function AuctionDetailPage() {
         const token = localStorage.getItem("token");
         if (!token) return alert("Je bent niet ingelogd.");
 
+        // Bereken geplande starttijd
+        const now = new Date();
+        const startTimestamp = new Date(now.getTime() + Number(startInSeconds) * 1000);
+
         const payload = {
             productID: lot.productId,
             startPrijs: Number(startPrice),
-            minPrijs: Number(minPrice), // toevoeging van minimale prijs
+            minPrijs: Number(minPrice),
             prijsStap,
             timerInSeconden: Number(closingTime),
+            startTimestamp, // geplande start
             veilingsmeesterID
         };
 
@@ -122,6 +128,17 @@ function AuctionDetailPage() {
                             onChange={e => setClosingTime(e.target.value)}
                         />
                         <small>Standaard 10 seconden</small>
+                    </label>
+
+                    <label className="form-field">
+                        <span className="form-label">Start over (seconden)</span>
+                        <input
+                            type="number"
+                            value={startInSeconds}
+                            onChange={e => setStartInSeconds(e.target.value)}
+                            min={0}
+                        />
+                        <small>0 = start direct</small>
                     </label>
                 </fieldset>
 

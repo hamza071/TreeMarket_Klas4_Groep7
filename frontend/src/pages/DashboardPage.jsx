@@ -5,6 +5,9 @@ const AUTO_REMOVE_DELAY = 4000; // 4 seconden na afloop verwijderen
 function DashboardPage() {
     const [lotsState, setLotsState] = useState([]);
 
+    // Featured carousel index (minimal UI change: small prev/next buttons)
+    const [featuredIndex, setFeaturedIndex] = useState(0);
+
     // 1. State voor de pop-up (modal)
     const [showModal, setShowModal] = useState(false);
     const [transactionData, setTransactionData] = useState(null);
@@ -49,7 +52,8 @@ function DashboardPage() {
                             minPrice,
                             closing: Math.ceil(remainingTime),
                             currentPrice,
-                            status: remainingTime > 0 ? 'actief' : 'afgesloten',
+                            // Mark planned auctions correctly so they appear in the upcoming table
+                            status: startTimestamp > now ? 'gepland' : (remainingTime > 0 ? 'actief' : 'afgesloten'),
                             removeAt,
                         };
                     })
@@ -89,7 +93,8 @@ function DashboardPage() {
                             ...lot,
                             closing: Math.ceil(remainingTime),
                             currentPrice,
-                            status: remainingTime > 0 ? 'actief' : 'afgesloten',
+                            // keep planned status when startTimestamp is in the future
+                            status: lot.startTimestamp > now ? 'gepland' : (remainingTime > 0 ? 'actief' : 'afgesloten'),
                             removeAt,
                         };
                     })
@@ -112,8 +117,28 @@ function DashboardPage() {
         return () => clearInterval(interval);
     }, []);
 
-    const featuredLot = lotsState[0];
+    // Derived lists (minimal change): running (started & active) and upcoming (planned)
+    const runningLots = lotsState.filter(l => l.startTimestamp <= Date.now() && l.closing > 0);
+    const upcomingLots = lotsState.filter(l => l.startTimestamp > Date.now() && l.status !== 'afgesloten');
+
+    // Keep featuredIndex in range when runningLots length changes
+    useEffect(() => {
+        if (runningLots.length === 0) {
+            setFeaturedIndex(0);
+            return;
+        }
+        if (featuredIndex >= runningLots.length) {
+            setFeaturedIndex(runningLots.length - 1);
+        }
+    }, [runningLots.length, featuredIndex]);
+
+    // IMPORTANT: only show featuredLot when there are running (started) auctions
+    const featuredLot = runningLots.length > 0 ? runningLots[featuredIndex] : null;
     const featuredTime = featuredLot?.closing ?? 0;
+
+    // NAV buttons for featured carousel (minimal UI additions)
+    const goPrev = () => setFeaturedIndex(i => Math.max(0, i - 1));
+    const goNext = () => setFeaturedIndex(i => Math.min(runningLots.length - 1, i + 1));
 
     // ==========================================================
     // LOGICA VOOR DE POP-UP (MODAL)
@@ -248,52 +273,63 @@ function DashboardPage() {
                     </p>
                 </div>
 
+                {/* Keep the same featured layout but add minimal prev/next controls */}
                 {featuredLot && (
-                    <article className="featured-card">
-                        <img
-                            src={featuredLot.foto?.startsWith('http') ? featuredLot.foto : `https://localhost:7054${featuredLot.foto}`}
-                            alt={featuredLot.productNaam || 'Productfoto'}
-                            style={{
-                                maxWidth: '600px',
-                                maxHeight: '400px',
-                                objectFit: 'cover',
-                                width: '100%',
-                                height: '100%',
-                                borderRadius: '16px',
-                                display: 'block',
-                                overflow: 'hidden',
-                                marginBottom: '1rem',
-                            }}
-                        />
-                        <div className="featured-body">
-                            <div className="featured-meta" aria-live="polite">
-                                <span className="badge badge-live">
-                                    {featuredTime > 0 ? `${featuredTime}s` : 'Afgesloten'}
-                                </span>
-                                <span className="lot-number">#{featuredLot.veilingID}</span>
-                            </div>
-                            <h2>{featuredLot.productNaam}</h2>
-                            <p className="featured-quantity">Beschikbaar: {featuredLot.hoeveelheid ?? 1} stuks</p>
+                    <div style={{ position: 'relative' }}>
+                        {/* prev/next buttons - small and unobtrusive */}
+                        {runningLots.length > 1 && (
+                            <>
+                                <button onClick={goPrev} disabled={featuredIndex === 0} style={{ position: 'absolute', left: '-40px', top: '40%', zIndex: 5 }}>◀</button>
+                                <button onClick={goNext} disabled={featuredIndex >= runningLots.length - 1} style={{ position: 'absolute', right: '-40px', top: '40%', zIndex: 5 }}>▶</button>
+                            </>
+                        )}
 
-                            <div className="featured-footer" style={{display: 'flex', flexDirection: 'column', gap: '10px'}}>
-
-                                <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', marginBottom: '5px'}}>
-                                    <span style={{fontSize: '1.1rem', fontWeight: 'bold', color: '#333'}}>Huidige prijs:</span>
-                                    <span className="featured-price">€{featuredLot.currentPrice?.toFixed(2)}</span>
+                        <article className="featured-card">
+                            <img
+                                src={featuredLot.foto?.startsWith('http') ? featuredLot.foto : `https://localhost:7054${featuredLot.foto}`}
+                                alt={featuredLot.productNaam || 'Productfoto'}
+                                style={{
+                                    maxWidth: '600px',
+                                    maxHeight: '400px',
+                                    objectFit: 'cover',
+                                    width: '100%',
+                                    height: '100%',
+                                    borderRadius: '16px',
+                                    display: 'block',
+                                    overflow: 'hidden',
+                                    marginBottom: '1rem',
+                                }}
+                            />
+                            <div className="featured-body">
+                                <div className="featured-meta" aria-live="polite">
+                                    <span className="badge badge-live">
+                                        {featuredTime > 0 ? `${featuredTime}s` : 'Afgesloten'}
+                                    </span>
+                                    <span className="lot-number">#{featuredLot.veilingID}</span>
                                 </div>
+                                <h2>{featuredLot.productNaam}</h2>
+                                <p className="featured-quantity">Beschikbaar: {featuredLot.hoeveelheid ?? 1} stuks</p>
 
-                                <button
-                                    type="button"
-                                    className="secondary-action"
-                                    disabled={featuredTime <= 0}
-                                    onClick={handleInitialClick}
-                                    style={{ width: '100%' }}
-                                >
-                                    Bieden
-                                </button>
+                                <div className="featured-footer" style={{display: 'flex', flexDirection: 'column', gap: '10px'}}>
+
+                                    <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', marginBottom: '5px'}}>
+                                        <span style={{fontSize: '1.1rem', fontWeight: 'bold', color: '#333'}}>Huidige prijs:</span>
+                                        <span className="featured-price">€{featuredLot.currentPrice?.toFixed(2)}</span>
+                                    </div>
+
+                                    <button
+                                        type="button"
+                                        className="secondary-action"
+                                        disabled={featuredTime <= 0}
+                                        onClick={handleInitialClick}
+                                        style={{ width: '100%' }}
+                                    >
+                                        Bieden
+                                    </button>
+                                </div>
                             </div>
-                        </div>
-                    </article>
+                        </article>
+                    </div>
                 )}
             </section>
 
@@ -302,26 +338,33 @@ function DashboardPage() {
                 <div className="table-wrapper" role="region" aria-live="polite">
                     <table className="data-table">
                         <thead>
-                        <tr>
-                            <th>Kavel</th>
-                            <th>Naam</th>
-                            <th>Specificaties</th>
-                            <th>Aantal</th>
-                            <th>Huidige prijs (€)</th>
-                            <th>Sluiting</th>
-                        </tr>
+                            <tr>
+                                <th>Kavel</th>
+                                <th>Naam</th>
+                                <th>Specificaties</th>
+                                <th>Aantal</th>
+                                <th>Huidige prijs (€)</th>
+                                <th>Veiling start over</th> {/* kolomnaam aangepast */}
+                                <th>Sluitingstijd</th>
+                            </tr>
                         </thead>
                         <tbody>
-                        {lotsState.map(lot => (
-                            <tr key={lot.veilingID}>
-                                <td>{lot.veilingID}</td>
-                                <td>{lot.productNaam}</td>
-                                <td>{lot.specs ?? '-'}</td>
-                                <td>{lot.hoeveelheid ?? 1}</td>
-                                <td>€{lot.currentPrice?.toFixed(2)}</td>
-                                <td>{lot.closing > 0 ? `${lot.closing}s` : 'Afgesloten'}</td>
-                            </tr>
-                        ))}
+                            {upcomingLots.map(lot => {
+                                const now = Date.now();
+                                const timeUntilStart = Math.max(0, Math.ceil((lot.startTimestamp - now) / 1000));
+
+                                return (
+                                    <tr key={lot.veilingID}>
+                                        <td>{lot.veilingID}</td>
+                                        <td>{lot.productNaam}</td>
+                                        <td>{lot.specs ?? '-'}</td>
+                                        <td>{lot.hoeveelheid ?? 1}</td>
+                                        <td>€{lot.currentPrice?.toFixed(2)}</td>
+                                        <td>{timeUntilStart}s</td> {/* aftel timer tot start */}
+                                        <td>{lot.closing > 0 ? `${lot.closing}s` : 'Afgesloten'}</td>
+                                    </tr>
+                                );
+                            })}
                         </tbody>
                     </table>
                 </div>

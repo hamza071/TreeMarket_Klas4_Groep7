@@ -19,7 +19,6 @@ public class Veiling
     [Column(TypeName = "decimal(18,2)")]
     public decimal HuidigePrijs { get; set; }
 
-
     [Required]
     [Column(TypeName = "decimal(18,2)")]
     public decimal MinPrijs { get; set; } = 0; // default = 0
@@ -36,7 +35,11 @@ public class Veiling
     [Required]
     public DateTime StartTimestamp { get; set; }
 
-    
+    [Required]
+    public DateTime EindTimestamp { get; set; } // <-- nieuw veld voor einde veiling
+
+    // ---------- RELATIES ----------
+
     [Required]
     public int ProductID { get; set; }
     public Product Product { get; set; }
