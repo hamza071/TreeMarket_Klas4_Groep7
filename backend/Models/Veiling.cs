@@ -35,9 +35,6 @@ public class Veiling
     [Required]
     public DateTime StartTimestamp { get; set; }
 
-    [Required]
-    public DateTime EindTimestamp { get; set; } // <-- nieuw veld voor einde veiling
-
     // ---------- RELATIES ----------
 
     [Required]
