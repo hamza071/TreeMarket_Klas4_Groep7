@@ -7,7 +7,7 @@ using backend.Interfaces;
 using backend.Models;
 using backend.Services;
 var builder = WebApplication.CreateBuilder(args);
-//
+
 // Database configuratie
 // Zorg dat je connection string in appsettings.json klopt!
 var connectionString = builder.Configuration.GetConnectionString("LocalExpress") 
