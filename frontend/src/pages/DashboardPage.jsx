@@ -334,12 +334,12 @@ function DashboardPage() {
             </section>
 
             <section className="dashboard-table">
-                <h3>Komende kavels</h3>
+                <h3>Komende Veilingen</h3>
                 <div className="table-wrapper" role="region" aria-live="polite">
                     <table className="data-table">
                         <thead>
                             <tr>
-                                <th>Kavel</th>
+                                <th>Veiling</th>
                                 <th>Naam</th>
                                 <th>Aantal</th>
                                 <th>Huidige prijs (€)</th>
