@@ -1,6 +1,6 @@
 ﻿import { useState } from 'react';
 import '../assets/css/UploadAuctionPage.css';
-import { API_URL } from './DeployLocal';
+import { API_URL } from '../DeployLocal';
 
 const defaultForm = {
     title: '',

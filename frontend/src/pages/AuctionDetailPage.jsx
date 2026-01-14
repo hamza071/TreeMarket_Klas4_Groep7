@@ -1,7 +1,8 @@
 ﻿import { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import '../assets/css/UploadAuctionPage.css';
-import { API_URL } from './DeployLocal';
+import { API_URL } from '../DeployLocal';
+
 function formatLocalDatetimeInput(date) {
     // returns 'YYYY-MM-DDTHH:MM' in local time for datetime-local input
     const pad = (n) => n.toString().padStart(2, '0');

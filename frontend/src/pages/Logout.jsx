@@ -1,5 +1,6 @@
 import { useEffect } from "react";
-import { API_URL } from './DeployLocal';
+import { API_URL } from '../DeployLocal';
+
 export default function Logout() {
     useEffect(() => {
         async function doLogout() {

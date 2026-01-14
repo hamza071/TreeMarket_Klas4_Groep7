@@ -1,8 +1,7 @@
 ﻿import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "../assets/css/AuctionPage.css";
-import { API_URL } from './DeployLocal';
-
+import { API_URL } from '../DeployLocal';
 function AuctionPage() {
     const [lots, setLots] = useState([]);
     const [loading, setLoading] = useState(true);
