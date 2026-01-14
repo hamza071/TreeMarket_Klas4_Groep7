@@ -1,9 +1,35 @@
 import { useEffect, useState } from 'react';
+import '../assets/css/DashboardPage.css';
 
 const AUTO_REMOVE_DELAY = 4000; // 4 seconden na afloop verwijderen
 
 function DashboardPage() {
     const [lotsState, setLotsState] = useState([]);
+    const [expandedDescriptions, setExpandedDescriptions] = useState({});
+
+    const toggleExpanded = (id) => {
+        setExpandedDescriptions(prev => ({ ...prev, [id]: !prev[id] }));
+    };
+
+    const truncateWords = (text, maxWords = 10) => {
+        if (!text) return '';
+        const words = text.split(/\s+/).filter(Boolean);
+        if (words.length <= maxWords) return { text, truncated: false };
+        return { text: words.slice(0, maxWords).join(' '), truncated: true };
+    };
+
+    // helper to read description from various possible property names
+    const getDescription = (lot) => {
+        if (!lot) return '';
+        return (
+            lot.omschrijving ||
+            lot.Omschrijving ||
+            lot.product?.omschrijving ||
+            lot.product?.Omschrijving ||
+            lot.productOmschrijving ||
+            ''
+        );
+    };
 
     // Featured carousel index (minimal UI change: small prev/next buttons)
     const [featuredIndex, setFeaturedIndex] = useState(0);
@@ -19,7 +45,7 @@ function DashboardPage() {
                 const response = await fetch('https://localhost:7054/api/Veiling/GetVeilingen', {
                     headers: {
                         Authorization: `Bearer ${localStorage.getItem('token')}`,
-                        'Content-Type'    : 'application/json',
+                        'Content-Type': 'application/json',
                     },
                 });
                 const data = await response.json();
@@ -60,6 +86,27 @@ function DashboardPage() {
                     .sort((a, b) => b.veilingID - a.veilingID);
 
                 setLotsState(lots);
+
+                // Fetch missing descriptions from Product endpoint when not provided by the veiling DTO
+                const missing = lots.filter(l => !getDescription(l) && l.productID);
+                if (missing.length > 0) {
+                    const token = localStorage.getItem('token');
+                    await Promise.all(missing.map(async m => {
+                        try {
+                            const resp = await fetch(`https://localhost:7054/api/Product/${m.productID}`, {
+                                headers: { Accept: 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) }
+                            });
+                            if (!resp.ok) return;
+                            const prod = await resp.json();
+                            const oms = prod.omschrijving || prod.Omschrijving || prod.Omschrijving || prod.Omschrijving || prod.Omschrijving || prod.Omschrijving || prod.Omschrijving || prod.omschrijving || prod.Omschrijving || prod.Omschrijving || prod.Omschrijving || prod.Omschrijving || prod.Omschrijving || prod.Omschrijving || prod.Omschrijving || prod.omschrijving || prod.Omschrijving || prod.Omschrijving || prod.Omschrijving || prod.Omschrijving || prod.Omschrijving || prod.omschrijving || prod.Omschrijving || prod.Omschrijving || prod.Omschrijving || prod.Omschrijving || prod.Omschrijving || prod.Omschrijving || prod.omschrijving || prod.Omschrijving || prod.Omschrijving || prod.Omschrijving || prod.Omschrijving || prod.Omschrijving || prod.Omschrijving || prod.Omschrijving || prod.Omschrijving || prod.Omschrijving || prod.Omschrijving || prod.Omschrijving || prod.Omschrijving || prod.Omschrijving || '';
+                            if (oms) {
+                                setLotsState(prev => prev.map(x => x.productID === m.productID ? { ...x, omschrijving: oms } : x));
+                            }
+                        } catch (e) {
+                            console.warn('Kon product omschrijving niet ophalen voor', m.productID, e);
+                        }
+                    }));
+                }
             } catch (err) {
                 console.error('Fout bij ophalen van veilingen:', err);
             }
@@ -99,6 +146,24 @@ function DashboardPage() {
                         };
                     })
                     .filter(lot => {
+                        // If quantity reached 0 or less, attempt to delete the veiling and remove from UI
+                        if ((lot.hoeveelheid ?? 0) <= 0) {
+                            const token = localStorage.getItem('token');
+                            const headers = token ? { Authorization: `Bearer ${token}` } : {};
+
+                            fetch(`https://localhost:7054/api/Veiling/DeleteVeiling/${lot.veilingID}`, {
+                                method: 'DELETE',
+                                headers
+                            })
+                                .then(res => {
+                                    if (!res.ok) return res.text().then(t => Promise.reject(new Error(t || res.statusText)));
+                                    console.log(`Veiling ${lot.veilingID} verwijderd omdat hoeveelheid 0 is.`);
+                                })
+                                .catch(err => console.error(`Fout bij verwijderen veiling ${lot.veilingID}:`, err));
+
+                            return false;
+                        }
+
                         if (lot.removeAt && now >= lot.removeAt) {
                             fetch(`https://localhost:7054/api/Veiling/DeleteVeiling/${lot.veilingID}`, {
                                 method: 'DELETE',
@@ -262,6 +327,25 @@ function DashboardPage() {
         setShowModal(false);
     };
 
+    const renderDescription = (lot) => {
+        const desc = getDescription(lot);
+        if (!desc) return '-';
+        const id = lot.veilingID ?? lot.productID ?? lot.id ?? JSON.stringify(lot);
+        const { text: truncatedText, truncated } = truncateWords(desc, 10);
+        const isExpanded = !!expandedDescriptions[id];
+
+        if (!truncated) return desc;
+
+        return (
+            <>
+                <span>{isExpanded ? desc : truncatedText + '...'}</span>
+                <button className="read-more-link" onClick={() => toggleExpanded(id)}>
+                    {isExpanded ? 'lees minder' : 'lees meer'}
+                </button>
+            </>
+        );
+    };
+
     return (
         <div className="dashboard-page">
             <section className="dashboard-hero">
@@ -308,6 +392,7 @@ function DashboardPage() {
                                     <span className="lot-number">#{featuredLot.veilingID}</span>
                                 </div>
                                 <h2>{featuredLot.productNaam}</h2>
+                                {getDescription(featuredLot) && <p className="featured-description">{renderDescription(featuredLot)}</p>}
                                 <p className="featured-quantity">Beschikbaar: {featuredLot.hoeveelheid ?? 1} stuks</p>
 
                                 <div className="featured-footer" style={{display: 'flex', flexDirection: 'column', gap: '10px'}}>
@@ -334,7 +419,7 @@ function DashboardPage() {
             </section>
 
             <section className="dashboard-table">
-                <h3>Komende Veilingen</h3>
+                <h3>Komende veilingen</h3>
                 <div className="table-wrapper" role="region" aria-live="polite">
                     <table className="data-table">
                         <thead>
@@ -342,6 +427,7 @@ function DashboardPage() {
                                 <th>Veiling</th>
                                 <th>Naam</th>
                                 <th>Aantal</th>
+                                <th>Omschrijving</th>
                                 <th>Huidige prijs (€)</th>
                                 <th>Startdatum</th>
                                 <th>Veiling start over</th> {/* kolomnaam aangepast */}
@@ -359,6 +445,7 @@ function DashboardPage() {
                                         <td>{lot.veilingID}</td>
                                         <td>{lot.productNaam}</td>
                                         <td>{lot.hoeveelheid ?? 1}</td>
+                                        <td>{renderDescription(lot) || '-'}</td>
                                         <td>€{lot.currentPrice?.toFixed(2)}</td>
                                         <td>{startDateDisplay}</td>
                                         <td>{timeUntilStart}s</td> {/* aftel timer tot start */}
@@ -375,11 +462,11 @@ function DashboardPage() {
             {/* POP-UP MODAL (Met input en totaalprijs)                    */}
             {/* ========================================================== */}
             {showModal && transactionData && (
-                <div style={styles.overlay}>
-                    <div style={styles.modal}>
+                <div className="dashboard-overlay">
+                    <div className="dashboard-modal">
                         <h2>Bevestig Aankoop</h2>
 
-                        <div style={styles.summary}>
+                        <div className="dashboard-summary">
                             <p><strong>Product:</strong> {transactionData.productNaam}</p>
                             <p><strong>Prijs per stuk:</strong> €{transactionData.prijsPerStuk.toFixed(2)}</p>
 
@@ -438,7 +525,7 @@ function DashboardPage() {
                                     {/* Markt Historie */}
                                     <div>
                                         <span style={{fontSize: '0.8rem', color: '#555'}}>Alle aanbieders:</span>
-                                        <table style={styles.historyTable}>
+                                        <table className="dashboard-historyTable">
                                             <tbody>
                                             {transactionData.history.marktHistorie.map((h, i) => (
                                                 <tr key={i}>
@@ -462,9 +549,9 @@ function DashboardPage() {
 
                         </div>
 
-                        <div style={styles.buttons}>
-                            <button onClick={() => setShowModal(false)} style={styles.cancelBtn}>Annuleren</button>
-                            <button onClick={handleConfirmPurchase} style={styles.confirmBtn}>Bevestigen</button>
+                        <div className="dashboard-buttons">
+                            <button onClick={() => setShowModal(false)} className="dashboard-cancelBtn">Annuleren</button>
+                            <button onClick={handleConfirmPurchase} className="dashboard-confirmBtn">Bevestigen</button>
                         </div>
                     </div>
                 </div>
@@ -474,22 +561,6 @@ function DashboardPage() {
 }
 
 const styles = {
-    overlay: {
-        position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-        backgroundColor: 'rgba(0,0,0,0.7)', zIndex: 1000,
-        display: 'flex', justifyContent: 'center', alignItems: 'center'
-    },
-    modal: {
-        backgroundColor: 'white', padding: '2rem', borderRadius: '12px',
-        width: '90%', maxWidth: '500px', // Iets breder voor de tabellen
-        maxHeight: '90vh', overflowY: 'auto', // Zodat het past op kleine schermen
-        textAlign: 'center',
-        boxShadow: '0 4px 20px rgba(0,0,0,0.3)', color: '#333'
-    },
-    summary: { textAlign: 'left', margin: '1.5rem 0', lineHeight: '1.6' },
-    buttons: { display: 'flex', gap: '1rem', justifyContent: 'center', marginTop: '20px' },
-    cancelBtn: { padding: '10px 20px', borderRadius: '8px', border: '1px solid #ccc', backgroundColor: '#f5f5f5', cursor: 'pointer', color: 'black' },
-    confirmBtn: { padding: '10px 20px', borderRadius: '8px', border: 'none', backgroundColor: '#2ecc71', color: 'white', fontWeight: 'bold', cursor: 'pointer' },
     historyTable: { width: '100%', fontSize: '0.75rem', marginBottom: '5px' }
 };
 

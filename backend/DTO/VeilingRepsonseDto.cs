@@ -16,6 +16,7 @@
        
         public string ProductNaam { get; set; }
         public string Foto { get; set; }
+        public string Omschrijving { get; set; }
 
         
         public string LeverancierNaam { get; set; }

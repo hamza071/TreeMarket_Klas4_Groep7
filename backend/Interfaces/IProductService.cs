@@ -14,6 +14,12 @@ namespace backend.Interfaces
 
         // Get de product met ID
         Task<ProductMetVeilingmeesterDto?> GetProductById(int id);
+
+        // Delete alle producten van vandaag en return aantal verwijderde records
+        Task<int> DeleteVandaag();
+
+        // Delete single product by id, return true if deleted
+        Task<bool> DeleteProduct(int id);
     }
 
 }

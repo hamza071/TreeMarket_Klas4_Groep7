@@ -43,6 +43,7 @@ namespace backend.Services
                 Foto = v.Product?.Foto ?? "",
                 StartTimestamp = v.StartTimestamp,
                 Hoeveelheid = v.Product?.Hoeveelheid ?? 0,
+                Omschrijving = v.Product?.Omschrijving ?? "",
 
                 // === HIER DE AANPASSING ===
                 // We mappen de bedrijfsnaam van de leverancier naar de DTO.
