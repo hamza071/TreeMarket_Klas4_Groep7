@@ -27,7 +27,7 @@ import Logout from "./pages/Logout";
 const NAVIGATION_ITEMS_KLANT = [
     { id: "home", label: "Home" },
     { id: "about", label: "About" },
-    { id: "veiling", label: "Veiling" },
+    { id: "dashboard", label: "Dashboard" },
 ];
 
 // LEVERANCIER

@@ -25,7 +25,7 @@ namespace backend.Services
             // 1. Haal alle actieve veilingen inclusief Product EN LEVERANCIER
             var veilingen = await _context.Veiling
                 .Include(v => v.Product)
-                    .ThenInclude(p => p.Leverancier) // <--- CRUCIAAL: Leverancier ophalen
+                    .ThenInclude(p => p.Leverancier) 
                 .Where(v => v.Status)
                 .ToListAsync();
 

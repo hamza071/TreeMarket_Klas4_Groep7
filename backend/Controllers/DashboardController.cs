@@ -1,8 +1,9 @@
 ﻿using backend.Interfaces;
-using Microsoft.AspNetCore.Mvc;
-using backend.Services;
 using backend.Models;
 using backend.Services;
+using backend.Services;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace backend.Controllers
 {
@@ -18,10 +19,17 @@ namespace backend.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "Admin,Veilingsmeester")]
         public async Task<IActionResult> GetAll()
         {
+            if (!User.IsInRole("Admin") && !User.IsInRole("Veilingsmeester"))
+            {
+                return Forbid();
+            }
+
             return Ok(await _service.GetAllAsync());
         }
+
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
