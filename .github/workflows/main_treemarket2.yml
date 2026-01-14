@@ -23,11 +23,15 @@ jobs:
         with:
           dotnet-version: '9.x'
 
+      # AANGEPAST: working-directory toegevoegd zodat hij in de 'backend' map kijkt
       - name: Build with dotnet
         run: dotnet build --configuration Release
+        working-directory: ./backend
 
+      # AANGEPAST: working-directory toegevoegd
       - name: dotnet publish
         run: dotnet publish -c Release -o "${{env.DOTNET_ROOT}}/myapp"
+        working-directory: ./backend
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
@@ -62,4 +66,3 @@ jobs:
           app-name: 'TreeMarket2'
           slot-name: 'Production'
           package: .
-          
