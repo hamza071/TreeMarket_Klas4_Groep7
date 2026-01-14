@@ -43,6 +43,7 @@ namespace backend.Services
                 Foto = v.Product?.Foto ?? "",
                 StartTimestamp = v.StartTimestamp,
                 Hoeveelheid = v.Product?.Hoeveelheid ?? 0,
+                Omschrijving = v.Product?.Omschrijving ?? "",
 
                 // === HIER DE AANPASSING ===
                 // We mappen de bedrijfsnaam van de leverancier naar de DTO.
@@ -68,21 +69,33 @@ namespace backend.Services
         // Maak veiling aan
         public async Task<VeilingResponseDto> CreateVeilingAsync(VeilingDto dto, string userId)
         {
-            // Product ophalen MET leverancier
+            // 1. Product ophalen MET leverancier
             var product = await _context.Product
-                .Include(p => p.Leverancier) 
+                .Include(p => p.Leverancier)
                 .FirstOrDefaultAsync(p => p.ProductId == dto.ProductID);
 
             if (product == null)
                 throw new KeyNotFoundException("Product niet gevonden.");
 
+            // 2. StartTimestamp bepalen: geplande of directe start
+            // Normalize incoming StartTimestamp to UTC to avoid Kind mismatches
+            var requestedStart = dto.StartTimestamp.Kind == DateTimeKind.Utc
+                ? dto.StartTimestamp
+                : DateTime.SpecifyKind(dto.StartTimestamp, DateTimeKind.Utc);
+
+            var startTimestamp = requestedStart > DateTime.UtcNow
+                ? requestedStart // geplande veiling
+                : DateTime.UtcNow;   // directe start
+
+            // 3. Veiling aanmaken
             var veiling = new Veiling
             {
                 StartPrijs = dto.StartPrijs,
                 HuidigePrijs = dto.StartPrijs,
                 MinPrijs = dto.MinPrijs,
                 TimerInSeconden = dto.TimerInSeconden,
-                StartTimestamp = DateTime.UtcNow,
+                StartTimestamp = startTimestamp,
+                //EindTimestamp = startTimestamp.AddSeconds(dto.TimerInSeconden), // handig voor featured/completed logic  
                 Status = true,
                 ProductID = product.ProductId,
                 VeilingsmeesterID = userId
@@ -91,6 +104,7 @@ namespace backend.Services
             _context.Veiling.Add(veiling);
             await _context.SaveChangesAsync();
 
+            // 4. Response DTO
             return new VeilingResponseDto
             {
                 VeilingID = veiling.VeilingID,
@@ -103,6 +117,7 @@ namespace backend.Services
                 ProductNaam = product.ProductNaam,
                 Foto = product.Foto,
                 StartTimestamp = veiling.StartTimestamp,
+                //EindTimestamp = veiling.EindTimestamp,
                 Hoeveelheid = product.Hoeveelheid,
 
                 // Direct goed teruggeven bij aanmaken

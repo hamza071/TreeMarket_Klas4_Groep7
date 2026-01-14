@@ -7,7 +7,7 @@ namespace backend.Models
     {
         [Key]
         public int DashboardID { get; set; }
-        //Foreign key
+      
         [ForeignKey(nameof(Product))]
         public int ProductID { get; set; }
         public Product Product { get; set; }

@@ -3,24 +3,23 @@ using System.ComponentModel.DataAnnotations;
 
 namespace backend.DTO
 {
-    // DTO voor product uploads (via FormData)
     public class ProductUploadDto
     {
         [Required(ErrorMessage = "Productnaam is verplicht.")]
-        public string ProductNaam { get; set; } = null!;           // Productnaam
+        public string ProductNaam { get; set; } = null!;           
 
-        public string? Varieteit { get; set; }             // Type/variëteit van het product
+        public string? Varieteit { get; set; }             
 
         [Required(ErrorMessage = "Aantal stuks is verplicht.")]
         [Range(1, int.MaxValue, ErrorMessage = "Aantal moet minimaal 1 zijn.")]
-        public int Hoeveelheid { get; set; }               // Aantal stuks
+        public int Hoeveelheid { get; set; }             
 
-        public string? Omschrijving { get; set; }          // Productomschrijving
+        public string? Omschrijving { get; set; }         
 
         [Required(ErrorMessage = "Minimumprijs is verplicht.")]
         [Range(0.01, double.MaxValue, ErrorMessage = "Minimumprijs moet groter dan 0 zijn.")]
-        public decimal MinimumPrijs { get; set; }          // Minimumprijs
+        public decimal MinimumPrijs { get; set; }          
 
-        public IFormFile? Foto { get; set; }              // Upload afbeelding
+        public IFormFile? Foto { get; set; }              // Upload van de afbeelding
     }
 }

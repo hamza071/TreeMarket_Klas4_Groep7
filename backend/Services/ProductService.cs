@@ -157,6 +157,35 @@ namespace backend.Services
             };
         }
 
+        // DELETE: api/Product/vandaag
+        [HttpDelete("vandaag")]
+        public async Task<int> DeleteVandaag()
+        {
+            var today = DateTime.UtcNow.Date;
+
+            var toDelete = await _context.Product
+                .Where(p => p.Dagdatum.Date == today)
+                .ToListAsync();
+
+            if (!toDelete.Any()) return 0;
+
+            _context.Product.RemoveRange(toDelete);
+            var removed = await _context.SaveChangesAsync();
+
+            return removed;
+        }
+
+        // Delete single product by id
+        public async Task<bool> DeleteProduct(int id)
+        {
+            var product = await _context.Product.FindAsync(id);
+            if (product == null) return false;
+
+            _context.Product.Remove(product);
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
 
     }
 }

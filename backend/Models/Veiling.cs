@@ -19,7 +19,6 @@ public class Veiling
     [Column(TypeName = "decimal(18,2)")]
     public decimal HuidigePrijs { get; set; }
 
-
     [Required]
     [Column(TypeName = "decimal(18,2)")]
     public decimal MinPrijs { get; set; } = 0; // default = 0
@@ -42,7 +41,6 @@ public class Veiling
     public int ProductID { get; set; }
     public Product Product { get; set; }
 
-    // ✅ FK naar Identity gebruiker
     [Required]
     public string VeilingsmeesterID { get; set; }
     public Gebruiker Veilingsmeester { get; set; }
