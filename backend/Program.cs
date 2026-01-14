@@ -2,35 +2,33 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
-using TreeMarket_Klas4_Groep7.Data;
+using backend.Data;
 using backend.Interfaces;
-using TreeMarket_Klas4_Groep7.Models;
-using TreeMarket_Klas4_Groep7.Services;
-
+using backend.Models;
+using backend.Services;
 var builder = WebApplication.CreateBuilder(args);
-
-// 1. Database configuratie
+//
+// Database configuratie
 // Zorg dat je connection string in appsettings.json klopt!
 var connectionString = builder.Configuration.GetConnectionString("LocalExpress") 
     ?? throw new InvalidOperationException("Connection string not found.");
 
 builder.Services.AddDbContext<ApiContext>(options =>
-    options.UseSqlServer(connectionString));
+    options.UseSqlServer(connectionString, sql => sql.EnableRetryOnFailure())
+);
 
-// ============================================================
-// 2. IDENTITY CONFIGURATIE (Volgens de Slides)
-// ============================================================
 
-// Slide 3: AddIdentity vervangt je handmatige configuratie
+
+//AddIdentity vervangt je handmatige configuratie
 builder.Services.AddIdentity<Gebruiker, IdentityRole>()
     .AddEntityFrameworkStores<ApiContext>()
     .AddDefaultTokenProviders();
 
-// Slide 5: Extra services toevoegen
+//Extra services toevoegen
 builder.Services.AddScoped<RoleManager<IdentityRole>>();
 builder.Services.AddTransient<IEmailSender<Gebruiker>, DummyEmailSender>();
 
-// Slide 11: Authenticatie instellen op Bearer Token
+//Authenticatie instellen op Bearer Token
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = IdentityConstants.BearerScheme;
@@ -44,13 +42,21 @@ builder.Services.AddAuthentication(options =>
 // Authorization aanzetten
 builder.Services.AddAuthorization();
 
-// ============================================================
+
+// De Controller klasses maakt gebruik van een interface
+// Je eigen services
+builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddScoped<IGebruikerService, GebruikerService>();
+builder.Services.AddScoped<IVeilingService, VeilingService>();
+builder.Services.AddScoped<ILeverancierService, LeverancierService>();
+builder.Services.AddScoped<IClaimService, ClaimService>();
+builder.Services.AddScoped<IDashboardService, DashboardService>();
 
 // Services toevoegen
 builder.Services.AddControllersWithViews();
 builder.Services.AddEndpointsApiExplorer();
 
-// Swagger instellen (Slide 11)
+// Swagger instellen 
 builder.Services.AddSwaggerGen(options =>
 {
     options.SwaggerDoc("v1", new OpenApiInfo { Title = "TreeMarket API", Version = "v1" });
@@ -76,14 +82,7 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
-// ============== De Controller klasses maakt gebruik van een interface :)==============
-// Je eigen services
-builder.Services.AddScoped<IProductController, ProductService>();
-builder.Services.AddScoped<IGebruikerController, GebruikerService>();
-//builder.Services.AddScoped<IVeilingController, VeilingService>();
-builder.Services.AddScoped<ILeverancierController, LeverancierService>();
-builder.Services.AddScoped<IClaimController, ClaimService>();
-builder.Services.AddScoped<IDashboardController, DashboardService>();
+
 
 // CORS beleid
 builder.Services.AddCors(options =>
@@ -98,20 +97,19 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// ============================================================
-// 3. SEEDING: Admin en Rollen aanmaken bij opstarten
-// (Slide 6 & 8)
-// ============================================================
+
+// SEEDING: Admin en Rollen aanmaken bij opstarten
+
 using (var scope = app.Services.CreateScope())
 {
-    // 1. HAAL EERST DE DATABASE CONTEXT OP
-    var context = scope.ServiceProvider.GetRequiredService<ApiContext>();
+    // HAAL EERST DE DATABASE CONTEXT OP
+    //var context = scope.ServiceProvider.GetRequiredService<ApiContext>();
     
-    // 2. VOER DE MIGRATIES UIT (MAAK TABELLEN AAN IN AZURE)
-    // Dit commando zorgt dat de database tabellen worden aangemaakt als ze nog niet bestaan.
-    context.Database.Migrate();
+    //VOER DE MIGRATIES UIT (MAAK TABELLEN AAN IN AZURE)
+    //Dit commando zorgt dat de database tabellen worden aangemaakt als ze nog niet bestaan.
+    //context.Database.Migrate();
 
-    // ---------------------------------------------------------
+    
 
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
     var userManager = scope.ServiceProvider.GetRequiredService<UserManager<Gebruiker>>();
@@ -146,8 +144,36 @@ using (var scope = app.Services.CreateScope())
             await userManager.AddToRoleAsync(user, "Admin");
         }
     }
+
+ 
+    // Toevoegen test Veilingsmeester
+    
+    var testEmail = "test@treemarket.nl";
+    var testUser = await userManager.FindByEmailAsync(testEmail);
+    if (testUser == null)
+    {
+        testUser = new Gebruiker
+        {
+            UserName = testEmail,
+            Email = testEmail,
+            EmailConfirmed = true,
+            Naam = "Veilingsmeester Test"
+        };
+
+        var createResult = await userManager.CreateAsync(testUser, "Veiling123!");
+        if (createResult.Succeeded)
+        {
+            Console.WriteLine("Test gebruiker aangemaakt: " + testEmail);
+        }
+    }
+
+    if (!await userManager.IsInRoleAsync(testUser, "Veilingsmeester"))
+    {
+        await userManager.AddToRoleAsync(testUser, "Veilingsmeester");
+        Console.WriteLine("Rol Veilingsmeester toegevoegd aan: " + testEmail);
+    }
 }
-// ============================================================
+
 
 if (app.Environment.IsDevelopment())
 {
@@ -155,15 +181,17 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseStaticFiles();
+
 app.UseHttpsRedirection();
 app.UseCors("AllowAll");
-
-// ZET DEZE AAN: Dit maakt de /login en /register endpoints
-app.MapIdentityApi<Gebruiker>();
 
 app.UseAuthentication();
 app.UseAuthorization();
 
+// ZET DEZE AAN: Dit maakt de /login en /register endpoints
+app.MapIdentityApi<Gebruiker>();
+
 app.MapControllers();
 
-app.Run();//
+app.Run();

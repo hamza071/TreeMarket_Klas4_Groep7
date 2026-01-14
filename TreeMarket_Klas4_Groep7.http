@@ -1,0 +1,12 @@
+@TreeMarket_Klas4_Groep7_HostAddress = http://localhost:5036
+
+GET {{TreeMarket_Klas4_Groep7_HostAddress}}/weatherforecast/
+Accept: application/json
+
+
+.vs/
+````````
+
+This folder should not be versioned as it is related to the development environment. If you change computers, you will get a new one.
+
+# Response

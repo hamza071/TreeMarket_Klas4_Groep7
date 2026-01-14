@@ -1,27 +1,35 @@
 ﻿using backend.Interfaces;
+using backend.Models;
+using backend.Services;
+using backend.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using TreeMarket_Klas4_Groep7.Services;
-using TreeMarket_Klas4_Groep7.Models;
-using TreeMarket_Klas4_Groep7.Services;
 
-namespace TreeMarket_Klas4_Groep7.Controllers
+namespace backend.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
     public class DashboardsController : ControllerBase
     {
-        private readonly IDashboardController _service;
+        private readonly IDashboardService _service;
 
-        public DashboardsController(IDashboardController service)
+        public DashboardsController(IDashboardService service)
         {
             _service = service;
         }
 
         [HttpGet]
+        [Authorize(Roles = "Admin,Veilingsmeester")]
         public async Task<IActionResult> GetAll()
         {
+            if (!User.IsInRole("Admin") && !User.IsInRole("Veilingsmeester"))
+            {
+                return Forbid();
+            }
+
             return Ok(await _service.GetAllAsync());
         }
+
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)

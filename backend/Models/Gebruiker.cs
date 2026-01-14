@@ -3,13 +3,13 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json.Serialization;
 
-namespace TreeMarket_Klas4_Groep7.Models
+namespace backend.Models
 {
-    // 1. De Parent tabel erft van IdentityUser
+    // De Parent tabel erft van IdentityUser
     public class Gebruiker : IdentityUser
     {
         // VERWIJDERD: Id, Email, Telefoonnummer, Wachtwoord. 
-        // Deze zitten al in IdentityUser.
+        // Deze zitten in IdentityUser.
 
         [Required(ErrorMessage = "Naam mag niet leeg zijn.")]
         [StringLength(100, ErrorMessage = "Naam mag maximaal 100 tekens bevatten.")]
@@ -22,7 +22,7 @@ namespace TreeMarket_Klas4_Groep7.Models
         // Bij TPT (Table-Per-Type) inheritance regelt EF Core dit zelf.
     }
 
-    // 2. Klant (Child)
+    // Klant (Child)
     [Table("Klant")]
     public class Klant : Gebruiker
     {
@@ -31,7 +31,7 @@ namespace TreeMarket_Klas4_Groep7.Models
         // Je kunt hier specifieke klant-velden toevoegen als je wilt
     }
 
-    // 3. Leverancier (Child)
+    // Leverancier (Child)
     [Table("Leverancier")]
     public class Leverancier : Gebruiker
     {
@@ -53,7 +53,7 @@ namespace TreeMarket_Klas4_Groep7.Models
         public virtual ICollection<Product> Producten { get; set; } = new List<Product>();
     }
 
-    // 4. Veilingsmeester (Child)
+    // Veilingsmeester (Child)
     [Table("Veilingsmeester")]
     public class Veilingsmeester : Gebruiker
     {

@@ -4,19 +4,19 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Numerics;
-using TreeMarket_Klas4_Groep7.Data;
-using TreeMarket_Klas4_Groep7.Models;
-using TreeMarket_Klas4_Groep7.Models.DTO;
+using backend.Data;
+using backend.Models;
+using backend.DTO;
 
-namespace TreeMarket_Klas4_Groep7.Controllers
+namespace backend.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
     public class GebruikerController : ControllerBase
     {
-        private readonly IGebruikerController _service;
+        private readonly IGebruikerService _service;
 
-        public GebruikerController(IGebruikerController service)
+        public GebruikerController(IGebruikerService service)
         {
             _service = service;
         }
@@ -41,7 +41,7 @@ namespace TreeMarket_Klas4_Groep7.Controllers
             // De wachtwoord wordt gehashed binnen de database
             try
             {
-                await _service.AddUserAsync(klant, dto.Wachtwoord, "Admin");
+                await _service.AddUserAsync(klant, dto.Wachtwoord, "Klant");
                 return Ok(new { message = "Klant succesvol geregistreerd!" });
             }
             // Als het mislukt (bijv. wachtwoord te zwak), stuur fouten terug

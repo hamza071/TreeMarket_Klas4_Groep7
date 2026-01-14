@@ -3,14 +3,13 @@ import '../assets/css/UploadAuctionPage.css';
 
 const defaultForm = {
     title: '',
-    variety: '',
     quantity: '',
     description: '',
     image: null,
-    minPrice: '', // minimumprijs door leverancier
+    minPrice: '',
 };
 
-function UploadAuctionPage({ addNewLot }) {
+function UploadAuctionPage() {
     const [form, setForm] = useState(defaultForm);
 
     const handleChange = (e) => {
@@ -22,35 +21,54 @@ function UploadAuctionPage({ addNewLot }) {
         }
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
 
-        if (!form.minPrice || Number(form.minPrice) <= 0) {
-            return alert('Vul een geldige minimumprijs in.');
+        // Frontend-validatie
+        if (!form.title.trim()) return alert("Productnaam is verplicht.");
+        if (!form.quantity || Number(form.quantity) < 1) return alert("Aantal moet minimaal 1 zijn.");
+        if (!form.minPrice || Number(form.minPrice) <= 0) return alert("Minimumprijs moet groter dan 0 zijn.");
+
+        const formData = new FormData();
+        formData.append("ProductNaam", form.title.trim());
+        formData.append("Omschrijving", form.description?.trim() ?? "");
+        formData.append("Hoeveelheid", Number(form.quantity));
+        formData.append("MinimumPrijs", parseFloat(form.minPrice));
+        if (form.image) formData.append("Foto", form.image);
+
+        try {
+            const token = localStorage.getItem("token");
+            if (!token) return alert("Je bent niet ingelogd.");
+
+            const response = await fetch("https://localhost:7054/api/Product/CreateProduct", {
+                method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${token}`
+                    // Content-Type **niet** instellen bij FormData
+                },
+                body: formData
+            });
+
+            const text = await response.text();
+            console.log("Server response:", text);
+
+            if (!response.ok) return alert("Fout vanuit server: " + text);
+
+            alert("Kavel is succesvol geüpload!");
+            setForm(defaultForm);
+
+        } catch (error) {
+            console.error("Fout bij upload:", error);
+            alert("Er ging iets mis: " + error.message);
         }
-
-        const newLot = {
-            code: 'X' + Math.floor(Math.random() * 100000),
-            name: form.title,
-            specs: form.variety,
-            lots: form.quantity,
-            description: form.description,
-            image: form.image ? URL.createObjectURL(form.image) : null,
-            minPrice: Number(form.minPrice), // minimumprijs ingesteld door leverancier
-            status: 'pending', // verschijnt pas bij veiling na publicatie
-        };
-
-        addNewLot(newLot);
-        setForm(defaultForm);
-        alert('Kavel toegevoegd! Deze verschijnt pas bij de veiling na publicatie door de veilingmeester.');
     };
 
     return (
         <div className="upload-page">
             <header className="section-header">
-                <h1>Upload nieuwe veiling (leverancier)</h1>
+                <h1>Upload nieuwe kavel (leverancier)</h1>
                 <p id="upload-intro">
-                    Voer je kavelgegevens in. Minimumprijs wordt door jou ingesteld, beginprijs en sluitingstijd later door de veilingmeester.
+                    Voer je kavelgegevens in. Minimumprijs wordt door jou ingesteld.
                 </p>
             </header>
 
@@ -66,16 +84,6 @@ function UploadAuctionPage({ addNewLot }) {
                             onChange={handleChange}
                             required
                             placeholder="Bijv. Dahlia Summer"
-                        />
-                    </label>
-
-                    <label className="form-field">
-                        <span className="form-label">Variëteit</span>
-                        <input
-                            name="variety"
-                            value={form.variety}
-                            onChange={handleChange}
-                            placeholder="Kleur of soort"
                         />
                     </label>
 
@@ -98,7 +106,6 @@ function UploadAuctionPage({ addNewLot }) {
                             value={form.description}
                             onChange={handleChange}
                             rows="4"
-                            placeholder="Beschrijf kwaliteit, verpakking en keurmerken"
                         />
                     </label>
 

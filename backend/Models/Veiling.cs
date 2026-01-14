@@ -1,41 +1,47 @@
-﻿using System;
+﻿using backend.Models;
+using Microsoft.AspNetCore.Identity;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using backend.DTO;
 
-namespace TreeMarket_Klas4_Groep7.Models
+public class Veiling
 {
-    public class Veiling
-    {
-        [Key]
-        public int VeilingID { get; set; }
+    [Key]
+    public int VeilingID { get; set; }
 
-        public bool? Status { get; set; }
+    public bool Status { get; set; } = true;
 
-        [Column(TypeName = "decimal(18,2)")]
-        public decimal StartPrijs { get; set; }
+    [Required]
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal StartPrijs { get; set; }
 
-        [Column(TypeName = "decimal(18,2)")]
-        public decimal HuidigePrijs { get; set; }
+    [Required]
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal HuidigePrijs { get; set; }
 
-        // AANPASSING 1: Decimal gemaakt voor percentages (of bedragen met centen)
-        [Column(TypeName = "decimal(18,2)")]
-        public decimal PrijsStap { get; set; } // Was int
+    [Required]
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal MinPrijs { get; set; } = 0; // default = 0
 
-        public int PrijsStrategie { get; set; }
+    [Required]
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal PrijsStap { get; set; }
 
-        public int TimerInSeconden { get; set; } 
+    public int PrijsStrategie { get; set; }
 
-        // --- RELATIES ---
+    [Required]
+    public int TimerInSeconden { get; set; }
 
-        // Product heeft zijn eigen int ID, dus dit blijft int
-        [ForeignKey(nameof(Product))]
-        public int ProductID { get; set; }
-        public Product Product { get; set; }
+    [Required]
+    public DateTime StartTimestamp { get; set; }
 
-        // AANPASSING 2: Veilingsmeester is een IdentityUser, dus STRING ID!
-        [ForeignKey(nameof(Veilingsmeester))]
-        public string VeilingsmeesterID { get; set; } // Was int
-        public Veilingsmeester Veilingsmeester { get; set; }
+    // ---------- RELATIES ----------
 
-    }
+    [Required]
+    public int ProductID { get; set; }
+    public Product Product { get; set; }
+
+    [Required]
+    public string VeilingsmeesterID { get; set; }
+    public Gebruiker Veilingsmeester { get; set; }
 }

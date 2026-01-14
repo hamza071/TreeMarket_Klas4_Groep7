@@ -17,15 +17,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\TreeMarket_Klas4_Groep7\backend.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Using Include="Xunit" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Veiling\" />
+    <ProjectReference Include="..\backend\backend.csproj" />
   </ItemGroup>
 
 </Project>

@@ -1,7 +1,8 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using backend.Models;
 
-namespace TreeMarket_Klas4_Groep7.Models
+namespace backend.Models
 {
     public class Product
     {
@@ -12,7 +13,7 @@ namespace TreeMarket_Klas4_Groep7.Models
         public string Foto { get; set; }
 
         [Required]
-        public string Artikelkenmerken { get; set; }
+        public string ProductNaam { get; set; }
 
         [Required]
         public int Hoeveelheid { get; set; }
@@ -24,11 +25,15 @@ namespace TreeMarket_Klas4_Groep7.Models
         [Required]
         public DateTime Dagdatum { get; set; }
 
-        // --- AANPASSING: Leverancier is een IdentityUser, dus STRING ID! ---
         [ForeignKey(nameof(Leverancier))]
-        public string LeverancierID { get; set; } // <--- Was int, nu string!
-        
+        public string LeverancierID { get; set; }
         public Leverancier? Leverancier { get; set; }
+
+        [Required]
+        public string Varieteit { get; set; }
+
+        [Required]
+        public string Omschrijving { get; set; }
 
         public ICollection<Veiling> Veilingen { get; set; } = new List<Veiling>();
     }

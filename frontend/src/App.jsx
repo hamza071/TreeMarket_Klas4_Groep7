@@ -20,15 +20,11 @@ import DeleteUser from "./pages/CRUD/DeleteUser";
 import Logout from "./pages/Logout";
 
 
-// ========================
-// Navigatie per rol
-// ========================
-
 // KLANT
 const NAVIGATION_ITEMS_KLANT = [
     { id: "home", label: "Home" },
     { id: "about", label: "About" },
-    { id: "veiling", label: "Veiling" },
+    { id: "dashboard", label: "Dashboard" },
 ];
 
 // LEVERANCIER
@@ -43,7 +39,7 @@ const NAVIGATION_ITEMS_LEVERANCIER = [
 const NAVIGATION_ITEMS_VEILINGSMEESTER = [
     { id: "home", label: "Home" },
     { id: "about", label: "About" },
-    { id: "upload", label: "Upload Veiling" },
+    { id: "veiling", label: "Veiling" },
     { id: "dashboard", label: "Dashboard" },
 ];
 
@@ -53,31 +49,44 @@ const NAVIGATION_ITEMS_ANONYMOUS = [
     { id: "about", label: "About" },
 ];
 
+// ADMIN (Kan niet aangemaakt worden) 
+const NAVIGATION_ITEMS_ADMIN = [
+    { id: 'home', label: 'Home' },
+    { id: 'about', label: 'About' },
+    { id: 'dashboard', label: 'Dashboard' },
+    { id: 'veiling', label: 'Veiling' },
+    { id: 'upload', label: 'Upload Veiling' },
+    { id: 'reports', label: 'Rapporten' },
+    { id: 'allusers', label: 'GetAlleGebruikers' },
+];
+
 function App() {
     const navigationRefs = useRef([]);
+    const [menuOpen, setMenuOpen] = useState(false);
+    const toggleMenu = () => setMenuOpen(prev => !prev);
 
     // Auth-status uit localStorage
     const token = localStorage.getItem("token");
     const role = (localStorage.getItem("role") || "").toLowerCase();
     const isLoggedIn = !!token;
 
-    // Juiste nav kiezen
+    // Kies juiste navigatie
     let NAVIGATION_ITEMS;
     if (!isLoggedIn) {
         NAVIGATION_ITEMS = NAVIGATION_ITEMS_ANONYMOUS;
+    } else if (role === "admin") {
+        NAVIGATION_ITEMS = NAVIGATION_ITEMS_ADMIN; // Admin ziet alles
     } else if (role === "veilingsmeester") {
         NAVIGATION_ITEMS = NAVIGATION_ITEMS_VEILINGSMEESTER;
     } else if (role === "leverancier") {
         NAVIGATION_ITEMS = NAVIGATION_ITEMS_LEVERANCIER;
     } else {
-        // alles wat overblijft behandelen we als klant
         NAVIGATION_ITEMS = NAVIGATION_ITEMS_KLANT;
     }
 
     const handleNavKeyDown = useCallback(
         (event, currentIndex) => {
             const navLength = NAVIGATION_ITEMS.length;
-
             if (event.key === "ArrowRight") {
                 const nextIndex = (currentIndex + 1) % navLength;
                 navigationRefs.current[nextIndex]?.focus();
@@ -114,24 +123,33 @@ function App() {
             </a>
 
             <header className="app-header">
+                <button
+                    className={`hamburger ${menuOpen ? "is-active" : ""}`}
+                    onClick={toggleMenu}
+                    aria-label="Menu openen/sluiten"
+                >
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+
                 <div className="brand">TREE MARKET</div>
 
-                {/* Navigatie per rol */}
-                <nav className="main-nav" aria-label="Primaire navigatie">
+                <nav className={`main-nav ${menuOpen ? "is-open" : ""}`} aria-label="Primaire navigatie">
                     {NAVIGATION_ITEMS.map((item, index) => (
                         <Link
                             key={item.id}
                             to={`/${item.id}`}
                             className="nav-link"
-                            ref={(el) => (navigationRefs.current[index] = el)}
-                            onKeyDown={(e) => handleNavKeyDown(e, index)}
+                            ref={el => (navigationRefs.current[index] = el)}
+                            onKeyDown={e => handleNavKeyDown(e, index)}
+                            onClick={() => setMenuOpen(false)}
                         >
                             {item.label}
                         </Link>
                     ))}
                 </nav>
 
-                {/* User chip rechtsboven */}
                 {!isLoggedIn ? (
                     <Link className="user-chip" to="/auth">
                         Inloggen
@@ -145,61 +163,26 @@ function App() {
 
             <main className="page-area" id="main-content">
                 <Routes>
-                    {/* Root → Home */}
                     <Route path="/" element={<HomePage />} />
-
-                    {/* Dashboard */}
                     <Route
                         path="/dashboard"
-                        element={
-                            <DashboardPage
-                                lots={lots.filter(
-                                    (lot) => lot.status === "published"
-                                )}
-                            />
-                        }
+                        element={<DashboardPage lots={lots.filter(lot => lot.status === "published")} />}
                     />
-
-                    {/* Veiling */}
                     <Route path="/veiling" element={<AuctionPage lots={lots} />} />
-                    <Route
-                        path="/veiling/:code"
-                        element={
-                            <AuctionDetailPage lots={lots} updateLot={updateLot} />
-                        }
-                    />
-
-                    {/* Upload (zowel leverancier als veilingsmeester gebruiken deze pagina) */}
-                    <Route
-                        path="/upload"
-                        element={<UploadAuctionPage addNewLot={addNewLot} />}
-                    />
-
-                    {/* Overige pagina's */}
+                    <Route path="/veiling/:code" element={<AuctionDetailPage lots={lots} updateLot={updateLot} />} />
+                    <Route path="/upload" element={<UploadAuctionPage addNewLot={addNewLot} />} />
                     <Route path="/reports" element={<ReportsPage />} />
                     <Route path="/home" element={<HomePage />} />
                     <Route path="/about" element={<AboutUsPage />} />
                     <Route path="/shop" element={<ShopPage />} />
                     <Route path="/auth" element={<AuthPage />} />
-
-                    {/* CRUD demo */}
                     <Route path="/allusers" element={<AllUsers />} />
                     <Route path="/idUser" element={<IdUser />} />
                     <Route path="/deleteUser" element={<DeleteUser />} />
-
-                    {/* Logout */}
                     <Route path="/logout" element={<Logout />} />
-
-                    {/* Fallback */}
                     <Route
                         path="*"
-                        element={
-                            <DashboardPage
-                                lots={lots.filter(
-                                    (lot) => lot.status === "published"
-                                )}
-                            />
-                        }
+                        element={<DashboardPage lots={lots.filter(lot => lot.status === "published")} />}
                     />
                 </Routes>
             </main>

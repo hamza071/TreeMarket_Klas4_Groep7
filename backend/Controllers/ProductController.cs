@@ -1,121 +1,156 @@
-﻿using backend.Interfaces;
-using Microsoft.AspNetCore.Authorization; // <--- NODIG VOOR BEVEILIGING
+﻿using backend.DTO;
+using backend.Interfaces;
+using backend.Models;
+using backend.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
-using TreeMarket_Klas4_Groep7.Data;
-using TreeMarket_Klas4_Groep7.Models;
-using TreeMarket_Klas4_Groep7.Models.DTO;
-using TreeMarket_Klas4_Groep7.Services;
 
-namespace TreeMarket_Klas4_Groep7.Controllers
+[ApiController]
+[Route("api/[controller]")]
+public class ProductController : ControllerBase
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class ProductController : ControllerBase
+    private readonly IProductService _service;
+
+    public ProductController(IProductService service)
     {
-        private readonly IProductController _service;
+        _service = service;
+    }
 
-        public ProductController(IProductController service)
+    [HttpGet("vandaag")]
+    public async Task<IActionResult> GetVandaag()
+    {
+        try
         {
-            _service = service;
+            var producten = await _service.GetVandaag();
+            return Ok(producten);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { error = ex.Message });
         }
 
-        // ================= GET ENDPOINTS (OPENBAAR) =================
+    }
 
-        [HttpGet("vandaag")]
-        public async Task<IActionResult> GetVandaag()
+    [HttpGet("leverancier")]
+    public async Task<IActionResult> GetMetLeverancier()
+    {
+        try
         {
-            try
-            {
-                var producten = await _service.GetProductenVanVandaagAsync();
-                return Ok(producten);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = "Databasefout.", error = ex.Message });
-            }
+            var producten = await _service.GetMetLeverancier();
+            return Ok(producten);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { error = ex.Message });
+        }
+    }
+
+    [HttpPost("CreateProduct")]
+    [Authorize]
+    public async Task<IActionResult> CreateProduct([FromForm] ProductUploadDto dto)
+    {
+        // 1️⃣ Token validatie
+        if (User?.Identity == null || !User.Identity.IsAuthenticated)
+        {
+            return Unauthorized("Je bent niet ingelogd.");
         }
 
-        [HttpGet("leverancier")]
-        public async Task<IActionResult> GetMetLeverancier()
+        // 2️⃣ Rol validatie (DIT is de fix)
+        if (!User.IsInRole("Leverancier") && !User.IsInRole("Admin"))
         {
-            try
-            {
-                var producten = await _service.GetProductenMetLeverancierAsync();
-                return Ok(producten);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = "Databasefout.", error = ex.Message });
-            }
+            return Forbid();
         }
 
-        // ================= CREATE / UPDATE (BEVEILIGD) =================
-
-        [HttpPost]
-        [Authorize(Roles = "Leverancier, Admin")]
-        public async Task<IActionResult> CreateOrUpdateProduct([FromBody] Product product)
+        // 3️⃣ UserId ophalen
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (userId == null)
         {
-            try
-            {
-                var result = await _service.AddOrUpdateProductAsync(product);
-                if (result == null)
-                    return BadRequest("Validatie mislukt of product niet gevonden.");
-                return Ok(result);
-
-            }
-            catch (ArgumentException ex)
-            {
-                return BadRequest(ex.Message); // validatiefouten
-            }
-            catch (KeyNotFoundException ex)
-            {
-                return NotFound(ex.Message); // update van niet-bestaand product
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = "Databasefout.", error = ex.Message });
-            }
+            return Unauthorized("Je bent niet ingelogd.");
         }
 
-
-        // DIT IS DE BETERE METHODE (gebruikt DTO en Token)
-        [HttpPost("CreateProduct")]
-        [Authorize(Roles = "Leverancier")] // Alleen Leveranciers
-        public async Task<IActionResult> PostProduct([FromBody] ProductDto productDto)
+        try
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
-
-            // 1. Haal de ID van de ingelogde gebruiker op (uit token)
-            // Dit is VEILIGER dan de ID uit de DTO halen!
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier); 
-            
-            // (Als Admin dit doet, moeten we misschien wel de ID uit de DTO pakken, 
-            // maar voor een Leverancier is dit het veiligst).
-            if (userId == null) return Unauthorized("Je bent niet ingelogd.");
-
-            try
+            var product = await _service.PostProduct(dto, userId, User.IsInRole("Admin"));
+            return Ok(new
             {
-                var product = new Product
-                {
-                    Foto = productDto.Foto,
-                    Artikelkenmerken = productDto.artikelkenmerken,
-                    Hoeveelheid = productDto.Hoeveelheid,
-                    MinimumPrijs = productDto.MinimumPrijs,
-                    Dagdatum = DateTime.UtcNow,
-                    
-                    // AANGEPAST: Gebruik de ID uit het token!
-                    LeverancierID = userId 
-                };
+                message = "Product succesvol aangemaakt!",
+                product
+            });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = "Serverfout.", error = ex.Message });
+        }
+    }
 
-                var result = await _service.AddOrUpdateProductAsync(product);
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = "Databasefout.", error = ex.Message });
-            }
+
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetById(int id)
+    {
+        try
+        {
+            var product = await _service.GetProductById(id);
+            return product == null ? NotFound(new { message = $"Product {id} niet gevonden." }) : Ok(product);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { error = ex.Message });
+        }
+    }
+
+    // DELETE: api/Product/vandaag
+    [HttpDelete("vandaag")]
+    [Authorize]
+    public async Task<IActionResult> DeleteVandaag()
+    {
+        if (User?.Identity == null || !User.Identity.IsAuthenticated)
+        {
+            return Unauthorized("Je bent niet ingelogd.");
+        }
+
+        // Authorize roles (Admin or Leverancier)
+        if (!User.IsInRole("Admin") && !User.IsInRole("Leverancier"))
+        {
+            return Forbid();
+        }
+
+        try
+        {
+            var deleted = await _service.DeleteVandaag();
+            return Ok(new { deleted });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { error = ex.Message });
+        }
+    }
+
+    // DELETE: api/Product/{id}
+    [HttpDelete("{id}")]
+    [Authorize]
+    public async Task<IActionResult> DeleteProduct(int id)
+    {
+        if (User?.Identity == null || !User.Identity.IsAuthenticated)
+        {
+            return Unauthorized("Je bent niet ingelogd.");
+        }
+
+        // Allow Admin or the supplier (Leverancier) role
+        if (!User.IsInRole("Admin") && !User.IsInRole("Leverancier"))
+        {
+            return Forbid();
+        }
+
+        try
+        {
+            var deleted = await _service.DeleteProduct(id);
+            if (!deleted) return NotFound(new { message = $"Product {id} niet gevonden." });
+            return Ok(new { message = $"Product {id} verwijderd." });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { error = ex.Message });
         }
     }
 }

@@ -117,3 +117,39 @@
         font-weight: 700;
         color: #2c6046;
     }
+
+.start-mode-toggle {
+    display: flex;
+    gap: 12px;
+    margin-top: 6px;
+}
+
+.start-mode-option {
+    flex: 1;
+    padding: 12px;
+    border-radius: 12px;
+    border: 2px solid #e5e7eb;
+    background: #f9fafb;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    color: #111827
+}
+
+    .start-mode-option:hover {
+        background: #f1f5f9;
+    }
+
+    .start-mode-option.active {
+        border-color: #6366f1;
+        background: #eef2ff;
+        color: #064e3b;
+    }
+
+.start-mode-input {
+    margin-top: 10px;
+}
+
+    .start-mode-input input {
+        width: 100%;
+    }

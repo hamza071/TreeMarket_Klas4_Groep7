@@ -3,15 +3,16 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore; // <--- NIEUW: Deze moet erbij!
 using System.Security.Cryptography;
-using TreeMarket_Klas4_Groep7.Models;
-using TreeMarket_Klas4_Groep7.Models.DTO;
+using backend.Models;
+using backend.DTO;
 
-namespace TreeMarket_Klas4_Groep7.Data
+namespace backend.Data
 {
     // AANGEPAST: Erft nu van IdentityDbContext<Gebruiker> in plaats van DbContext
     public class ApiContext : IdentityDbContext<Gebruiker>
     {
         public DbSet<Product> Product { get; set; }
+        public DbSet<Product> Products { get; set; }
         // DbSet<Gebruiker> hoeft eigenlijk niet meer (zit in IdentityDbContext als 'Users'), 
         // maar je mag hem laten staan als je oude code 'context.Gebruiker' gebruikt.
         public DbSet<Gebruiker> Gebruiker { get; set; }
@@ -24,7 +25,7 @@ namespace TreeMarket_Klas4_Groep7.Data
         
         // Vergeet de andere sub-types niet als je die apart wilt kunnen aanroepen!
         public DbSet<Klant> Klant { get; set; }
-        public DbSet<Veilingsmeester> Veilingsmeester { get; set; }
+        //public DbSet<Veilingsmeester> Veilingsmeester { get; set; }
 
 
         public ApiContext(DbContextOptions<ApiContext> options) : base(options)

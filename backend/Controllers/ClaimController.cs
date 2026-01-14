@@ -1,32 +1,25 @@
 ﻿using backend.Interfaces;
-using TreeMarket_Klas4_Groep7.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
-using TreeMarket_Klas4_Groep7.Data;
-using TreeMarket_Klas4_Groep7.Models;
-using TreeMarket_Klas4_Groep7.Models.DTO;
-using Claim = TreeMarket_Klas4_Groep7.Models.Claim;
+using backend.DTO;
+using backend.Models;
+using Claim = backend.Models.Claim; 
 
-
-namespace TreeMarket_Klas4_Groep7.Controllers
+namespace backend.Controllers
 {
-    // Definieert de route (api/Claim) en geeft aan dat dit een API controller is
     [Route("api/[controller]")]
     [ApiController]
     public class ClaimController : ControllerBase
     {
-        private readonly IClaimController _service;
-        
-        // dependency injection van de service 
-        public ClaimController(IClaimController service)
+        private readonly IClaimService _service;
+
+        public ClaimController(IClaimService service)
         {
             _service = service;
         }
 
         // GET: api/Claim
-        // Haalt alle claims op
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Claim>>> GetClaims()
         {
@@ -41,43 +34,72 @@ namespace TreeMarket_Klas4_Groep7.Controllers
             }
         }
 
-        // POST: api/Claim/CreateClaim
-        // Maakt een nieuwe claim aan
-        [HttpPost("CreateClaim")]
+        // === HIER WAS HET STUKJE DAT ONTBRAK ===
+        // GET: api/Claim/GetHistory
+        [HttpGet("GetHistory")]
+        public async Task<IActionResult> GetHistory(string productNaam, string leverancierNaam)
+        {
+            // Als er geen productnaam is, kunnen we niks zoeken
+            if (string.IsNullOrEmpty(productNaam))
+                return BadRequest("Productnaam is verplicht.");
+
+            try
+            {
+                // Roep de SQL Service aan
+                var history = await _service.GetHistoryAsync(productNaam, leverancierNaam);
+                return Ok(history);
+            }
+            catch (Exception ex)
+            {
+                // Log de fout en geef een nette melding terug
+                Console.WriteLine($"Fout bij historie ophalen: {ex.Message}");
+                return StatusCode(500, new { message = "Kon historie niet ophalen.", error = ex.Message });
+            }
+        }
+        // ========================================
+
+        // POST: api/Claim/PlaceClaim
+        [HttpPost("PlaceClaim")]
         [Authorize] 
-        public async Task<IActionResult> PostClaim([FromBody] ClaimDto claimDto)
+        public async Task<IActionResult> PlaceClaim([FromBody] ClaimDto claimDto)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            // Haalt de userId op uit de token
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier); // Geeft de GUID string
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
             if (string.IsNullOrEmpty(userId))
             {
-                return Unauthorized("Je moet ingelogd zijn om te bieden.");
+                return Unauthorized(new { message = "Je moet ingelogd zijn om te bieden." });
             }
 
             try
             {
-                var claim = await _service.CreateClaimAsync(claimDto, userId);
-                return Ok(claim);
+                var result = await _service.VerwerkAankoopAsync(claimDto, userId);
+
+                if (result)
+                {
+                    return Ok(new { message = "Gefeliciteerd! Aankoop succesvol verwerkt." });
+                }
+                else
+                {
+                    return BadRequest(new { message = "Kon aankoop niet verwerken (mogelijk onvoldoende voorraad)." });
+                }
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { message = "Databasefout: Claim mislukt.", error = ex.Message });
+                return BadRequest(new { message = ex.Message });
             }
         }
 
-        // DELETE: api/Claim/{id} | Claims verwijderen op basis van ID 
+        // DELETE: api/Claim/5
         [HttpDelete("{id}")]
-        [Authorize(Roles = "Admin")] // Alleen admin mag claims verwijderen maar dit is geen optie in de frontend 
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteClaim(int id)
         {
             try 
             {
-                // Probeert      de claim te verwijderen via de service
                 var success = await _service.DeleteClaimAsync(id);
-                if (!success) return NotFound();
+                if (!success) return NotFound(new { message = "Claim niet gevonden." });
 
                 return NoContent();
             }

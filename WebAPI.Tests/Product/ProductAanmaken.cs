@@ -1,16 +1,18 @@
-﻿using backend.Interfaces;
+﻿using backend.Controllers;
+using backend.DTO;
+using backend.Interfaces;
+using backend.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using security =  System.Security.Claims;
+using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
-using TreeMarket_Klas4_Groep7.Controllers;
-using TreeMarket_Klas4_Groep7.Models;
-using TreeMarket_Klas4_Groep7.Models.DTO;
+using security = System.Security.Claims;
+using WebAPI.Tests.Helpers;
 
 namespace WebAPI.Tests.TProduct
 {
@@ -20,53 +22,58 @@ namespace WebAPI.Tests.TProduct
         public async Task ProductKanAangemaaktWorden_Succes()
         {
             // Arrange
-            var mockService = new Mock<IProductController>();
+            var mockService = new Mock<IProductService>();
 
-            mockService.Setup(s => s.AddOrUpdateProductAsync(It.IsAny<Product>()))
-                       .Returns<Product>(p =>
-                       {
-                           p.ProductId = 1;
-                           return Task.FromResult(p);
-                       });
+            var expectedDto = new ProductMetVeilingmeesterDto
+            {
+                ProductId = 1,
+                Naam = "Test product",
+                Hoeveelheid = 5,
+                MinimumPrijs = 10,
+                Foto = "image.jpg",
+                Status = "pending",
+                LeverancierNaam = "Test Leverancier"
+            };
+
+            mockService
+                .Setup(s => s.PostProduct(
+                    It.IsAny<ProductUploadDto>(),
+                    "leverancier-123",
+                    false))
+                .ReturnsAsync(expectedDto);
 
             var controller = new ProductController(mockService.Object);
 
-            // --- MOCK DE GEBRUIKER (BELANGRIJK!) ---
-            var user = new security.ClaimsPrincipal(new security.ClaimsIdentity(new security.Claim[]
-            {
-                new security.Claim(security.ClaimTypes.NameIdentifier, "leverancier-123")
-            }, "mock"));
+            // Mock user (Leverancier)
+            controller.ControllerContext = TestAuthHelper.CreateContext("leverancier-123", "Leverancier");
 
-            controller.ControllerContext = new ControllerContext
+            var dto = new ProductUploadDto
             {
-                HttpContext = new DefaultHttpContext { User = user }
-            };
-
-            var productDto = new ProductDto
-            {
-                Foto = "image.jpg",
-                artikelkenmerken = "Test kenmerken",
                 Hoeveelheid = 5,
                 MinimumPrijs = 10,
-                dagdatum = DateTime.Now,
-                leverancierID = "leverancier-123" // leverancier is nodig om een product aan te kunnen maken.
+                Foto = null
             };
 
             // Act
-            var result = await controller.PostProduct(productDto);
+            var result = await controller.CreateProduct(dto);
 
             // Assert
             var okResult = Assert.IsType<OkObjectResult>(result);
-            var product = Assert.IsType<Product>(okResult.Value);
+
+            // anonymous object uitpakken
+            var value = okResult.Value!;
+            var productProperty = value.GetType().GetProperty("product");
+            Assert.NotNull(productProperty);
+
+            var product = Assert.IsType<ProductMetVeilingmeesterDto>(
+                productProperty!.GetValue(value)
+            );
 
             Assert.Equal(1, product.ProductId);
             Assert.Equal("image.jpg", product.Foto);
-            Assert.Equal("Test kenmerken", product.Artikelkenmerken);
             Assert.Equal(5, product.Hoeveelheid);
             Assert.Equal(10, product.MinimumPrijs);
-
-            // Token user ID moet gebruikt worden:
-            Assert.Equal("leverancier-123", product.LeverancierID);
+            Assert.Equal("pending", product.Status);
         }
 
     }

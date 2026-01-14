@@ -1,5 +1,7 @@
 import heroImage from '../assets/img/tulpenveld.jpg'
-import toadImage from '../assets/img/MLG Toad.jpg'
+import toadImage from '../assets/img/nederlandse-tuinier.jpg'
+import { useNavigate } from "react-router-dom";
+
 
 const featuredCollections = [
     {
@@ -19,6 +21,8 @@ const featuredCollections = [
 ]
 
 function HomePage() {
+    const navigate = useNavigate();
+
     return (
         <main className="home-page">
             <section className="home-hero" aria-labelledby="home-hero-heading">
@@ -29,8 +33,8 @@ function HomePage() {
                         hoge contrasten is deze demo toegankelijk voor iedereen.
                     </p>
                     <div className="home-hero__actions">
-                        <button type="button" className="primary-action">Bekijk veilingen</button>
-                        <button type="button" className="secondary-action">Ontdek ons verhaal</button>
+                        <button type="button" className="primary-action" onClick={() => navigate("/dashboard")}>Bekijk veilingen</button>
+                        <button type="button" className="secondary-action" onClick={() => navigate("/about")}>Ontdek ons verhaal</button>
                     </div>
                 </div>
                 <img className="home-hero__image" src={heroImage} alt="Uitgestrekt tulpenveld onder een blauwe lucht" />
