@@ -103,7 +103,7 @@ function AuctionDetailPage() {
         };
 
         try {
-            const response = await fetch("${API_URL}/api/Veiling/CreateVeiling", {
+            const response = await fetch(`${API_URL}/api/Veiling/CreateVeiling`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
