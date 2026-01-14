@@ -22,14 +22,14 @@ namespace backend.Services
         // Haal alle actieve veilingen op (DTO voor frontend)
         public async Task<List<VeilingResponseDto>> GetAllAsync()
         {
-            // 1. Haal alle actieve veilingen inclusief Product EN LEVERANCIER
+            //Haal alle actieve veilingen inclusief Product en leverancier
             var veilingen = await _context.Veiling
                 .Include(v => v.Product)
-                    .ThenInclude(p => p.Leverancier) // <--- CRUCIAAL: Leverancier ophalen
+                    .ThenInclude(p => p.Leverancier) 
                 .Where(v => v.Status)
                 .ToListAsync();
 
-            // 2. Map in memory naar DTO
+            //Map in memory naar DTO
             return veilingen.Select(v => new VeilingResponseDto
             {
                 VeilingID = v.VeilingID,
@@ -43,8 +43,8 @@ namespace backend.Services
                 Foto = v.Product?.Foto ?? "",
                 StartTimestamp = v.StartTimestamp,
                 Hoeveelheid = v.Product?.Hoeveelheid ?? 0,
+                Omschrijving = v.Product?.Omschrijving ?? "",
 
-                // === HIER DE AANPASSING ===
                 // We mappen de bedrijfsnaam van de leverancier naar de DTO.
                 // Als er geen leverancier is gekoppeld, sturen we "Onbekend".
                 LeverancierNaam = v.Product?.Leverancier?.Bedrijf ?? "Onbekend"
@@ -56,7 +56,7 @@ namespace backend.Services
         {
             var veiling = await _context.Veiling
                 .Include(v => v.Product)
-                    .ThenInclude(p => p.Leverancier) // Ook hier handig om te hebben
+                    .ThenInclude(p => p.Leverancier) 
                 .FirstOrDefaultAsync(v => v.VeilingID == id);
 
             if (veiling == null)
@@ -68,21 +68,33 @@ namespace backend.Services
         // Maak veiling aan
         public async Task<VeilingResponseDto> CreateVeilingAsync(VeilingDto dto, string userId)
         {
-            // Product ophalen MET leverancier
+            //Product ophalen MET leverancier
             var product = await _context.Product
-                .Include(p => p.Leverancier) 
+                .Include(p => p.Leverancier)
                 .FirstOrDefaultAsync(p => p.ProductId == dto.ProductID);
 
             if (product == null)
                 throw new KeyNotFoundException("Product niet gevonden.");
 
+            // StartTimestamp bepalen: geplande of directe start
+            // Normalize incoming StartTimestamp to UTC to avoid Kind mismatches
+            var requestedStart = dto.StartTimestamp.Kind == DateTimeKind.Utc
+                ? dto.StartTimestamp
+                : DateTime.SpecifyKind(dto.StartTimestamp, DateTimeKind.Utc);
+
+            var startTimestamp = requestedStart > DateTime.UtcNow
+                ? requestedStart // geplande veiling
+                : DateTime.UtcNow;   // directe start
+
+            // Veiling aanmaken
             var veiling = new Veiling
             {
                 StartPrijs = dto.StartPrijs,
                 HuidigePrijs = dto.StartPrijs,
                 MinPrijs = dto.MinPrijs,
                 TimerInSeconden = dto.TimerInSeconden,
-                StartTimestamp = DateTime.UtcNow,
+                StartTimestamp = startTimestamp,
+                //EindTimestamp = startTimestamp.AddSeconds(dto.TimerInSeconden), // handig voor featured/completed logic  
                 Status = true,
                 ProductID = product.ProductId,
                 VeilingsmeesterID = userId
@@ -91,6 +103,7 @@ namespace backend.Services
             _context.Veiling.Add(veiling);
             await _context.SaveChangesAsync();
 
+            // Response DTO
             return new VeilingResponseDto
             {
                 VeilingID = veiling.VeilingID,
@@ -103,6 +116,7 @@ namespace backend.Services
                 ProductNaam = product.ProductNaam,
                 Foto = product.Foto,
                 StartTimestamp = veiling.StartTimestamp,
+                //EindTimestamp = veiling.EindTimestamp,
                 Hoeveelheid = product.Hoeveelheid,
 
                 // Direct goed teruggeven bij aanmaken

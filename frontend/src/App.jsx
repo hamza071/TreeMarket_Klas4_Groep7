@@ -19,15 +19,12 @@ import IdUser from "./pages/CRUD/IdUser";
 import DeleteUser from "./pages/CRUD/DeleteUser";
 import Logout from "./pages/Logout";
 
-// ========================
-// Navigatie per rol
-// ========================
 
 // KLANT
 const NAVIGATION_ITEMS_KLANT = [
     { id: "home", label: "Home" },
     { id: "about", label: "About" },
-    { id: "veiling", label: "Veiling" },
+    { id: "dashboard", label: "Dashboard" },
 ];
 
 // LEVERANCIER
@@ -52,7 +49,7 @@ const NAVIGATION_ITEMS_ANONYMOUS = [
     { id: "about", label: "About" },
 ];
 
-// ===== ADMIN (Kan niet aangemaakt worden) =====
+// ADMIN (Kan niet aangemaakt worden) 
 const NAVIGATION_ITEMS_ADMIN = [
     { id: 'home', label: 'Home' },
     { id: 'about', label: 'About' },

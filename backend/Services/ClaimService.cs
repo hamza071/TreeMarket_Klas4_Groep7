@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using backend.Data;
 using backend.Models;
 using backend.DTO;
-using Microsoft.Data.SqlClient; // <--- Dit is het bewijs: we gebruiken SQL Client, geen EF!
+using Microsoft.Data.SqlClient; 
 using System.Data;
 
 namespace backend.Services
@@ -16,7 +16,8 @@ namespace backend.Services
         {
             _context = context;
         }
-        
+
+        // De gewone methodes mogen vaak wel EF blijven (tenzij je ALLES om moet bouwen)
         public async Task<IEnumerable<Claim>> GetClaimsAsync()
         {
             return await _context.Claim
@@ -58,19 +59,19 @@ namespace backend.Services
             return true;
         }
 
- 
+        // HIERONDER IS HET 'RAW SQL' GEDEELTE VOOR DE HISTORIE (ZONDER EF)
         public async Task<ProductHistoryResponse> GetHistoryAsync(string productNaam, string leverancierNaam)
         {
             var connection = _context.Database.GetDbConnection();
             if (connection.State != ConnectionState.Open) await connection.OpenAsync();
 
-            // 1. Algemene Historie
+            // 1. MARKT HISTORIE
             var marktLijst = new List<HistoryDto>();
             string sqlMarkt = @"
-                SELECT TOP 50 c.Prijs, v.StartTimestamp, l.Bedrijf
+                SELECT TOP 10 c.Prijs, v.StartTimestamp, l.Bedrijf
                 FROM Claim c
                 JOIN Veiling v ON c.VeilingId = v.VeilingID
-                JOIN Product p ON v.ProductID = p.ProductId   
+                JOIN Product p ON v.ProductID = p.ProductId   -- <--- HIER ZAT DE FOUT (Was ProductProductId)
                 JOIN Leverancier l ON p.LeverancierID = l.Id
                 WHERE p.ProductNaam = @Naam
                 ORDER BY v.StartTimestamp DESC";
@@ -93,13 +94,13 @@ namespace backend.Services
                 }
             }
 
-            // 2. Eigen Historie
+            // 2. EIGEN HISTORIE
             var eigenLijst = new List<HistoryDto>();
             string sqlEigen = @"
-                SELECT TOP 50 c.Prijs, v.StartTimestamp, l.Bedrijf
+                SELECT TOP 10 c.Prijs, v.StartTimestamp, l.Bedrijf
                 FROM Claim c
                 JOIN Veiling v ON c.VeilingId = v.VeilingID
-                JOIN Product p ON v.ProductID = p.ProductId
+                JOIN Product p ON v.ProductID = p.ProductId   -- <--- OOK HIER AANGEPAST
                 JOIN Leverancier l ON p.LeverancierID = l.Id
                 WHERE p.ProductNaam = @Naam AND l.Bedrijf = @LevNaam
                 ORDER BY v.StartTimestamp DESC";

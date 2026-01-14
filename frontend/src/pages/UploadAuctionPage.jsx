@@ -3,7 +3,6 @@ import '../assets/css/UploadAuctionPage.css';
 
 const defaultForm = {
     title: '',
-    variety: '',
     quantity: '',
     description: '',
     image: null,
@@ -32,7 +31,6 @@ function UploadAuctionPage() {
 
         const formData = new FormData();
         formData.append("ProductNaam", form.title.trim());
-        formData.append("Varieteit", form.variety?.trim() ?? "");
         formData.append("Omschrijving", form.description?.trim() ?? "");
         formData.append("Hoeveelheid", Number(form.quantity));
         formData.append("MinimumPrijs", parseFloat(form.minPrice));
@@ -86,16 +84,6 @@ function UploadAuctionPage() {
                             onChange={handleChange}
                             required
                             placeholder="Bijv. Dahlia Summer"
-                        />
-                    </label>
-
-                    <label className="form-field">
-                        <span className="form-label">Variëteit</span>
-                        <input
-                            name="variety"
-                            value={form.variety}
-                            onChange={handleChange}
-                            placeholder="Kleur of soort"
                         />
                     </label>
 

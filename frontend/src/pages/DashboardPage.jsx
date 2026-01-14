@@ -1,9 +1,38 @@
 import { useEffect, useState } from 'react';
+import '../assets/css/DashboardPage.css';
 
 const AUTO_REMOVE_DELAY = 4000; // 4 seconden na afloop verwijderen
 
 function DashboardPage() {
     const [lotsState, setLotsState] = useState([]);
+    const [expandedDescriptions, setExpandedDescriptions] = useState({});
+
+    const toggleExpanded = (id) => {
+        setExpandedDescriptions(prev => ({ ...prev, [id]: !prev[id] }));
+    };
+
+    const truncateWords = (text, maxWords = 10) => {
+        if (!text) return '';
+        const words = text.split(/\s+/).filter(Boolean);
+        if (words.length <= maxWords) return { text, truncated: false };
+        return { text: words.slice(0, maxWords).join(' '), truncated: true };
+    };
+
+    // helper to read description from various possible property names
+    const getDescription = (lot) => {
+        if (!lot) return '';
+        return (
+            lot.omschrijving ||
+            lot.Omschrijving ||
+            lot.product?.omschrijving ||
+            lot.product?.Omschrijving ||
+            lot.productOmschrijving ||
+            ''
+        );
+    };
+
+    // Featured carousel index (minimal UI change: small prev/next buttons)
+    const [featuredIndex, setFeaturedIndex] = useState(0);
 
     // 1. State voor de pop-up (modal)
     const [showModal, setShowModal] = useState(false);
@@ -49,13 +78,35 @@ function DashboardPage() {
                             minPrice,
                             closing: Math.ceil(remainingTime),
                             currentPrice,
-                            status: remainingTime > 0 ? 'actief' : 'afgesloten',
+                            // Mark planned auctions correctly so they appear in the upcoming table
+                            status: startTimestamp > now ? 'gepland' : (remainingTime > 0 ? 'actief' : 'afgesloten'),
                             removeAt,
                         };
                     })
                     .sort((a, b) => b.veilingID - a.veilingID);
 
                 setLotsState(lots);
+
+                // Fetch missing descriptions from Product endpoint when not provided by the veiling DTO
+                const missing = lots.filter(l => !getDescription(l) && l.productID);
+                if (missing.length > 0) {
+                    const token = localStorage.getItem('token');
+                    await Promise.all(missing.map(async m => {
+                        try {
+                            const resp = await fetch(`https://localhost:7054/api/Product/${m.productID}`, {
+                                headers: { Accept: 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) }
+                            });
+                            if (!resp.ok) return;
+                            const prod = await resp.json();
+                            const oms = prod.omschrijving || prod.Omschrijving || prod.Omschrijving || prod.Omschrijving || prod.Omschrijving || prod.Omschrijving || prod.Omschrijving || prod.omschrijving || prod.Omschrijving || prod.Omschrijving || prod.Omschrijving || prod.Omschrijving || prod.Omschrijving || prod.Omschrijving || prod.Omschrijving || prod.omschrijving || prod.Omschrijving || prod.Omschrijving || prod.Omschrijving || prod.Omschrijving || prod.Omschrijving || prod.omschrijving || prod.Omschrijving || prod.Omschrijving || prod.Omschrijving || prod.Omschrijving || prod.Omschrijving || prod.Omschrijving || prod.omschrijving || prod.Omschrijving || prod.Omschrijving || prod.Omschrijving || prod.Omschrijving || prod.Omschrijving || prod.Omschrijving || prod.Omschrijving || prod.Omschrijving || prod.Omschrijving || prod.Omschrijving || prod.Omschrijving || prod.Omschrijving || prod.Omschrijving || '';
+                            if (oms) {
+                                setLotsState(prev => prev.map(x => x.productID === m.productID ? { ...x, omschrijving: oms } : x));
+                            }
+                        } catch (e) {
+                            console.warn('Kon product omschrijving niet ophalen voor', m.productID, e);
+                        }
+                    }));
+                }
             } catch (err) {
                 console.error('Fout bij ophalen van veilingen:', err);
             }
@@ -89,11 +140,30 @@ function DashboardPage() {
                             ...lot,
                             closing: Math.ceil(remainingTime),
                             currentPrice,
-                            status: remainingTime > 0 ? 'actief' : 'afgesloten',
+                            // keep planned status when startTimestamp is in the future
+                            status: lot.startTimestamp > now ? 'gepland' : (remainingTime > 0 ? 'actief' : 'afgesloten'),
                             removeAt,
                         };
                     })
                     .filter(lot => {
+                        // If quantity reached 0 or less, attempt to delete the veiling and remove from UI
+                        if ((lot.hoeveelheid ?? 0) <= 0) {
+                            const token = localStorage.getItem('token');
+                            const headers = token ? { Authorization: `Bearer ${token}` } : {};
+
+                            fetch(`https://localhost:7054/api/Veiling/DeleteVeiling/${lot.veilingID}`, {
+                                method: 'DELETE',
+                                headers
+                            })
+                                .then(res => {
+                                    if (!res.ok) return res.text().then(t => Promise.reject(new Error(t || res.statusText)));
+                                    console.log(`Veiling ${lot.veilingID} verwijderd omdat hoeveelheid 0 is.`);
+                                })
+                                .catch(err => console.error(`Fout bij verwijderen veiling ${lot.veilingID}:`, err));
+
+                            return false;
+                        }
+
                         if (lot.removeAt && now >= lot.removeAt) {
                             fetch(`https://localhost:7054/api/Veiling/DeleteVeiling/${lot.veilingID}`, {
                                 method: 'DELETE',
@@ -112,8 +182,28 @@ function DashboardPage() {
         return () => clearInterval(interval);
     }, []);
 
-    const featuredLot = lotsState[0];
+    // Derived lists (minimal change): running (started & active) and upcoming (planned)
+    const runningLots = lotsState.filter(l => l.startTimestamp <= Date.now() && l.closing > 0);
+    const upcomingLots = lotsState.filter(l => l.startTimestamp > Date.now() && l.status !== 'afgesloten');
+
+    // Keep featuredIndex in range when runningLots length changes
+    useEffect(() => {
+        if (runningLots.length === 0) {
+            setFeaturedIndex(0);
+            return;
+        }
+        if (featuredIndex >= runningLots.length) {
+            setFeaturedIndex(runningLots.length - 1);
+        }
+    }, [runningLots.length, featuredIndex]);
+
+    // IMPORTANT: only show featuredLot when there are running (started) auctions
+    const featuredLot = runningLots.length > 0 ? runningLots[featuredIndex] : null;
     const featuredTime = featuredLot?.closing ?? 0;
+
+    // NAV buttons for featured carousel (minimal UI additions)
+    const goPrev = () => setFeaturedIndex(i => Math.max(0, i - 1));
+    const goNext = () => setFeaturedIndex(i => Math.min(runningLots.length - 1, i + 1));
 
     // ==========================================================
     // LOGICA VOOR DE POP-UP (MODAL)
@@ -125,13 +215,13 @@ function DashboardPage() {
 
         // Reset
         setTransactionData({
-            veilingId: featuredLot.veilingID,
-            productNaam: featuredLot.productNaam,
-            prijsPerStuk: featuredLot.currentPrice,
-            maxAantal: featuredLot.hoeveelheid ?? 1,
-            aantal: 1,
-            totaalPrijs: featuredLot.currentPrice,
-            history: null
+            veilingId    : featuredLot.veilingID,
+            productNaam   : featuredLot.productNaam,
+            prijsPerStuk  : featuredLot.currentPrice,
+            maxAantal     : featuredLot.hoeveelheid ?? 1,
+            aantal        : 1,
+            totaalPrijs   : featuredLot.currentPrice,
+            history        : null
         });
 
         setShowModal(true);
@@ -203,8 +293,8 @@ function DashboardPage() {
                 },
                 body: JSON.stringify({
                     veilingId: transactionData.veilingId,
-                    aantal: transactionData.aantal,
-                    prijs: transactionData.prijsPerStuk
+                    aantal   : transactionData.aantal,
+                    prijs    : transactionData.prijsPerStuk
                 })
             });
 
@@ -237,6 +327,25 @@ function DashboardPage() {
         setShowModal(false);
     };
 
+    const renderDescription = (lot) => {
+        const desc = getDescription(lot);
+        if (!desc) return '-';
+        const id = lot.veilingID ?? lot.productID ?? lot.id ?? JSON.stringify(lot);
+        const { text: truncatedText, truncated } = truncateWords(desc, 10);
+        const isExpanded = !!expandedDescriptions[id];
+
+        if (!truncated) return desc;
+
+        return (
+            <>
+                <span>{isExpanded ? desc : truncatedText + '...'}</span>
+                <button className="read-more-link" onClick={() => toggleExpanded(id)}>
+                    {isExpanded ? 'lees minder' : 'lees meer'}
+                </button>
+            </>
+        );
+    };
+
     return (
         <div className="dashboard-page">
             <section className="dashboard-hero">
@@ -248,80 +357,102 @@ function DashboardPage() {
                     </p>
                 </div>
 
+                {/* Keep the same featured layout but add minimal prev/next controls */}
                 {featuredLot && (
-                    <article className="featured-card">
-                        <img
-                            src={featuredLot.foto?.startsWith('http') ? featuredLot.foto : `https://localhost:7054${featuredLot.foto}`}
-                            alt={featuredLot.productNaam || 'Productfoto'}
-                            style={{
-                                maxWidth: '600px',
-                                maxHeight: '400px',
-                                objectFit: 'cover',
-                                width: '100%',
-                                height: '100%',
-                                borderRadius: '16px',
-                                display: 'block',
-                                overflow: 'hidden',
-                                marginBottom: '1rem',
-                            }}
-                        />
-                        <div className="featured-body">
-                            <div className="featured-meta" aria-live="polite">
-                                <span className="badge badge-live">
-                                    {featuredTime > 0 ? `${featuredTime}s` : 'Afgesloten'}
-                                </span>
-                                <span className="lot-number">#{featuredLot.veilingID}</span>
-                            </div>
-                            <h2>{featuredLot.productNaam}</h2>
-                            <p className="featured-quantity">Beschikbaar: {featuredLot.hoeveelheid ?? 1} stuks</p>
+                    <div style={{ position: 'relative' }}>
+                        {/* prev/next buttons - small and unobtrusive */}
+                        {runningLots.length > 1 && (
+                            <>
+                                <button onClick={goPrev} disabled={featuredIndex === 0} style={{ position: 'absolute', left: '-40px', top: '40%', zIndex: 5 }}>◀</button>
+                                <button onClick={goNext} disabled={featuredIndex >= runningLots.length - 1} style={{ position: 'absolute', right: '-40px', top: '40%', zIndex: 5 }}>▶</button>
+                            </>
+                        )}
 
-                            <div className="featured-footer" style={{display: 'flex', flexDirection: 'column', gap: '10px'}}>
-
-                                <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', marginBottom: '5px'}}>
-                                    <span style={{fontSize: '1.1rem', fontWeight: 'bold', color: '#333'}}>Huidige prijs:</span>
-                                    <span className="featured-price">€{featuredLot.currentPrice?.toFixed(2)}</span>
+                        <article className="featured-card">
+                            <img
+                                src={featuredLot.foto?.startsWith('http') ? featuredLot.foto : `https://localhost:7054${featuredLot.foto}`}
+                                alt={featuredLot.productNaam || 'Productfoto'}
+                                style={{
+                                    maxWidth: '600px',
+                                    maxHeight: '400px',
+                                    objectFit: 'cover',
+                                    width: '100%',
+                                    height: '100%',
+                                    borderRadius: '16px',
+                                    display: 'block',
+                                    overflow: 'hidden',
+                                    marginBottom: '1rem',
+                                }}
+                            />
+                            <div className="featured-body">
+                                <div className="featured-meta" aria-live="polite">
+                                    <span className="badge badge-live">
+                                        {featuredTime > 0 ? `${featuredTime}s` : 'Afgesloten'}
+                                    </span>
+                                    <span className="lot-number">#{featuredLot.veilingID}</span>
                                 </div>
+                                <h2>{featuredLot.productNaam}</h2>
+                                {getDescription(featuredLot) && <p className="featured-description">{renderDescription(featuredLot)}</p>}
+                                <p className="featured-quantity">Beschikbaar: {featuredLot.hoeveelheid ?? 1} stuks</p>
 
-                                <button
-                                    type="button"
-                                    className="secondary-action"
-                                    disabled={featuredTime <= 0}
-                                    onClick={handleInitialClick}
-                                    style={{ width: '100%' }}
-                                >
-                                    Bieden
-                                </button>
+                                <div className="featured-footer" style={{display: 'flex', flexDirection: 'column', gap: '10px'}}>
+
+                                    <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', marginBottom: '5px'}}>
+                                        <span style={{fontSize: '1.1rem', fontWeight: 'bold', color: '#333'}}>Huidige prijs:</span>
+                                        <span className="featured-price">€{featuredLot.currentPrice?.toFixed(2)}</span>
+                                    </div>
+
+                                    <button
+                                        type="button"
+                                        className="secondary-action"
+                                        disabled={featuredTime <= 0}
+                                        onClick={handleInitialClick}
+                                        style={{ width: '100%' }}
+                                    >
+                                        Bieden
+                                    </button>
+                                </div>
                             </div>
-                        </div>
-                    </article>
+                        </article>
+                    </div>
                 )}
             </section>
 
             <section className="dashboard-table">
-                <h3>Komende kavels</h3>
+                <h3>Komende veilingen</h3>
                 <div className="table-wrapper" role="region" aria-live="polite">
                     <table className="data-table">
                         <thead>
-                        <tr>
-                            <th>Kavel</th>
-                            <th>Naam</th>
-                            <th>Specificaties</th>
-                            <th>Aantal</th>
-                            <th>Huidige prijs (€)</th>
-                            <th>Sluiting</th>
-                        </tr>
+                            <tr>
+                                <th>Veiling</th>
+                                <th>Naam</th>
+                                <th>Aantal</th>
+                                <th>Omschrijving</th>
+                                <th>Huidige prijs (€)</th>
+                                <th>Startdatum</th>
+                                <th>Veiling start over</th> {/* kolomnaam aangepast */}
+                                <th>Sluitingstijd</th>
+                            </tr>
                         </thead>
                         <tbody>
-                        {lotsState.map(lot => (
-                            <tr key={lot.veilingID}>
-                                <td>{lot.veilingID}</td>
-                                <td>{lot.productNaam}</td>
-                                <td>{lot.specs ?? '-'}</td>
-                                <td>{lot.hoeveelheid ?? 1}</td>
-                                <td>€{lot.currentPrice?.toFixed(2)}</td>
-                                <td>{lot.closing > 0 ? `${lot.closing}s` : 'Afgesloten'}</td>
-                            </tr>
-                        ))}
+                            {upcomingLots.map(lot => {
+                                const now = Date.now();
+                                const timeUntilStart = Math.max(0, Math.ceil((lot.startTimestamp - now) / 1000));
+                                const startDateDisplay = lot.startTimestamp ? new Date(lot.startTimestamp).toLocaleString('nl-NL') : '-';
+
+                                return (
+                                    <tr key={lot.veilingID}>
+                                        <td>{lot.veilingID}</td>
+                                        <td>{lot.productNaam}</td>
+                                        <td>{lot.hoeveelheid ?? 1}</td>
+                                        <td>{renderDescription(lot) || '-'}</td>
+                                        <td>€{lot.currentPrice?.toFixed(2)}</td>
+                                        <td>{startDateDisplay}</td>
+                                        <td>{timeUntilStart}s</td> {/* aftel timer tot start */}
+                                        <td>{lot.closing > 0 ? `${lot.closing}s` : 'Afgesloten'}</td>
+                                    </tr>
+                                );
+                            })}
                         </tbody>
                     </table>
                 </div>
@@ -331,11 +462,11 @@ function DashboardPage() {
             {/* POP-UP MODAL (Met input en totaalprijs)                    */}
             {/* ========================================================== */}
             {showModal && transactionData && (
-                <div style={styles.overlay}>
-                    <div style={styles.modal}>
+                <div className="dashboard-overlay">
+                    <div className="dashboard-modal">
                         <h2>Bevestig Aankoop</h2>
 
-                        <div style={styles.summary}>
+                        <div className="dashboard-summary">
                             <p><strong>Product:</strong> {transactionData.productNaam}</p>
                             <p><strong>Prijs per stuk:</strong> €{transactionData.prijsPerStuk.toFixed(2)}</p>
 
@@ -394,7 +525,7 @@ function DashboardPage() {
                                     {/* Markt Historie */}
                                     <div>
                                         <span style={{fontSize: '0.8rem', color: '#555'}}>Alle aanbieders:</span>
-                                        <table style={styles.historyTable}>
+                                        <table className="dashboard-historyTable">
                                             <tbody>
                                             {transactionData.history.marktHistorie.map((h, i) => (
                                                 <tr key={i}>
@@ -418,9 +549,9 @@ function DashboardPage() {
 
                         </div>
 
-                        <div style={styles.buttons}>
-                            <button onClick={() => setShowModal(false)} style={styles.cancelBtn}>Annuleren</button>
-                            <button onClick={handleConfirmPurchase} style={styles.confirmBtn}>Bevestigen</button>
+                        <div className="dashboard-buttons">
+                            <button onClick={() => setShowModal(false)} className="dashboard-cancelBtn">Annuleren</button>
+                            <button onClick={handleConfirmPurchase} className="dashboard-confirmBtn">Bevestigen</button>
                         </div>
                     </div>
                 </div>
@@ -430,22 +561,6 @@ function DashboardPage() {
 }
 
 const styles = {
-    overlay: {
-        position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-        backgroundColor: 'rgba(0,0,0,0.7)', zIndex: 1000,
-        display: 'flex', justifyContent: 'center', alignItems: 'center'
-    },
-    modal: {
-        backgroundColor: 'white', padding: '2rem', borderRadius: '12px',
-        width: '90%', maxWidth: '500px', // Iets breder voor de tabellen
-        maxHeight: '90vh', overflowY: 'auto', // Zodat het past op kleine schermen
-        textAlign: 'center',
-        boxShadow: '0 4px 20px rgba(0,0,0,0.3)', color: '#333'
-    },
-    summary: { textAlign: 'left', margin: '1.5rem 0', lineHeight: '1.6' },
-    buttons: { display: 'flex', gap: '1rem', justifyContent: 'center', marginTop: '20px' },
-    cancelBtn: { padding: '10px 20px', borderRadius: '8px', border: '1px solid #ccc', backgroundColor: '#f5f5f5', cursor: 'pointer', color: 'black' },
-    confirmBtn: { padding: '10px 20px', borderRadius: '8px', border: 'none', backgroundColor: '#2ecc71', color: 'white', fontWeight: 'bold', cursor: 'pointer' },
     historyTable: { width: '100%', fontSize: '0.75rem', marginBottom: '5px' }
 };
 

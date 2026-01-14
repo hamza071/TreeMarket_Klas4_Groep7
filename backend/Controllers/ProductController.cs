@@ -98,4 +98,59 @@ public class ProductController : ControllerBase
             return StatusCode(500, new { error = ex.Message });
         }
     }
+
+    // DELETE: api/Product/vandaag
+    [HttpDelete("vandaag")]
+    [Authorize]
+    public async Task<IActionResult> DeleteVandaag()
+    {
+        if (User?.Identity == null || !User.Identity.IsAuthenticated)
+        {
+            return Unauthorized("Je bent niet ingelogd.");
+        }
+
+        // Authorize roles (Admin or Leverancier)
+        if (!User.IsInRole("Admin") && !User.IsInRole("Leverancier"))
+        {
+            return Forbid();
+        }
+
+        try
+        {
+            var deleted = await _service.DeleteVandaag();
+            return Ok(new { deleted });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { error = ex.Message });
+        }
+    }
+
+    // DELETE: api/Product/{id}
+    [HttpDelete("{id}")]
+    [Authorize]
+    public async Task<IActionResult> DeleteProduct(int id)
+    {
+        if (User?.Identity == null || !User.Identity.IsAuthenticated)
+        {
+            return Unauthorized("Je bent niet ingelogd.");
+        }
+
+        // Allow Admin or the supplier (Leverancier) role
+        if (!User.IsInRole("Admin") && !User.IsInRole("Leverancier"))
+        {
+            return Forbid();
+        }
+
+        try
+        {
+            var deleted = await _service.DeleteProduct(id);
+            if (!deleted) return NotFound(new { message = $"Product {id} niet gevonden." });
+            return Ok(new { message = $"Product {id} verwijderd." });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { error = ex.Message });
+        }
+    }
 }

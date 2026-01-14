@@ -10,20 +10,20 @@ namespace backend.Models
         public int BidID { get; set; }
 
         [Required]
-        public int VeilingID { get; set; } // Blijft int (want Veiling.VeilingID is int)
+        public int VeilingID { get; set; } 
 
         [ForeignKey(nameof(VeilingID))]
         public Veiling Veiling { get; set; }
 
-        // === TOEVOEGING: WIE HEEFT GEBODEN? ===
-        // Dit moest erbij. En omdat Klant nu IdentityUser is,
+        
+        // Dit moest erbij en omdat Klant nu IdentityUser is,
         // moet dit type 'string' zijn!
         [Required]
         public string KlantId { get; set; } 
 
         [ForeignKey(nameof(KlantId))]
         public Klant Klant { get; set; }
-        // ======================================
+        
 
         [Column(TypeName = "decimal(18,2)")]
         public decimal Bedrag { get; set; }

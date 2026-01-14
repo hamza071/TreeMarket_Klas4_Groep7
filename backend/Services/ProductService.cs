@@ -20,7 +20,7 @@ namespace backend.Services
             _context = context;
         }
 
-        // GET: api/Product/vandaag
+        
         [HttpGet("vandaag")]
         public async Task<List<ProductMetVeilingmeesterDto>> GetVandaag()
         {
@@ -45,7 +45,7 @@ namespace backend.Services
 
 
 
-        // GET: api/Product/leverancier
+       
         [HttpGet("leverancier")]
         public async Task<List<ProductMetVeilingmeesterDto>> GetMetLeverancier()
         {
@@ -67,7 +67,7 @@ namespace backend.Services
         }
 
 
-        // POST: api/Product/CreateProduct
+        
         [HttpPost("CreateProduct")]
         [Authorize]
         public async Task<ProductMetVeilingmeesterDto> PostProduct(ProductUploadDto productDto, string userId, bool isAdmin)
@@ -132,7 +132,7 @@ namespace backend.Services
             };
         }
 
-        // GET: api/Product/{id}
+        
         [HttpGet("{id}")]
         public async Task<ProductMetVeilingmeesterDto?> GetProductById(int id)
         {
@@ -141,7 +141,7 @@ namespace backend.Services
                 .FirstOrDefaultAsync(p => p.ProductId == id);
 
             if (product == null)
-                return null; // Controller can handle NotFound
+                return null; 
 
             return new ProductMetVeilingmeesterDto
             {
@@ -155,6 +155,35 @@ namespace backend.Services
                 Status = "pending",
                 LeverancierNaam = product.Leverancier?.Bedrijf
             };
+        }
+
+      
+        [HttpDelete("vandaag")]
+        public async Task<int> DeleteVandaag()
+        {
+            var today = DateTime.UtcNow.Date;
+
+            var toDelete = await _context.Product
+                .Where(p => p.Dagdatum.Date == today)
+                .ToListAsync();
+
+            if (!toDelete.Any()) return 0;
+
+            _context.Product.RemoveRange(toDelete);
+            var removed = await _context.SaveChangesAsync();
+
+            return removed;
+        }
+
+    
+        public async Task<bool> DeleteProduct(int id)
+        {
+            var product = await _context.Product.FindAsync(id);
+            if (product == null) return false;
+
+            _context.Product.Remove(product);
+            await _context.SaveChangesAsync();
+            return true;
         }
 
 

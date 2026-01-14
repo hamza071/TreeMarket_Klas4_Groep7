@@ -2,13 +2,10 @@
 {
     public class ProductMetLeverancierDto
     {
-        // ==========================================
-        // DEZE TWEE REGELS MOESTEN ERBIJ:
-        // ==========================================
+       
         public int ProductId { get; set; }
         public string LeverancierNaam { get; set; }
 
-        // ==== Productvelden (die had je al) ====
         public string Naam { get; set; }
         public string Variëteit { get; set; }
         public string KleurOfSoort { get; set; }
@@ -19,7 +16,6 @@
         
         public int LeverancierId { get; set; } 
 
-        // ==== Veilingvelden ====
         public decimal StartPrijs { get; set; }
         public int PrijsStap { get; set; }
     }

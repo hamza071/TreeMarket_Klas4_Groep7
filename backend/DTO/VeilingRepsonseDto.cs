@@ -10,14 +10,15 @@
         public int TimerInSeconden { get; set; }
         public int ProductID { get; set; }
         public int Hoeveelheid { get; set; }
-
         public DateTime StartTimestamp { get; set; }
+        public DateTime EindTimestamp { get; set; } // nieuw veld
 
-        // Product details
+       
         public string ProductNaam { get; set; }
         public string Foto { get; set; }
+        public string Omschrijving { get; set; }
 
-        // === DEZE REGEL MOET JE TOEVOEGEN: ===
+        
         public string LeverancierNaam { get; set; }
     }
 }

@@ -9,7 +9,7 @@ namespace backend.DTO
     
     public class ProductHistoryResponse
     {
-        public List<HistoryDto> EigenHistorie { get; set; } // Van deze aanbieder
+        public List<HistoryDto> EigenHistorie { get; set; } // Van aanbieder
         public List<HistoryDto> MarktHistorie { get; set; } // Van iedereen
         public decimal GemiddeldeEigen { get; set; }
         public decimal GemiddeldeMarkt { get; set; }
