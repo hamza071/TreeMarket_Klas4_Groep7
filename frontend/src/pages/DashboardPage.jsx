@@ -341,7 +341,6 @@ function DashboardPage() {
                             <tr>
                                 <th>Kavel</th>
                                 <th>Naam</th>
-                                <th>Specificaties</th>
                                 <th>Aantal</th>
                                 <th>Huidige prijs (€)</th>
                                 <th>Startdatum</th>
@@ -359,7 +358,6 @@ function DashboardPage() {
                                     <tr key={lot.veilingID}>
                                         <td>{lot.veilingID}</td>
                                         <td>{lot.productNaam}</td>
-                                        <td>{lot.specs ?? '-'}</td>
                                         <td>{lot.hoeveelheid ?? 1}</td>
                                         <td>€{lot.currentPrice?.toFixed(2)}</td>
                                         <td>{startDateDisplay}</td>
