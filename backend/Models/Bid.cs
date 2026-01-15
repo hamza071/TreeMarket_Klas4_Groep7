@@ -16,8 +16,7 @@ namespace backend.Models
         public Veiling Veiling { get; set; }
 
         
-        // Dit moest erbij en omdat Klant nu IdentityUser is,
-        // moet dit type 'string' zijn!
+        
         [Required]
         public string KlantId { get; set; } 
 
