@@ -24,7 +24,7 @@ namespace WebAPI.Tests.TClaim
 
             using var context = new ApiContext(options);
 
-            // =====Product Aanmaken door een leverancier ======
+            // Product Aanmaken door een leverancier
             var product = new Product
             {
                 ProductId = 1,
@@ -53,7 +53,7 @@ namespace WebAPI.Tests.TClaim
             context.Leverancier.Add(leverancier);
             await context.SaveChangesAsync();
 
-            // ======Veiling aanmaken door een veilingsmeester ======
+            // Veiling aanmaken door een veilingsmeester 
             var veilingsmeester = new Gebruiker
             {
                 Id = "veilingsmeester-123",
@@ -76,7 +76,7 @@ namespace WebAPI.Tests.TClaim
             context.Veiling.Add(veiling);
             await context.SaveChangesAsync();
 
-            // ====De claim wordt gemaakt door klant =====
+            // De claim wordt gemaakt door klant 
 
             var service = new ClaimService(context);
 

@@ -19,7 +19,7 @@ namespace WebAPI.Tests.TDashboard
     public class DashboardTestRead
     {
 
-        // 1. Dashboard wat er getoont wordt (product)
+        // Dashboard wat er getoont wordt (product)
         [Fact]
         public async Task GetAll_Returns_Dashboard_With_Product()
         {
@@ -55,7 +55,7 @@ namespace WebAPI.Tests.TDashboard
         }
 
 
-        // 2. Welke rollen geen toegang tot de dashboard heeft
+        // Welke rollen geen toegang tot de dashboard heeft
         [Fact]
         public async Task GetKlant_ReturnsForbid_For_UnauthorizedRole()
         {
