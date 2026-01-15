@@ -54,7 +54,7 @@ const NAVIGATION_ITEMS_ADMIN = [
     { id: 'about', label: 'About' },
     { id: 'dashboard', label: 'Dashboard' },
     { id: 'veiling', label: 'Veiling' },
-    { id: 'upload', label: 'Upload Veiling' },
+    { id: 'upload', label: 'Upload Kavel' },
     { id: 'allusers', label: 'GetAlleGebruikers' },
 ];
 
