@@ -4,7 +4,6 @@ import '../assets/css/UploadAuctionPage.css';
 import { API_URL } from '../DeployLocal';
 
 function formatLocalDatetimeInput(date) {
-    // returns 'YYYY-MM-DDTHH:MM' in local time for datetime-local input
     const pad = (n) => n.toString().padStart(2, '0');
     return (
         date.getFullYear() + '-' +
@@ -16,21 +15,20 @@ function formatLocalDatetimeInput(date) {
 }
 
 function AuctionDetailPage() {
-    const { code } = useParams(); // productId
+    const { code } = useParams();
     const navigate = useNavigate();
     const location = useLocation();
 
     const [lot, setLot] = useState(null);
-    const [startPrice, setStartPrice] = useState('');
+    const [startPrice, setStartPrice] = useState('0.00'); // string met 2 decimalen
     const [minPrice, setMinPrice] = useState(0);
     const [closingTime, setClosingTime] = useState(10);
 
-    // Two options for scheduling: 'datetime' or 'seconds'
-    const [startMode, setStartMode] = useState('datetime'); // 'datetime' | 'seconds'
-    const [startDateTime, setStartDateTime] = useState(formatLocalDatetimeInput(new Date())); // default = now
+    const [startMode, setStartMode] = useState('datetime');
+    const [startDateTime, setStartDateTime] = useState(formatLocalDatetimeInput(new Date()));
     const [startInSeconds, setStartInSeconds] = useState(0);
 
-    // Haal kavel op via API
+    // Fetch product
     useEffect(() => {
         const fetchLot = async () => {
             try {
@@ -39,10 +37,10 @@ function AuctionDetailPage() {
                 });
                 if (!response.ok) throw new Error('Kavel niet gevonden');
                 const data = await response.json();
-
                 setLot(data);
-                setMinPrice(Number(data.minimumPrijs ?? 0));
-                setStartPrice(Number(data.minimumPrijs ?? 0) + 1);
+                const min = Number(data.minimumPrijs ?? 0);
+                setMinPrice(min);
+                setStartPrice((min + 1).toFixed(2)); // altijd 2 decimalen
                 setClosingTime(10);
             } catch (err) {
                 alert(err.message);
@@ -51,9 +49,10 @@ function AuctionDetailPage() {
         };
 
         if (location.state?.lot) {
+            const min = Number(location.state.lot.minimumPrijs ?? 0);
             setLot(location.state.lot);
-            setMinPrice(Number(location.state.lot.minimumPrijs ?? 0));
-            setStartPrice(Number(location.state.lot.minimumPrijs ?? 0) + 1);
+            setMinPrice(min);
+            setStartPrice((min + 1).toFixed(2)); // string met 2 decimalen
             return;
         }
 
@@ -62,17 +61,28 @@ function AuctionDetailPage() {
 
     if (!lot) return <p>Laden van kavel…</p>;
 
-    // Publiceer veiling
     const handlePublish = async () => {
         if (!startPrice || !closingTime) return alert('Vul alle velden in!');
-        if (Number(startPrice) <= minPrice) return alert(`Startprijs moet hoger zijn dan minimale prijs (€${minPrice})`);
 
-        const prijsStap = Math.max(1, Math.ceil(startPrice * 0.1));
+        // Parse decimalen correct
+        const startPriceNumber = parseFloat(startPrice);
+        const minPriceNumber = parseFloat(minPrice);
+        const closingTimeNumber = Number(closingTime);
+
+        if (isNaN(startPriceNumber) || startPriceNumber <= minPriceNumber)
+            return alert(`Startprijs moet hoger zijn dan minimale prijs (€${minPriceNumber.toFixed(2)})`);
+
+        if (isNaN(closingTimeNumber) || closingTimeNumber < 1)
+            return alert('Sluitingstijd moet minimaal 1 seconde zijn');
+
+        // Bereken prijsstap: 10% van startprijs, minimaal 0.01
+        const prijsStap = Math.max(0.01, parseFloat((startPriceNumber * 0.1).toFixed(2)));
+
         const veilingsmeesterID = localStorage.getItem("veilingsmeesterId") || "29685004-81a1-44b6-b7f3-973dd5f60fc0";
         const token = localStorage.getItem("token");
         if (!token) return alert("Je bent niet ingelogd.");
 
-        // Bereken geplande starttijd afhankelijk van gekozen mode
+        // Starttijd berekenen
         const now = new Date();
         let startTimestamp;
 
@@ -81,23 +91,19 @@ function AuctionDetailPage() {
             if (seconds < 0) return alert('Start in seconden moet >= 0 zijn');
             startTimestamp = new Date(now.getTime() + seconds * 1000);
         } else {
-            // datetime mode
-            if (!startDateTime) {
-                startTimestamp = now;
-            } else {
-                startTimestamp = new Date(startDateTime);
-                if (isNaN(startTimestamp.getTime())) return alert('Ongeldige startdatum/tijd');
-                if (startTimestamp.getTime() < now.getTime()) return alert('Startdatum moet in de toekomst liggen of leeg zijn voor direct starten');
-            }
+            startTimestamp = startDateTime ? new Date(startDateTime) : now;
+            if (isNaN(startTimestamp.getTime()))
+                return alert('Ongeldige startdatum/tijd');
+            if (startTimestamp.getTime() < now.getTime())
+                return alert('Startdatum moet in de toekomst liggen of leeg zijn voor direct starten');
         }
 
         const payload = {
             productID: lot.productId,
-            startPrijs: Number(startPrice),
-            minPrijs: Number(minPrice),
-            prijsStap,
-            timerInSeconden: Number(closingTime),
-            // stuur ISO-string zodat backend een correcte UTC timestamp ontvangt
+            startPrijs: startPriceNumber,   // Decimalen blijven intact
+            minPrijs: minPriceNumber,
+            prijsStap,                      // Decimalen correct
+            timerInSeconden: closingTimeNumber,
             startTimestamp: startTimestamp.toISOString(),
             veilingsmeesterID
         };
@@ -146,27 +152,28 @@ function AuctionDetailPage() {
                         <span className="form-label">Beginprijs (€)</span>
                         <input
                             type="number"
+                            step="0.01"
+                            min={minPrice + 0.01}
                             value={startPrice}
                             onChange={e => setStartPrice(e.target.value)}
-                            placeholder={`> ${minPrice}`}
+                            placeholder={`> ${minPrice.toFixed(2)}`}
                         />
-                        <small>Minimale prijs: €{minPrice}</small>
+                        <small>Minimale prijs: €{minPrice.toFixed(2)}</small>
                     </label>
 
                     <label className="form-field">
                         <span className="form-label">Sluitingstijd (seconden)</span>
                         <input
                             type="number"
+                            min={1}
                             value={closingTime}
                             onChange={e => setClosingTime(e.target.value)}
                         />
                         <small>Standaard 10 seconden</small>
                     </label>
 
-                    {/* Start tijd keuze */}
                     <div className="form-field">
                         <span className="form-label">Start tijd</span>
-
                         <div className="start-mode-toggle">
                             <button
                                 type="button"
@@ -175,13 +182,12 @@ function AuctionDetailPage() {
                             >
                                 Datum & tijd
                             </button>
-
                             <button
                                 type="button"
                                 className={`start-mode-option ${startMode === 'seconds' ? 'active' : ''}`}
                                 onClick={() => setStartMode('seconds')}
                             >
-                                Over (enkele) seconden
+                                Over seconden
                             </button>
                         </div>
 
