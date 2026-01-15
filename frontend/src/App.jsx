@@ -9,7 +9,6 @@ import DashboardPage from "./pages/DashboardPage";
 import AuctionPage from "./pages/AuctionPage";
 import AuctionDetailPage from "./pages/AuctionDetailPage";
 import UploadAuctionPage from "./pages/UploadAuctionPage";
-import ReportsPage from "./pages/ReportsPage";
 import AuthPage from "./pages/AuthPage";
 import AboutUsPage from "./pages/AboutUsPage";
 import HomePage from "./pages/HomePage";
@@ -56,7 +55,6 @@ const NAVIGATION_ITEMS_ADMIN = [
     { id: 'dashboard', label: 'Dashboard' },
     { id: 'veiling', label: 'Veiling' },
     { id: 'upload', label: 'Upload Veiling' },
-    { id: 'reports', label: 'Rapporten' },
     { id: 'allusers', label: 'GetAlleGebruikers' },
 ];
 
@@ -171,7 +169,6 @@ function App() {
                     <Route path="/veiling" element={<AuctionPage lots={lots} />} />
                     <Route path="/veiling/:code" element={<AuctionDetailPage lots={lots} updateLot={updateLot} />} />
                     <Route path="/upload" element={<UploadAuctionPage addNewLot={addNewLot} />} />
-                    <Route path="/reports" element={<ReportsPage />} />
                     <Route path="/home" element={<HomePage />} />
                     <Route path="/about" element={<AboutUsPage />} />
                     <Route path="/shop" element={<ShopPage />} />
