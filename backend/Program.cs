@@ -3,34 +3,30 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using backend.Data;
-using backend.Interfaces;
 using backend.Models;
 using backend.Services;
+
 var builder = WebApplication.CreateBuilder(args);
 //
 // 1. Database configuratie
 // Zorg dat je connection string in appsettings.json klopt!
-var connectionString = builder.Configuration.GetConnectionString("LocalExpress") 
+var connectionString = builder.Configuration.GetConnectionString("LocalExpress")
     ?? throw new InvalidOperationException("Connection string not found.");
 
 builder.Services.AddDbContext<ApiContext>(options =>
     options.UseSqlServer(connectionString, sql => sql.EnableRetryOnFailure())
 );
 
-// ============================================================
-// 2. IDENTITY CONFIGURATIE (Volgens de Slides)
-// ============================================================
-
-// Slide 3: AddIdentity vervangt je handmatige configuratie
+// ==========================
+// 2) IDENTITY + AUTH
+// ==========================
 builder.Services.AddIdentity<Gebruiker, IdentityRole>()
     .AddEntityFrameworkStores<ApiContext>()
     .AddDefaultTokenProviders();
 
-// Slide 5: Extra services toevoegen
 builder.Services.AddScoped<RoleManager<IdentityRole>>();
 builder.Services.AddTransient<IEmailSender<Gebruiker>, DummyEmailSender>();
 
-// Slide 11: Authenticatie instellen op Bearer Token
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = IdentityConstants.BearerScheme;
@@ -41,13 +37,11 @@ builder.Services.AddAuthentication(options =>
     options.BearerTokenExpiration = TimeSpan.FromMinutes(60.0);
 });
 
-// Authorization aanzetten
 builder.Services.AddAuthorization();
 
-// ============================================================
-
-// ============== De Controller klasses maakt gebruik van een interface :)==============
-// Je eigen services
+// ==========================
+// 3) DI: SERVICES
+// ==========================
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IGebruikerService, GebruikerService>();
 builder.Services.AddScoped<IVeilingService, VeilingService>();
@@ -55,11 +49,10 @@ builder.Services.AddScoped<ILeverancierService, LeverancierService>();
 builder.Services.AddScoped<IClaimService, ClaimService>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
 
-// Services toevoegen
+// Controllers + Swagger
 builder.Services.AddControllersWithViews();
 builder.Services.AddEndpointsApiExplorer();
 
-// Swagger instellen (Slide 11)
 builder.Services.AddSwaggerGen(options =>
 {
     options.SwaggerDoc("v1", new OpenApiInfo { Title = "TreeMarket API", Version = "v1" });
@@ -85,9 +78,7 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
-
-
-// CORS beleid
+// CORS
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
@@ -100,15 +91,14 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// ============================================================
-// 3. SEEDING: Admin en Rollen aanmaken bij opstarten
-// (Slide 6 & 8)
-// ============================================================
+// ==========================
+// 4) SEEDING: ROLLEN + ADMIN + TEST USER
+// ==========================
 using (var scope = app.Services.CreateScope())
 {
     //// 1. HAAL EERST DE DATABASE CONTEXT OP
     //var context = scope.ServiceProvider.GetRequiredService<ApiContext>();
-    
+
     //// 2. VOER DE MIGRATIES UIT (MAAK TABELLEN AAN IN AZURE)
     //// Dit commando zorgt dat de database tabellen worden aangemaakt als ze nog niet bestaan.
     //context.Database.Migrate();
@@ -119,7 +109,7 @@ using (var scope = app.Services.CreateScope())
     var userManager = scope.ServiceProvider.GetRequiredService<UserManager<Gebruiker>>();
 
     // Rollen aanmaken
-    string[] roles = ["Admin", "Klant", "Leverancier", "Veilingsmeester"];
+    string[] roles = { "Admin", "Klant", "Leverancier", "Veilingsmeester" };
     foreach (var role in roles)
     {
         if (!await roleManager.RoleExistsAsync(role))
@@ -128,32 +118,37 @@ using (var scope = app.Services.CreateScope())
         }
     }
 
-    // Admin aanmaken
+    // -------- Admin seeden (robust) --------
     var adminEmail = "admin@treemarket.nl";
-    if (await userManager.FindByEmailAsync(adminEmail) == null)
+    var adminPassword = "AppelKruimel1234!";
+
+    var adminUser = await userManager.FindByEmailAsync(adminEmail);
+
+    // 1) Admin maken als hij niet bestaat
+    if (adminUser == null)
     {
-        var user = new Gebruiker
+        adminUser = new Gebruiker
         {
             UserName = adminEmail,
             Email = adminEmail,
             EmailConfirmed = true,
             Naam = "Super Admin"
         };
-        
+
         // Identity hasht het wachtwoord automatisch
         var result = await userManager.CreateAsync(user, "AppelKruimel1234!");
-        
+
         if (result.Succeeded)
         {
             await userManager.AddToRoleAsync(user, "Admin");
         }
     }
 
-    // ==========================
-    // Toevoegen test Veilingsmeester
-    // ==========================
+    // -------- Test Veilingsmeester --------
     var testEmail = "test@treemarket.nl";
+    var testPassword = "Veiling123!";
     var testUser = await userManager.FindByEmailAsync(testEmail);
+
     if (testUser == null)
     {
         testUser = new Gebruiker
@@ -164,21 +159,31 @@ using (var scope = app.Services.CreateScope())
             Naam = "Veilingsmeester Test"
         };
 
-        var createResult = await userManager.CreateAsync(testUser, "Veiling123!");
+        var createResult = await userManager.CreateAsync(testUser, testPassword);
         if (createResult.Succeeded)
         {
             Console.WriteLine("Test gebruiker aangemaakt: " + testEmail);
         }
+        else
+        {
+            Console.WriteLine("Test gebruiker aanmaken mislukt:");
+            foreach (var err in createResult.Errors)
+            {
+                Console.WriteLine($"- {err.Code}: {err.Description}");
+            }
+        }
     }
 
-    if (!await userManager.IsInRoleAsync(testUser, "Veilingsmeester"))
+    if (testUser != null && !await userManager.IsInRoleAsync(testUser, "Veilingsmeester"))
     {
         await userManager.AddToRoleAsync(testUser, "Veilingsmeester");
         Console.WriteLine("Rol Veilingsmeester toegevoegd aan: " + testEmail);
     }
 }
-// ============================================================
 
+// ==========================
+// 5) MIDDLEWARE PIPELINE
+// ==========================
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -186,16 +191,15 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseStaticFiles();
-
 app.UseHttpsRedirection();
 app.UseCors("AllowAll");
 
 app.UseAuthentication();
 app.UseAuthorization();
 
-// ZET DEZE AAN: Dit maakt de /login en /register endpoints
+// Identity endpoints: /login, /register, etc.
 app.MapIdentityApi<Gebruiker>();
 
 app.MapControllers();
 
-app.Run();//
+app.Run();
