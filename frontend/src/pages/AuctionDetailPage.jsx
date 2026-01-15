@@ -61,7 +61,7 @@ function AuctionDetailPage() {
 
     if (!lot) return <p>Laden van kavel…</p>;
 
-    // Nieuw: veilige decimal input
+    // decimal input
     const handleStartPriceChange = (e) => {
         const value = e.target.value;
         if (/^\d*\.?\d*$/.test(value)) { // alleen cijfers en maximaal 1 punt

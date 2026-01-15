@@ -12,7 +12,7 @@ export default function AboutPage() {
                     </p>
 
                     <figure className="hero-image" style={{ textAlign: 'center' }}>
-                        {/* HIER IS DE WIJZIGING VOOR RESPONSIVENESS: */}
+                        {/* */}
                         <img
                             src={heroImage}
                             alt="Roze kersenbloesems in volle bloei aan takken tegen een heldere lucht."
