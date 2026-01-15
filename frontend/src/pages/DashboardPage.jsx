@@ -497,31 +497,33 @@ function DashboardPage() {
                                 <strong>Totaal: €{(transactionData.totaalPrijs || 0).toFixed(2)}</strong>
                             </p>
 
-                            {/* --- HISTORISCHE DATA VISUALISATIE --- */}
-                            {transactionData.history && (
-                                <div style={{textAlign: 'left', marginTop: '15px', borderTop: '1px solid #ddd', paddingTop: '10px', maxHeight: '250px', overflowY: 'auto'}}>
-                                    <small><strong>Historie (Laatste 10)</strong></small>
-
-                                    {/* Eigen Historie */}
-                                    <div style={{marginBottom: '10px'}}>
-                                        <span style={{fontSize: '0.8rem', color: '#555'}}>Deze aanbieder:</span>
-                                        <table style={styles.historyTable}>
-                                            <tbody>
-                                            {transactionData.history.eigenHistorie.map((h, i) => (
-                                                <tr key={i}>
-                                                    <td>{h.datum}</td>
-                                                    <td align="right">€{h.prijs.toFixed(2)}</td>
-                                                </tr>
-                                            ))}
-                                            {transactionData.history.eigenHistorie.length === 0 && (
-                                                <tr><td colSpan="2" style={{fontStyle:'italic'}}>Geen data</td></tr>
-                                            )}
-                                            </tbody>
-                                        </table>
-                                        <div style={{fontSize: '0.75rem', fontWeight: 'bold'}}>
-                                            Gemiddeld: €{transactionData.history.gemiddeldeEigen.toFixed(2)}
-                                        </div>
-                                    </div>
+                                                {/* --- HISTORISCHE DATA VISUALISATIE --- */}
+                                                {transactionData.history && (
+                                                    <div style={{textAlign: 'left', marginTop: '15px', borderTop: '1px solid #ddd', paddingTop: '10px', maxHeight: '250px', overflowY: 'auto'}}>
+                                                        <small><strong>Historie (Laatste 10)</strong></small>
+                    
+                                                        {/* Eigen Historie */}
+                                                        <div style={{marginBottom: '10px'}}>
+                                                            <span style={{fontSize: '0.8rem', color: '#555'}}>
+                                                                Deze aanbieder: <strong>{featuredLot?.leverancierNaam || "Onbekend"}</strong>
+                                                            </span>
+                                                            <table style={styles.historyTable}>
+                                                                <tbody>
+                                                                {transactionData.history.eigenHistorie.map((h, i) => (
+                                                                    <tr key={i}>
+                                                                        <td>{h.datum}</td>
+                                                                        <td align="right">€{h.prijs.toFixed(2)}</td>
+                                                                    </tr>
+                                                                ))}
+                                                                {transactionData.history.eigenHistorie.length === 0 && (
+                                                                    <tr><td colSpan="2" style={{fontStyle:'italic'}}>Geen data</td></tr>
+                                                                )}
+                                                                </tbody>
+                                                            </table>
+                                                            <div style={{fontSize: '0.75rem', fontWeight: 'bold'}}>
+                                                                Gemiddeld: €{transactionData.history.gemiddeldeEigen.toFixed(2)}
+                                                            </div>
+                                                        </div>
 
                                     {/* Markt Historie */}
                                     <div>
