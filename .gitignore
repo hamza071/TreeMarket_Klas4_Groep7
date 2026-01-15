@@ -15,3 +15,4 @@ ClientApp/dist/
 
 # Logs
 *.log
+/backend/Services/ProductService.cs
