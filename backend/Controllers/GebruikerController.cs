@@ -21,7 +21,7 @@ namespace backend.Controllers
             _service = service;
         }
 
-        //REGISTRATIE ENDPOINTS 
+        // ================= REGISTRATIE ENDPOINTS =================
 
         [HttpPost("Klant")]
         public async Task<IActionResult> CreateUserKlant([FromBody] KlantDto dto)
@@ -106,9 +106,9 @@ namespace backend.Controllers
             }
         }
 
-        // BEHEER FUNCTIES (Alleen voor Admin) 
+        // ================= BEHEER FUNCTIES (Alleen voor Admin) =================
 
-        
+        // GET: api/Gebruiker/GetAllUsers
         [Authorize(Roles = "Admin")] // Beveiligd met Identity Roles
         [HttpGet("GetAllUsers")]
         public async Task<IActionResult> GetAllUsers()
@@ -118,7 +118,7 @@ namespace backend.Controllers
             return Ok(users);
         }
 
-        
+        // DELETE: api/Gebruiker/{id}
         [Authorize(Roles = "Admin")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteUser(string id)
@@ -143,7 +143,7 @@ namespace backend.Controllers
             return Ok(user);
         }
 
-        //ROL OPHALEN OP BASIS VAN EMAIL
+        // ================= NIEUW: ROL OPHALEN OP BASIS VAN EMAIL =================
 
         // GET: api/Gebruiker/RoleByEmail?email=...
         [HttpGet("RoleByEmail")]

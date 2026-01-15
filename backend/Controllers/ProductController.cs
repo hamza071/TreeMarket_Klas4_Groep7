@@ -17,6 +17,7 @@ namespace backend.Controllers
             _service = service;
         }
 
+        // GET: api/Product/vandaag
         [HttpGet("vandaag")]
         public async Task<IActionResult> GetVandaag()
         {
@@ -31,6 +32,7 @@ namespace backend.Controllers
             }
         }
 
+        // GET: api/Product/leverancier
         [HttpGet("leverancier")]
         public async Task<IActionResult> GetMetLeverancier()
         {
@@ -45,6 +47,7 @@ namespace backend.Controllers
             }
         }
 
+        // GET: api/Product/{id}
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
@@ -62,6 +65,7 @@ namespace backend.Controllers
             }
         }
 
+        // POST: api/Product/CreateProduct
         [HttpPost("CreateProduct")]
         [Authorize]
         public async Task<IActionResult> CreateProduct([FromForm] ProductUploadDto dto)
@@ -90,7 +94,7 @@ namespace backend.Controllers
                     product
                 });
             }
-           
+            // WARNING: expose details only in dev
             catch (Exception ex)
             {
                 return StatusCode(500, new
@@ -102,7 +106,7 @@ namespace backend.Controllers
             }
         }
 
-       
+        // DELETE: api/Product/vandaag
         [HttpDelete("vandaag")]
         [Authorize]
         public async Task<IActionResult> DeleteVandaag()
@@ -124,7 +128,7 @@ namespace backend.Controllers
             }
         }
 
-        
+        // DELETE: api/Product/{id}
         [HttpDelete("{id}")]
         [Authorize]
         public async Task<IActionResult> DeleteProduct(int id)

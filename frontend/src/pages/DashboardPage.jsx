@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import '../assets/css/DashboardPage.css';
 import { API_URL } from '../DeployLocal';
-
+//
 const AUTO_REMOVE_DELAY = 4000; // Tijd voordat een afgelopen veiling uit beeld verdwijnt
 
 function DashboardPage() {
