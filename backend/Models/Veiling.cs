@@ -35,7 +35,7 @@ public class Veiling
     [Required]
     public DateTime StartTimestamp { get; set; }
 
-    // ---------- RELATIES ----------
+    
 
     [Required]
     public int ProductID { get; set; }

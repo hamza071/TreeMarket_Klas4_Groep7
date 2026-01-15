@@ -35,10 +35,10 @@ namespace backend.Models
     [Table("Leverancier")]
     public class Leverancier : Gebruiker
     {
-        // Geen LeverancierId nodig, hij gebruikt de 'Id' van de ouder.
+        
 
         [Required]
-        public string Bedrijf { get; set; } // Let op: Hoofdletter B is standaard in C#
+        public string Bedrijf { get; set; } 
 
         [Required]
         [RegularExpression(@"^\d{8}$", ErrorMessage = "KvK nummer moet 8 cijfers bevatten.")]
