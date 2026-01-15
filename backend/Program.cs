@@ -10,7 +10,7 @@ var builder = WebApplication.CreateBuilder(args);
 //
 // 1. Database configuratie
 // Zorg dat je connection string in appsettings.json klopt!
-var connectionString = builder.Configuration.GetConnectionString("LocalExpress")
+var connectionString = builder.Configuration.GetConnectionString("LocalExpress") 
     ?? throw new InvalidOperationException("Connection string not found.");
 
 builder.Services.AddDbContext<ApiContext>(options =>
@@ -63,7 +63,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
     options.SwaggerDoc("v1", new OpenApiInfo { Title = "TreeMarket API", Version = "v1" });
-
+    
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Name = "Authorization",
@@ -72,7 +72,7 @@ builder.Services.AddSwaggerGen(options =>
         Type = SecuritySchemeType.Http,
         Scheme = "Bearer"
     });
-
+    
     options.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
         {
@@ -108,7 +108,7 @@ using (var scope = app.Services.CreateScope())
 {
     //// 1. HAAL EERST DE DATABASE CONTEXT OP
     //var context = scope.ServiceProvider.GetRequiredService<ApiContext>();
-
+    
     //// 2. VOER DE MIGRATIES UIT (MAAK TABELLEN AAN IN AZURE)
     //// Dit commando zorgt dat de database tabellen worden aangemaakt als ze nog niet bestaan.
     //context.Database.Migrate();
@@ -139,10 +139,10 @@ using (var scope = app.Services.CreateScope())
             EmailConfirmed = true,
             Naam = "Super Admin"
         };
-
+        
         // Identity hasht het wachtwoord automatisch
         var result = await userManager.CreateAsync(user, "AppelKruimel1234!");
-
+        
         if (result.Succeeded)
         {
             await userManager.AddToRoleAsync(user, "Admin");

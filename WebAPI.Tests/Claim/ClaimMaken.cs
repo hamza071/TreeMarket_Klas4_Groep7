@@ -32,8 +32,7 @@ namespace WebAPI.Tests.TClaim
                 Hoeveelheid = 10,
                 Foto = "image.jpg",
                 LeverancierID = "leverancier-123", 
-                Omschrijving = "Een mooie roos",
-                Varieteit = "Rood"
+                Omschrijving = "Een mooie roos"
             };
             context.Product.Add(product);
             await context.SaveChangesAsync();

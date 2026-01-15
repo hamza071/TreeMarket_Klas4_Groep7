@@ -233,7 +233,6 @@ function AuctionDetailPage() {
                 />
             </div>
 
-            <p>Variëteit: {lot.varieteit || 'Niet opgegeven'}</p>
             <p>Leverancier: {lot.leverancierNaam || 'Onbekend'}</p>
         </div>
     );

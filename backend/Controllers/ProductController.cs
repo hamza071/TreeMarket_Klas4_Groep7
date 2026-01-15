@@ -94,9 +94,15 @@ namespace backend.Controllers
                     product
                 });
             }
+            // WARNING: expose details only in dev
             catch (Exception ex)
             {
-                return StatusCode(500, new { error = ex.Message });
+                return StatusCode(500, new
+                {
+                    error = ex.Message,
+                    inner = ex.InnerException?.Message,
+                    full = ex.ToString()
+                });
             }
         }
 

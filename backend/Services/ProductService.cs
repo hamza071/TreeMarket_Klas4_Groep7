@@ -113,7 +113,6 @@ namespace backend.Services
             var product = new Product
             {
                 ProductNaam = productDto.ProductNaam ?? "",
-                Varieteit = productDto.Varieteit ?? "",
                 Omschrijving = productDto.Omschrijving ?? "",
                 Hoeveelheid = productDto.Hoeveelheid,
                 MinimumPrijs = productDto.MinimumPrijs,
