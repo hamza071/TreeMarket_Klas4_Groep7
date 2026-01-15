@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import '../assets/css/DashboardPage.css';
 import { API_URL } from '../DeployLocal';
-//
+
 const AUTO_REMOVE_DELAY = 4000; // Tijd voordat een afgelopen veiling uit beeld verdwijnt
 
 function DashboardPage() {
@@ -80,7 +80,7 @@ function DashboardPage() {
 
                 setLotsState(lots);
 
-                // Fetch missing descriptions
+               
                 const missing = lots.filter(l => !getDescription(l) && l.productID);
                 if (missing.length > 0) {
                     const token = localStorage.getItem('token');
@@ -108,7 +108,7 @@ function DashboardPage() {
         fetchVeilingen();
     }, []);
 
-    // ⏱ Timer update & visueel verbergen (GEEN DELETE)
+    // Timer update & visueel verbergen (GEEN DELETE)
     useEffect(() => {
         const interval = setInterval(() => {
             const now = Date.now();
@@ -134,8 +134,8 @@ function DashboardPage() {
                     })
                     .filter(lot => {
                         // VISUEEL VERBERGEN:
-                        // 1. Als hoeveelheid 0 is -> verberg direct
-                        // 2. Als de tijd om is + de delay van 4 sec -> verberg
+                        // Als hoeveelheid 0 is -> verberg direct
+                        // Als de tijd om is + de delay van 4 sec -> verberg
                         const isSoldOut = (lot.hoeveelheid ?? 0) <= 0;
                         const isExpired = lot.removeAt && now >= lot.removeAt;
 

@@ -5,7 +5,7 @@ export default function Logout() {
     useEffect(() => {
         async function doLogout() {
             try {
-                // (optioneel) server-side logout, alleen laten staan als je endpoint echt bestaat
+                // server-side logout, alleen laten staan als je endpoint echt bestaat
                 await fetch(`${API_URL}/api/auth/logout`, {
                     method: "POST",
                     credentials: "include",
@@ -18,7 +18,7 @@ export default function Logout() {
             localStorage.removeItem("token");
             localStorage.removeItem("role");
 
-            // (optioneel) event voor listeners zoals App.jsx
+            //event voor listeners zoals App.jsx
             window.dispatchEvent(new Event("app-auth-changed"));
 
             // BELANGRIJK: harde redirect zodat App opnieuw wordt geladen
