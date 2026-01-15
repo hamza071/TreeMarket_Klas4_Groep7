@@ -7,6 +7,9 @@ const AUTO_REMOVE_DELAY = 4000; // 4 seconden na afloop verwijderen
 function DashboardPage() {
     const [lotsState, setLotsState] = useState([]);
     const [expandedDescriptions, setExpandedDescriptions] = useState({});
+    const [featuredIndex, setFeaturedIndex] = useState(0);
+    const [showModal, setShowModal] = useState(false);
+    const [transactionData, setTransactionData] = useState(null);
 
     const toggleExpanded = (id) => {
         setExpandedDescriptions(prev => ({ ...prev, [id]: !prev[id] }));
@@ -19,7 +22,6 @@ function DashboardPage() {
         return { text: words.slice(0, maxWords).join(' '), truncated: true };
     };
 
-    // helper to read description from various possible property names
     const getDescription = (lot) => {
         if (!lot) return '';
         return (
@@ -31,13 +33,6 @@ function DashboardPage() {
             ''
         );
     };
-
-    // Featured carousel index (minimal UI change: small prev/next buttons)
-    const [featuredIndex, setFeaturedIndex] = useState(0);
-
-    // 1. State voor de pop-up (modal)
-    const [showModal, setShowModal] = useState(false);
-    const [transactionData, setTransactionData] = useState(null);
 
     // 🚀 Fetch veilingen bij mount
     useEffect(() => {
@@ -62,12 +57,10 @@ function DashboardPage() {
 
                         const elapsed = Math.max(0, (now - startTimestamp) / 1000);
                         const remainingTime = Math.max(0, timerInSeconden - elapsed);
-
                         const progress = Math.min(elapsed / timerInSeconden, 1);
-                        const currentPrice =
-                            remainingTime > 0
-                                ? startPrice - (startPrice - minPrice) * progress
-                                : minPrice;
+                        const currentPrice = remainingTime > 0
+                            ? startPrice - (startPrice - minPrice) * progress
+                            : minPrice;
 
                         const removeAt = remainingTime > 0 ? null : now + AUTO_REMOVE_DELAY;
 
@@ -79,7 +72,6 @@ function DashboardPage() {
                             minPrice,
                             closing: Math.ceil(remainingTime),
                             currentPrice,
-                            // Mark planned auctions correctly so they appear in the upcoming table
                             status: startTimestamp > now ? 'gepland' : (remainingTime > 0 ? 'actief' : 'afgesloten'),
                             removeAt,
                         };
@@ -88,7 +80,7 @@ function DashboardPage() {
 
                 setLotsState(lots);
 
-                // Fetch missing descriptions from Product endpoint when not provided by the veiling DTO
+                // Fetch missing descriptions from Product endpoint
                 const missing = lots.filter(l => !getDescription(l) && l.productID);
                 if (missing.length > 0) {
                     const token = localStorage.getItem('token');
@@ -99,7 +91,7 @@ function DashboardPage() {
                             });
                             if (!resp.ok) return;
                             const prod = await resp.json();
-                            const oms = prod.omschrijving || prod.Omschrijving || prod.Omschrijving || prod.Omschrijving || prod.Omschrijving || prod.Omschrijving || prod.Omschrijving || prod.omschrijving || prod.Omschrijving || prod.Omschrijving || prod.Omschrijving || prod.Omschrijving || prod.Omschrijving || prod.Omschrijving || prod.Omschrijving || prod.omschrijving || prod.Omschrijving || prod.Omschrijving || prod.Omschrijving || prod.Omschrijving || prod.Omschrijving || prod.omschrijving || prod.Omschrijving || prod.Omschrijving || prod.Omschrijving || prod.Omschrijving || prod.Omschrijving || prod.Omschrijving || prod.omschrijving || prod.Omschrijving || prod.Omschrijving || prod.Omschrijving || prod.Omschrijving || prod.Omschrijving || prod.Omschrijving || prod.Omschrijving || prod.Omschrijving || prod.Omschrijving || prod.Omschrijving || prod.Omschrijving || prod.Omschrijving || prod.Omschrijving || '';
+                            const oms = prod.omschrijving || prod.Omschrijving || '';
                             if (oms) {
                                 setLotsState(prev => prev.map(x => x.productID === m.productID ? { ...x, omschrijving: oms } : x));
                             }
@@ -116,8 +108,10 @@ function DashboardPage() {
         fetchVeilingen();
     }, []);
 
-    // ⏱ Timer update & auto-delete
+    // ⏱ Timer update & auto-delete zero-quantity veilingen
     useEffect(() => {
+        const deletedVeilingen = new Set();
+
         const interval = setInterval(() => {
             const now = Date.now();
 
@@ -128,53 +122,38 @@ function DashboardPage() {
 
                         const elapsed = Math.max(0, (now - lot.startTimestamp) / 1000);
                         const remainingTime = Math.max(0, lot.timerInSeconden - elapsed);
-
-                        const progress = Math.min(elapsed / lot.timerInSeconden, 1);
-                        const currentPrice =
-                            remainingTime > 0
-                                ? lot.startPrice - (lot.startPrice - lot.minPrice) * progress
-                                : lot.minPrice;
-
-                        const removeAt = remainingTime > 0 ? null : lot.removeAt ?? now + AUTO_REMOVE_DELAY;
+                        const currentPrice = remainingTime > 0
+                            ? lot.startPrice - (lot.startPrice - lot.minPrice) * (elapsed / lot.timerInSeconden)
+                            : lot.minPrice;
 
                         return {
                             ...lot,
                             closing: Math.ceil(remainingTime),
                             currentPrice,
-                            // keep planned status when startTimestamp is in the future
                             status: lot.startTimestamp > now ? 'gepland' : (remainingTime > 0 ? 'actief' : 'afgesloten'),
-                            removeAt,
+                            removeAt: remainingTime > 0 ? null : lot.removeAt ?? now + AUTO_REMOVE_DELAY,
                         };
                     })
                     .filter(lot => {
-                        // If quantity reached 0 or less, attempt to delete the veiling and remove from UI
-                        if ((lot.hoeveelheid ?? 0) <= 0) {
-                            const token = localStorage.getItem('token');
-                            const headers = token ? { Authorization: `Bearer ${token}` } : {};
+                        const shouldDelete = (lot.hoeveelheid ?? 0) <= 0 || (lot.removeAt && now >= lot.removeAt);
 
-                            fetch(`${API_URL}/api/Veiling/DeleteVeiling/${lot.veilingID}`, {
-                                method: 'DELETE',
-                                headers
-                            })
-                                .then(res => {
-                                    if (!res.ok) return res.text().then(t => Promise.reject(new Error(t || res.statusText)));
-                                    console.log(`Veiling ${lot.veilingID} verwijderd omdat hoeveelheid 0 is.`);
-                                })
-                                .catch(err => console.error(`Fout bij verwijderen veiling ${lot.veilingID}:`, err));
+                        if (shouldDelete) {
+                            if (!deletedVeilingen.has(lot.veilingID)) {
+                                deletedVeilingen.add(lot.veilingID);
 
+                                const token = localStorage.getItem('token');
+                                const headers = token ? { Authorization: `Bearer ${token}` } : {};
+
+                                fetch(`${API_URL}/api/Veiling/DeleteVeiling/${lot.veilingID}`, { method: 'DELETE', headers })
+                                    .then(res => {
+                                        if (!res.ok) return res.text().then(t => Promise.reject(new Error(t || res.statusText)));
+                                        console.log(`Veiling ${lot.veilingID} verwijderd (auto).`);
+                                    })
+                                    .catch(err => console.error(`Fout bij verwijderen veiling ${lot.veilingID}:`, err));
+                            }
                             return false;
                         }
 
-                        if (lot.removeAt && now >= lot.removeAt) {
-                            fetch(`${API_URL}/api/Veiling/DeleteVeiling/${lot.veilingID}`, {
-                                method: 'DELETE',
-                                headers: {
-                                    Authorization: `Bearer ${localStorage.getItem('token')}`,
-                                },
-                            }).catch(err => console.error('Fout bij verwijderen veiling:', err));
-
-                            return false;
-                        }
                         return true;
                     })
             );
@@ -497,31 +476,33 @@ function DashboardPage() {
                                 <strong>Totaal: €{(transactionData.totaalPrijs || 0).toFixed(2)}</strong>
                             </p>
 
-                            {/* --- HISTORISCHE DATA VISUALISATIE --- */}
-                            {transactionData.history && (
-                                <div style={{textAlign: 'left', marginTop: '15px', borderTop: '1px solid #ddd', paddingTop: '10px', maxHeight: '250px', overflowY: 'auto'}}>
-                                    <small><strong>Historie (Laatste 10)</strong></small>
-
-                                    {/* Eigen Historie */}
-                                    <div style={{marginBottom: '10px'}}>
-                                        <span style={{fontSize: '0.8rem', color: '#555'}}>Deze aanbieder:</span>
-                                        <table style={styles.historyTable}>
-                                            <tbody>
-                                            {transactionData.history.eigenHistorie.map((h, i) => (
-                                                <tr key={i}>
-                                                    <td>{h.datum}</td>
-                                                    <td align="right">€{h.prijs.toFixed(2)}</td>
-                                                </tr>
-                                            ))}
-                                            {transactionData.history.eigenHistorie.length === 0 && (
-                                                <tr><td colSpan="2" style={{fontStyle:'italic'}}>Geen data</td></tr>
-                                            )}
-                                            </tbody>
-                                        </table>
-                                        <div style={{fontSize: '0.75rem', fontWeight: 'bold'}}>
-                                            Gemiddeld: €{transactionData.history.gemiddeldeEigen.toFixed(2)}
-                                        </div>
-                                    </div>
+                                                {/* --- HISTORISCHE DATA VISUALISATIE --- */}
+                                                {transactionData.history && (
+                                                    <div style={{textAlign: 'left', marginTop: '15px', borderTop: '1px solid #ddd', paddingTop: '10px', maxHeight: '250px', overflowY: 'auto'}}>
+                                                        <small><strong>Historie (Laatste 10)</strong></small>
+                    
+                                                        {/* Eigen Historie */}
+                                                        <div style={{marginBottom: '10px'}}>
+                                                            <span style={{fontSize: '0.8rem', color: '#555'}}>
+                                                                Deze aanbieder: <strong>{featuredLot?.leverancierNaam || "Onbekend"}</strong>
+                                                            </span>
+                                                            <table style={styles.historyTable}>
+                                                                <tbody>
+                                                                {transactionData.history.eigenHistorie.map((h, i) => (
+                                                                    <tr key={i}>
+                                                                        <td>{h.datum}</td>
+                                                                        <td align="right">€{h.prijs.toFixed(2)}</td>
+                                                                    </tr>
+                                                                ))}
+                                                                {transactionData.history.eigenHistorie.length === 0 && (
+                                                                    <tr><td colSpan="2" style={{fontStyle:'italic'}}>Geen data</td></tr>
+                                                                )}
+                                                                </tbody>
+                                                            </table>
+                                                            <div style={{fontSize: '0.75rem', fontWeight: 'bold'}}>
+                                                                Gemiddeld: €{transactionData.history.gemiddeldeEigen.toFixed(2)}
+                                                            </div>
+                                                        </div>
 
                                     {/* Markt Historie */}
                                     <div>

@@ -20,7 +20,8 @@ namespace backend.Services
             var today = DateTime.UtcNow.Date;
 
             return await _context.Product
-                .Where(p => p.Dagdatum.Date == today)
+                // Filter aangepast: Alleen producten van vandaag die nog voorraad hebben
+                .Where(p => p.Dagdatum.Date == today && p.Hoeveelheid > 0)
                 .Include(p => p.Leverancier)
                 .Select(p => new ProductMetVeilingmeesterDto
                 {
@@ -113,7 +114,6 @@ namespace backend.Services
             var product = new Product
             {
                 ProductNaam = productDto.ProductNaam ?? "",
-                Varieteit = productDto.Varieteit ?? "",
                 Omschrijving = productDto.Omschrijving ?? "",
                 Hoeveelheid = productDto.Hoeveelheid,
                 MinimumPrijs = productDto.MinimumPrijs,

@@ -7,7 +7,6 @@
         public string Foto { get; set; }
 
         public string Naam { get; set; }         
-        public string Varieteit { get; set; }      
         public string Omschrijving { get; set; }   
 
         public int Hoeveelheid { get; set; }

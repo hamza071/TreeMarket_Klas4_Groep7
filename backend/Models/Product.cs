@@ -29,8 +29,6 @@ namespace backend.Models
         public string LeverancierID { get; set; }
         public Leverancier? Leverancier { get; set; }
 
-        public string Varieteit { get; set; }
-
         [Required]
         public string Omschrijving { get; set; }
 

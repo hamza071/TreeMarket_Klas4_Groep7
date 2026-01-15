@@ -1,5 +1,5 @@
 ﻿import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+//import { useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 // We gebruiken de API_URL die we eerder gemaakt hebben
 import { API_URL } from '../DeployLocal';
@@ -25,7 +25,7 @@ function AuthPage() {
     const [serverSuccess, setServerSuccess] = useState("");
 
     const isRegister = activeTab === "register";
-    const navigate = useNavigate();
+    //const navigate = useNavigate();
 
     const handleChange = (e) => {
         const { name, value } = e.target;

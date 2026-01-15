@@ -7,10 +7,9 @@ using backend.Models;
 using backend.Services;
 
 var builder = WebApplication.CreateBuilder(args);
-
-// ==========================
-// 1) DATABASE
-// ==========================
+//
+// 1. Database configuratie
+// Zorg dat je connection string in appsettings.json klopt!
 var connectionString = builder.Configuration.GetConnectionString("LocalExpress")
     ?? throw new InvalidOperationException("Connection string not found.");
 
@@ -57,7 +56,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
     options.SwaggerDoc("v1", new OpenApiInfo { Title = "TreeMarket API", Version = "v1" });
-
+    
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Name = "Authorization",
@@ -66,7 +65,7 @@ builder.Services.AddSwaggerGen(options =>
         Type = SecuritySchemeType.Http,
         Scheme = "Bearer"
     });
-
+    
     options.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
         {
@@ -97,6 +96,15 @@ var app = builder.Build();
 // ==========================
 using (var scope = app.Services.CreateScope())
 {
+    //// 1. HAAL EERST DE DATABASE CONTEXT OP
+    //var context = scope.ServiceProvider.GetRequiredService<ApiContext>();
+
+    //// 2. VOER DE MIGRATIES UIT (MAAK TABELLEN AAN IN AZURE)
+    //// Dit commando zorgt dat de database tabellen worden aangemaakt als ze nog niet bestaan.
+    //context.Database.Migrate();
+
+    //// ---------------------------------------------------------
+
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
     var userManager = scope.ServiceProvider.GetRequiredService<UserManager<Gebruiker>>();
 
@@ -127,29 +135,12 @@ using (var scope = app.Services.CreateScope())
             Naam = "Super Admin"
         };
 
-        var createResult = await userManager.CreateAsync(adminUser, adminPassword);
-        if (!createResult.Succeeded)
-        {
-            Console.WriteLine("Admin user aanmaken mislukt:");
-            foreach (var err in createResult.Errors)
-            {
-                Console.WriteLine($"- {err.Code}: {err.Description}");
-            }
-        }
-    }
+        // Identity hasht het wachtwoord automatisch
+        var result = await userManager.CreateAsync(user, "AppelKruimel1234!");
 
-    // 2) Altijd zeker stellen dat Admin rol gekoppeld is
-    adminUser = await userManager.FindByEmailAsync(adminEmail);
-    if (adminUser != null && !await userManager.IsInRoleAsync(adminUser, "Admin"))
-    {
-        var addRoleResult = await userManager.AddToRoleAsync(adminUser, "Admin");
-        if (!addRoleResult.Succeeded)
+        if (result.Succeeded)
         {
-            Console.WriteLine("Admin rol toevoegen mislukt:");
-            foreach (var err in addRoleResult.Errors)
-            {
-                Console.WriteLine($"- {err.Code}: {err.Description}");
-            }
+            await userManager.AddToRoleAsync(user, "Admin");
         }
     }
 
