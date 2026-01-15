@@ -11,7 +11,7 @@
         public int ProductID { get; set; }
         public int Hoeveelheid { get; set; }
         public DateTime StartTimestamp { get; set; }
-        public DateTime EindTimestamp { get; set; } // nieuw veld
+        public DateTime EindTimestamp { get; set; } 
 
        
         public string ProductNaam { get; set; }
