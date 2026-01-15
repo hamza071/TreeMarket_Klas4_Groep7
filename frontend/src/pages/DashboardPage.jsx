@@ -41,26 +41,6 @@ function DashboardPage() {
     const [showModal, setShowModal] = useState(false);
     const [transactionData, setTransactionData] = useState(null);
 
-    // 🚀 Fetch veilingen bij mount
-    import { useEffect, useState, useRef } from 'react';
-    import '../assets/css/DashboardPage.css';
-    import { API_URL } from '../DeployLocal';
-
-    const AUTO_REMOVE_DELAY = 4000; // 4 seconden na afloop verwijderen
-
-    function DashboardPage() {
-        const [lotsState, setLotsState] = useState([]);
-        const [expandedDescriptions, setExpandedDescriptions] = useState({});
-
-        // ✅ hier binnen de component aanmaken
-        const deletedVeilingen = useRef(new Set());
-
-        const toggleExpanded = (id) => {
-            setExpandedDescriptions(prev => ({ ...prev, [id]: !prev[id] }));
-        };
-
-        // ... rest van je code
-
         // Interval met veilige auto-delete
         useEffect(() => {
             const interval = setInterval(() => {
