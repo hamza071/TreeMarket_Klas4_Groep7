@@ -65,9 +65,7 @@ function AuthPage() {
             return;
         }
 
-        // =====================
-        // REGISTREREN
-        // =====================
+       
         if (isRegister) {
             let endpoint = "";
             // Let op: Hier gebruiken we nu API_URL in plaats van BASE_URL
@@ -101,14 +99,11 @@ function AuthPage() {
             }
         }
 
-            // =====================
-            // INLOGGEN
-        // =====================
+        
         else {
             try {
-                // Let op: Hier gebruiken we nu API_URL
-                // Controleer even of je login route '/login' is of '/api/login' in je backend!
-                // Ik ga hier uit van /login zoals je het had staan.
+                
+                
                 const response = await fetch(`${API_URL}/login`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },

@@ -1,5 +1,4 @@
-//App.css is de oorzaak waarom de code de styling niet helemaal goed werkt.
-//Dus binnen de App.css moet het aangepast worden om de styling weer goed te krijgen!
+
 
 import '../assets/css/shop.css'
 import { API_URL } from '../DeployLocal';

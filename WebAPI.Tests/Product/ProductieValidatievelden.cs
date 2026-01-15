@@ -19,7 +19,7 @@ namespace WebAPI.Tests.TProduct
 {
     public class ProductValidatievelden
     {
-        // ============LeverancierID mag niet NULL zijn =============
+        // LeverancierID mag niet NULL zijn
         [Fact]
         public async Task ProductKanNietAangemaaktWorden_ZonderToken()
         {

@@ -19,7 +19,7 @@ namespace WebAPI.Tests.TClaim
  {
      public class ClaimAanmakenMetToken
      {
-        // ==========Claim kan alleen aangemaakt worden wanneer het een token heeft ============
+       //Claim kan alleen aangemaakt worden wanneer het een token heeft 
         [Fact]
         public async Task PlaceClaim_Gebruikt_UserId_Uit_Token()
         {
@@ -63,7 +63,7 @@ namespace WebAPI.Tests.TClaim
         }
 
 
-        // ========== Het zou bij niet-ingelogde gebruiker moeten falen ==========
+        //Het zou bij niet-ingelogde gebruiker moeten falen 
         [Fact]
         public async Task PlaceClaim_Faalt_ZonderToken()
         {
