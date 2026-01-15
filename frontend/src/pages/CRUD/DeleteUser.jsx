@@ -11,7 +11,7 @@ function DeleteIdUser() {
         e.preventDefault();
 
         try {
-            const response = await fetch(`https://localhost:7054/api/Gebruiker/${id}`, {
+            const response = await fetch(`${API_URL}/api/Gebruiker/${id}`, {
                 method: "DELETE",
             });
 

@@ -12,6 +12,7 @@ using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 using security = System.Security.Claims;
+using WebAPI.Tests.Helpers;
 
 namespace WebAPI.Tests.TProduct
 {
@@ -44,17 +45,7 @@ namespace WebAPI.Tests.TProduct
             var controller = new ProductController(mockService.Object);
 
             // Mock user (Leverancier)
-            var user = new security.ClaimsPrincipal(
-           new security.ClaimsIdentity(new[]
-           {
-                    new security.Claim(security.ClaimTypes.NameIdentifier, "leverancier-123"),
-                    new security.Claim(security.ClaimTypes.Role, "Leverancier")
-           }, "mock"));
-
-            controller.ControllerContext = new ControllerContext
-            {
-                HttpContext = new DefaultHttpContext { User = user }
-            };
+            controller.ControllerContext = TestAuthHelper.CreateContext("leverancier-123", "Leverancier");
 
             var dto = new ProductUploadDto
             {
@@ -69,7 +60,7 @@ namespace WebAPI.Tests.TProduct
             // Assert
             var okResult = Assert.IsType<OkObjectResult>(result);
 
-            // 👇 anonymous object uitpakken
+            // anonymous object uitpakken
             var value = okResult.Value!;
             var productProperty = value.GetType().GetProperty("product");
             Assert.NotNull(productProperty);

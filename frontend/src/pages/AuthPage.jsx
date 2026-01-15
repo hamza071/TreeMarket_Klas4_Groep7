@@ -1,13 +1,12 @@
 ﻿import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
+// We gebruiken de API_URL die we eerder gemaakt hebben
+import { API_URL } from '../DeployLocal';
 
 function AuthPage() {
     const [activeTab, setActiveTab] = useState("register");
-
-    const BASE_URL = import.meta.env.VITE_API_URL
-        ? import.meta.env.VITE_API_URL.replace('/api', '')
-        : "https://localhost:7054";
+    
 
     const [formData, setFormData] = useState({
         naam: "",
@@ -71,10 +70,11 @@ function AuthPage() {
         // =====================
         if (isRegister) {
             let endpoint = "";
+            // Let op: Hier gebruiken we nu API_URL in plaats van BASE_URL
             switch (formData.rol) {
-                case "klant": endpoint = `${BASE_URL}/api/Gebruiker/Klant`; break;
-                case "leverancier": endpoint = `${BASE_URL}/api/Gebruiker/Leverancier`; break;
-                case "veilingsmeester": endpoint = `${BASE_URL}/api/Gebruiker/Veilingsmeester`; break;
+                case "klant": endpoint = `${API_URL}/api/Gebruiker/Klant`; break;
+                case "leverancier": endpoint = `${API_URL}/api/Gebruiker/Leverancier`; break;
+                case "veilingsmeester": endpoint = `${API_URL}/api/Gebruiker/Veilingsmeester`; break;
                 default: setErrors({ rol: "Selecteer een rol." }); return;
             }
 
@@ -92,9 +92,8 @@ function AuthPage() {
                 }
                 setServerSuccess("Registratie succesvol! U kunt nu inloggen.");
 
-                // Formulier resetten na succes (optioneel)
                 setFormData({ ...formData, wachtwoord: "", herhaalWachtwoord: "" });
-                setActiveTab("login"); // Switch direct naar login tab
+                setActiveTab("login");
 
             } catch (err) {
                 console.error(err);
@@ -102,13 +101,15 @@ function AuthPage() {
             }
         }
 
-        // =====================
-        // INLOGGEN
+            // =====================
+            // INLOGGEN
         // =====================
         else {
             try {
-                // Stap 1: Login request naar BASE_URL
-                const response = await fetch(`${BASE_URL}/login`, {
+                // Let op: Hier gebruiken we nu API_URL
+                // Controleer even of je login route '/login' is of '/api/login' in je backend!
+                // Ik ga hier uit van /login zoals je het had staan.
+                const response = await fetch(`${API_URL}/login`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
@@ -125,10 +126,8 @@ function AuthPage() {
                 }
 
                 if (data.accessToken) {
-                    // Stap 2: Token opslaan
                     localStorage.setItem("token", data.accessToken);
 
-                    // Stap 3: Rol proberen te halen uit de Token
                     let userRole = null;
                     try {
                         const decoded = jwtDecode(data.accessToken);
@@ -138,19 +137,16 @@ function AuthPage() {
                         console.error("Kon token niet decoderen:", decodeErr);
                     }
 
-                    // 🔹 Super Admin check
                     if (formData.email.toLowerCase() === "admin@treemarket.nl") {
                         userRole = "admin";
                     }
 
-                    // Stap 4: Opslaan in localStorage
                     if (userRole) {
                         localStorage.setItem("role", userRole.toLowerCase());
                     } else {
-                        // fallback via API als rol niet in token stond
                         try {
                             const roleResponse = await fetch(
-                                `${BASE_URL}/api/Gebruiker/RoleByEmail?email=${encodeURIComponent(formData.email)}`
+                                `${API_URL}/api/Gebruiker/RoleByEmail?email=${encodeURIComponent(formData.email)}`
                             );
 
                             if (roleResponse.ok) {

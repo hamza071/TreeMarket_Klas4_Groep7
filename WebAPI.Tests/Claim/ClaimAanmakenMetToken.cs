@@ -12,9 +12,10 @@
  using backend.Services;
  using security = System.Security.Claims;
  using backend.DTO;
+using WebAPI.Tests.Helpers;
 
 
- namespace WebAPI.Tests.TClaim
+namespace WebAPI.Tests.TClaim
  {
      public class ClaimAanmakenMetToken
      {
@@ -38,17 +39,7 @@
                 .ReturnsAsync(true);
 
             var controller = new ClaimController(mockService.Object);
-
-            var user = new security.ClaimsPrincipal(
-                new security.ClaimsIdentity(new[]
-                {
-            new security.Claim(security.ClaimTypes.NameIdentifier, "user-123")
-                }, "mock"));
-
-            controller.ControllerContext = new ControllerContext
-            {
-                HttpContext = new DefaultHttpContext { User = user }
-            };
+            controller.ControllerContext = TestAuthHelper.CreateContext("user-123", "");
 
             var claimDto = new ClaimDto
             {
@@ -80,14 +71,7 @@
             var mockService = new Mock<IClaimService>();
             var controller = new ClaimController(mockService.Object);
 
-            controller.ControllerContext = new ControllerContext
-            {
-                HttpContext = new DefaultHttpContext
-                {
-                    User = new security.ClaimsPrincipal(
-                        new security.ClaimsIdentity()) // geen claims
-                }
-            };
+            controller.ControllerContext = TestAuthHelper.CreateContext("", "");
 
             var claimDto = new ClaimDto
             {
@@ -104,7 +88,6 @@
             Assert.Equal("Je moet ingelogd zijn om te bieden.",
                 unauthorized.Value.GetType().GetProperty("message")?.GetValue(unauthorized.Value));
         }
-
 
     }
 }

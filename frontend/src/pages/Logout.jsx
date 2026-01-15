@@ -1,11 +1,12 @@
 import { useEffect } from "react";
+import { API_URL } from '../DeployLocal';
 
 export default function Logout() {
     useEffect(() => {
         async function doLogout() {
             try {
                 // (optioneel) server-side logout, alleen laten staan als je endpoint echt bestaat
-                await fetch("/api/auth/logout", {
+                await fetch(`${API_URL}/api/auth/logout`, {
                     method: "POST",
                     credentials: "include",
                 });

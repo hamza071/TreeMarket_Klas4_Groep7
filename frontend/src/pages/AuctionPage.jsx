@@ -1,6 +1,7 @@
 ﻿import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "../assets/css/AuctionPage.css";
+import { API_URL } from '../DeployLocal';
 
 function AuctionPage() {
     const [lots, setLots] = useState([]);
@@ -9,7 +10,7 @@ function AuctionPage() {
     const [expanded, setExpanded] = useState({});
 
     const navigate = useNavigate();
-    const API_URL = "https://localhost:7054/api/Product/vandaag";
+    
 
     const truncateWords = (text, maxWords = 10) => {
         if (!text) return { text: '', truncated: false };
@@ -21,7 +22,9 @@ function AuctionPage() {
     useEffect(() => {
         const fetchLots = async () => {
             try {
-                const response = await fetch(API_URL, {
+                // HIER plakken we het specifieke stukje url aan de basis vast
+                // Let op: GEEN backslash aan het einde!
+                const response = await fetch(`${API_URL}/api/Product/vandaag`, {
                     method: "GET",
                     headers: { Accept: "application/json" },
                 });
@@ -33,10 +36,8 @@ function AuctionPage() {
                 const data = await response.json();
                 const list = Array.isArray(data) ? data : [data];
 
-                // Attempt to delete any products with 0 or less quantity
                 await removeZeroQuantityProducts(list);
 
-                // Re-fetch or filter out locally-deleted items
                 const filtered = list.filter((l) => !(l.hoeveelheid <= 0));
                 setLots(filtered);
             } catch (err) {
@@ -50,7 +51,6 @@ function AuctionPage() {
         fetchLots();
     }, []);
 
-    // Delete zero-quantity products by calling API DELETE /api/Product/{id}
     const removeZeroQuantityProducts = async (productList) => {
         if (!Array.isArray(productList) || productList.length === 0) return;
 
@@ -59,9 +59,9 @@ function AuctionPage() {
             .filter(p => (p.hoeveelheid ?? 0) <= 0)
             .map(async p => {
                 try {
-                    // Only attempt delete if we have a token (user likely authorized)
                     const headers = token ? { Authorization: `Bearer ${token}` } : {};
-                    const resp = await fetch(`https://localhost:7054/api/Product/${p.productId}`, {
+                    // Deze werkt nu goed omdat API_URL weer gewoon de basis is
+                    const resp = await fetch(`${API_URL}/api/Product/${p.productId}`, {
                         method: 'DELETE',
                         headers
                     });
@@ -81,7 +81,6 @@ function AuctionPage() {
             });
 
         const results = await Promise.allSettled(deletions);
-        // Log summary, and remove successful deletions from state in caller by filtering list
         const succeededIds = results
             .filter(r => r.status === 'fulfilled' && r.value?.ok)
             .map(r => r.value.id);
@@ -94,7 +93,6 @@ function AuctionPage() {
     if (loading) return <p>Kavels worden geladen…</p>;
     if (error) return <p style={{ color: "red" }}>{error}</p>;
 
-    // Alleen pending kavels tonen
     const pendingLots = lots.filter(
         (lot) => lot.status?.toLowerCase() === "pending" || !lot.status
     );
@@ -104,7 +102,6 @@ function AuctionPage() {
     }
 
     const handleStartVeiling = (lot) => {
-        // Navigeren naar AuctionDetailPage met de lot data in state
         navigate(`/veiling/${lot.productId}`, { state: { lot } });
     };
 
@@ -142,7 +139,8 @@ function AuctionPage() {
                                     lot.foto
                                         ? lot.foto.startsWith("http")
                                             ? lot.foto
-                                            : `https://localhost:7054${lot.foto}`
+                                            // Deze werkt nu ook weer goed:
+                                            : `${API_URL}${lot.foto}`
                                         : "/images/default.png"
                                 }
                                 alt={lot.naam || "Productfoto"}

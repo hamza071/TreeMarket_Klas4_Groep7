@@ -1,4 +1,4 @@
-const BASE_URL = import.meta.env.VITE_API_URL || "https://localhost:7054/api";
+const BASE_URL = import.meta.env.VITE_API_URL || "${API_URL}/api";
 
 export const authFetch = async (endpoint, options = {}) => {
     // 1. Haal token op (Globaal!)

@@ -1,6 +1,7 @@
 ﻿import { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import '../assets/css/UploadAuctionPage.css';
+import { API_URL } from '../DeployLocal';
 
 function formatLocalDatetimeInput(date) {
     // returns 'YYYY-MM-DDTHH:MM' in local time for datetime-local input
@@ -33,7 +34,7 @@ function AuctionDetailPage() {
     useEffect(() => {
         const fetchLot = async () => {
             try {
-                const response = await fetch(`https://localhost:7054/api/Product/${code}`, {
+                const response = await fetch(`${API_URL}/api/Product/${code}`, {
                     headers: { Accept: "application/json" }
                 });
                 if (!response.ok) throw new Error('Kavel niet gevonden');
@@ -102,7 +103,7 @@ function AuctionDetailPage() {
         };
 
         try {
-            const response = await fetch("https://localhost:7054/api/Veiling/CreateVeiling", {
+            const response = await fetch(`${API_URL}/api/Veiling/CreateVeiling`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -226,7 +227,7 @@ function AuctionDetailPage() {
                 borderRadius: '16px'
             }}>
                 <img
-                    src={lot.foto ? (lot.foto.startsWith('http') ? lot.foto : `https://localhost:7054${lot.foto}`) : '/images/default.png'}
+                    src={lot.foto ? (lot.foto.startsWith('http') ? lot.foto : `${API_URL}${lot.foto}`) : '/images/default.png'}
                     alt={lot.naam || 'Productfoto'}
                     style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
                 />

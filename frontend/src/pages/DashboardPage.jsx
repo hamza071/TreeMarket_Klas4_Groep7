@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import '../assets/css/DashboardPage.css';
+import { API_URL } from '../DeployLocal';
 
 const AUTO_REMOVE_DELAY = 4000; // 4 seconden na afloop verwijderen
 
@@ -42,7 +43,7 @@ function DashboardPage() {
     useEffect(() => {
         const fetchVeilingen = async () => {
             try {
-                const response = await fetch('https://localhost:7054/api/Veiling/GetVeilingen', {
+                const response = await fetch(`${API_URL}/api/Veiling/GetVeilingen`, {
                     headers: {
                         Authorization: `Bearer ${localStorage.getItem('token')}`,
                         'Content-Type': 'application/json',
@@ -93,7 +94,7 @@ function DashboardPage() {
                     const token = localStorage.getItem('token');
                     await Promise.all(missing.map(async m => {
                         try {
-                            const resp = await fetch(`https://localhost:7054/api/Product/${m.productID}`, {
+                            const resp = await fetch(`${API_URL}/api/Product/${m.productID}`, {
                                 headers: { Accept: 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) }
                             });
                             if (!resp.ok) return;
@@ -151,7 +152,7 @@ function DashboardPage() {
                             const token = localStorage.getItem('token');
                             const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
-                            fetch(`https://localhost:7054/api/Veiling/DeleteVeiling/${lot.veilingID}`, {
+                            fetch(`${API_URL}/api/Veiling/DeleteVeiling/${lot.veilingID}`, {
                                 method: 'DELETE',
                                 headers
                             })
@@ -165,7 +166,7 @@ function DashboardPage() {
                         }
 
                         if (lot.removeAt && now >= lot.removeAt) {
-                            fetch(`https://localhost:7054/api/Veiling/DeleteVeiling/${lot.veilingID}`, {
+                            fetch(`${API_URL}/api/Veiling/DeleteVeiling/${lot.veilingID}`, {
                                 method: 'DELETE',
                                 headers: {
                                     Authorization: `Bearer ${localStorage.getItem('token')}`,
@@ -237,7 +238,7 @@ function DashboardPage() {
 
             console.log("Ophalen historie voor:", prodNaam, "van", levNaam);
 
-            const url = `https://localhost:7054/api/Claim/GetHistory?productNaam=${encodeURIComponent(prodNaam)}&leverancierNaam=${encodeURIComponent(levNaam)}`;
+            const url = `${API_URL}/api/Claim/GetHistory?productNaam=${encodeURIComponent(prodNaam)}&leverancierNaam=${encodeURIComponent(levNaam)}`;
 
             const response = await fetch(url, {
                 method: 'GET',
@@ -285,7 +286,7 @@ function DashboardPage() {
         if (!transactionData || !transactionData.aantal) return;
 
         try {
-            const response = await fetch('https://localhost:7054/api/Claim/PlaceClaim', {
+            const response = await fetch(`${API_URL}/api/Claim/PlaceClaim`, {
                 method: 'POST',
                 headers: {
                     Authorization: `Bearer ${localStorage.getItem('token')}`,
@@ -370,7 +371,7 @@ function DashboardPage() {
 
                         <article className="featured-card">
                             <img
-                                src={featuredLot.foto?.startsWith('http') ? featuredLot.foto : `https://localhost:7054${featuredLot.foto}`}
+                                src={featuredLot.foto?.startsWith('http') ? featuredLot.foto : `${API_URL}${featuredLot.foto}`}
                                 alt={featuredLot.productNaam || 'Productfoto'}
                                 style={{
                                     maxWidth: '600px',

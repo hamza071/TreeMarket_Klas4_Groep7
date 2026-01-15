@@ -1,12 +1,12 @@
 # Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
 # More GitHub Actions for Azure: https://github.com/Azure/actions
 
-name: Build and deploy ASP.Net Core app to Azure Web App - Treemarketbackend
+name: Build and deploy ASP.Net Core app to Azure Web App - TreeMarket2
 
 on:
   push:
     branches:
-      - Deploy
+      - main
   workflow_dispatch:
 
 jobs:
@@ -22,13 +22,16 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '9.x'
-          # Let op: Als je project .NET 8 gebruikt, verander '9.x' hierboven naar '8.x'
 
+      # AANGEPAST: working-directory toegevoegd zodat hij in de 'backend' map kijkt
       - name: Build with dotnet
-        run: dotnet build backend/backend.csproj --configuration Release
+        run: dotnet build --configuration Release
+        working-directory: ./backend
 
+      # AANGEPAST: working-directory toegevoegd
       - name: dotnet publish
-        run: dotnet publish backend/backend.csproj -c Release -o "${{env.DOTNET_ROOT}}/myapp"
+        run: dotnet publish -c Release -o "${{env.DOTNET_ROOT}}/myapp"
+        working-directory: ./backend
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
@@ -48,18 +51,18 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: .net-app
-
+      
       - name: Login to Azure
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_7BE9619755494D0F9582FE014877A404 }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_58DEE0C5AA7D4F13A415A97A9E926536 }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_81F84E2F891E4DC8950E575D0F19D1D2 }}
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_C12A93DFA69C41679E31490D285E2CB6 }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_A172948E8E2E45D4A66F876EEBF8F4B5 }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_A055AC2DAD884BC2A7FE8F43560042D3 }}
 
       - name: Deploy to Azure Web App
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
-          app-name: 'Treemarketbackend'
+          app-name: 'TreeMarket2'
           slot-name: 'Production'
           package: .
