@@ -19,7 +19,7 @@ namespace backend.Controllers
             _service = service;
         }
 
-   
+        // GET: api/Claim
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Claim>>> GetClaims()
         {
@@ -34,10 +34,12 @@ namespace backend.Controllers
             }
         }
 
+        // === HIER WAS HET STUKJE DAT ONTBRAK ===
+        // GET: api/Claim/GetHistory
         [HttpGet("GetHistory")]
         public async Task<IActionResult> GetHistory(string productNaam, string leverancierNaam)
         {
-            
+            // Als er geen productnaam is, kunnen we niks zoeken
             if (string.IsNullOrEmpty(productNaam))
                 return BadRequest("Productnaam is verplicht.");
 
@@ -54,8 +56,9 @@ namespace backend.Controllers
                 return StatusCode(500, new { message = "Kon historie niet ophalen.", error = ex.Message });
             }
         }
-        
+        // ========================================
 
+        // POST: api/Claim/PlaceClaim
         [HttpPost("PlaceClaim")]
         [Authorize] 
         public async Task<IActionResult> PlaceClaim([FromBody] ClaimDto claimDto)
@@ -88,6 +91,7 @@ namespace backend.Controllers
             }
         }
 
+        // DELETE: api/Claim/5
         [HttpDelete("{id}")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteClaim(int id)

@@ -19,7 +19,9 @@ namespace backend.Controllers
         {
             _service = service;
         }
-        
+        // ===============================
+        // GET: Haal alle leveranciers op
+        // ===============================
         [HttpGet]
         public async Task<IActionResult> GetAllLeveranciers()
         {
@@ -35,12 +37,12 @@ namespace backend.Controllers
             }
         }
 
-       
+        // ===============================
         // GET: Haal leverancier op basis van ID
         // LET OP: ID is nu een STRING (vanwege Identity)
-        
+        // ===============================
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetLeverancierById(string id) 
+        public async Task<IActionResult> GetLeverancierById(string id) // <--- AANGEPAST: int naar string
         {
             try
             {
@@ -57,7 +59,7 @@ namespace backend.Controllers
             }
         }
 
-        
+        // DELETE: api/Leverancier/{id}
         [Authorize(Roles = "Admin")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(string id)
@@ -74,11 +76,19 @@ namespace backend.Controllers
             }
         }
 
-        
+        // ===============================
+        // POST: Voeg een nieuwe leverancier toe
+        // LET OP: Dit zit eigenlijk al in je GebruikerController (RegisterLeverancier)!
+        // ===============================
         [HttpPost]
         public async Task<IActionResult> CreateLeverancier([FromBody] Leverancier leverancier)
         {
+            // WAARSCHUWING: 
+            // Omdat 'Leverancier' erft van IdentityUser, heeft het geen simpel 'Wachtwoord' veld dat je kunt invullen.
+            // Je hebt hier écht een DTO voor nodig (met een wachtwoord string) en de UserManager.
             
+            // Mijn advies: Gebruik de endpoint '/api/Gebruiker/Leverancier' die je al hebt gemaakt.
+            // Die doet namelijk precies dit: DTO ontvangen -> Wachtwoord Hashen -> Opslaan.
             
             return BadRequest(new { message = "Gebruik het endpoint '/api/Gebruiker/Leverancier' om een account aan te maken." });
         }
