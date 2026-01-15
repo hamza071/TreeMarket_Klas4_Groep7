@@ -46,7 +46,7 @@ function UploadAuctionPage() {
             const token = localStorage.getItem("token");
             if (!token) return alert("Je bent niet ingelogd.");
 
-            const response = await fetch("https://localhost:7054/api/Product/CreateProduct", {
+            const response = await fetch(`${API_URL}/api/Product/CreateProduct`, {
                 method: "POST",
                 headers: {
                     "Authorization": `Bearer ${token}`
