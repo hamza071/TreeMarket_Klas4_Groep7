@@ -124,34 +124,6 @@ namespace backend.Services
             };
         }
 
-        // Plaats een bod
-        public async Task<Bid> PlaceBidAsync(CreateBidDTO dto, string userId)
-        {
-            var veiling = await _context.Veiling.FindAsync(dto.VeilingID);
-            if (veiling == null)
-                throw new KeyNotFoundException($"Veiling met ID {dto.VeilingID} niet gevonden.");
-
-            if (!veiling.Status)
-                throw new InvalidOperationException("Veiling is gesloten.");
-
-            if (dto.Bod <= veiling.HuidigePrijs)
-                throw new InvalidOperationException("Bod moet hoger zijn dan de huidige prijs.");
-
-            var bid = new Bid
-            {
-                VeilingID = dto.VeilingID,
-                Bedrag = dto.Bod,
-                Tijdstip = DateTime.UtcNow,
-                KlantId = userId
-            };
-
-            _context.Bids.Add(bid);
-            veiling.HuidigePrijs = dto.Bod;
-
-            await _context.SaveChangesAsync();
-            return bid;
-        }
-
         // Update status veiling (open/gesloten)
         public async Task<Veiling> UpdateStatusAsync(int veilingId, bool status)
         {

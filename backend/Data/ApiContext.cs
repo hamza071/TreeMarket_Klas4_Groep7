@@ -21,7 +21,6 @@ namespace backend.Data
         public DbSet<Dashboard> Dashboard { get; set; }
         public DbSet<Claim> Claim { get; set; }
         public DbSet<Leverancier> Leverancier { get; set; }
-        public DbSet<Bid> Bids { get; set; }
         
         // Vergeet de andere sub-types niet als je die apart wilt kunnen aanroepen!
         public DbSet<Klant> Klant { get; set; }

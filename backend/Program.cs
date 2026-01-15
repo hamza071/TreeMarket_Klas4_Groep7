@@ -136,11 +136,11 @@ using (var scope = app.Services.CreateScope())
         };
 
         // Identity hasht het wachtwoord automatisch
-        var result = await userManager.CreateAsync(user, "AppelKruimel1234!");
+        var result = await userManager.CreateAsync(adminUser, "AppelKruimel1234!");
 
         if (result.Succeeded)
         {
-            await userManager.AddToRoleAsync(user, "Admin");
+            await userManager.AddToRoleAsync(adminUser, "Admin");
         }
     }
 

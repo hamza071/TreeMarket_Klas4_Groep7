@@ -12,8 +12,7 @@ namespace backend.Interfaces
        
         Task<List<VeilingResponseDto>> GetAllAsync();
 
-        Task<Veiling> GetByIdAsync(int veilingId);
-        Task<Bid> PlaceBidAsync(CreateBidDTO dto, string userId);
+        Task<Veiling> GetByIdAsync(int veilingId);       
         Task<Veiling> UpdateStatusAsync(int veilingId, bool status);
         Task DeleteVeilingAsync(int veilingId);
     }

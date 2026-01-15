@@ -125,26 +125,6 @@ namespace TreeMarket_Klas4_Group7.Controllers
             }
         }
 
-        // ================= BIEDEN =================
-        [HttpPost("Bid")]
-        [Authorize]
-        public async Task<IActionResult> PlaceBid(CreateBidDTO dto)
-        {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (userId == null) return Unauthorized();
-
-            try
-            {
-                var bid = await _service.PlaceBidAsync(dto, userId);
-                if (bid == null) return NotFound("Veiling niet gevonden.");
-                return Ok(bid);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = ex.Message });
-            }
-        }
-
         // ================= UPDATE STATUS =================
         [HttpPut("UpdateStatus/{id}")]
         [Authorize(Roles = "Veilingsmeester, Admin")]
