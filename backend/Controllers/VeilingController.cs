@@ -24,7 +24,7 @@ namespace TreeMarket_Klas4_Group7.Controllers
             _userManager = userManager;
         }
 
-        // ================= GET (Openbaar) =================
+       
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
@@ -56,12 +56,12 @@ namespace TreeMarket_Klas4_Group7.Controllers
             }
         }
 
-        // ================= CREATE VEILING =================
+        
         [HttpPost("CreateVeiling")]
         [Authorize] // ✔️ alleen check: is ingelogd
         public async Task<IActionResult> CreateVeiling([FromBody] VeilingDto dto)
         {
-            // 1. UserId uit token halen
+            //UserId uit token halen
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(userId))
             {
@@ -71,7 +71,7 @@ namespace TreeMarket_Klas4_Group7.Controllers
                 });
             }
 
-            // 2. Gebruiker ophalen
+            //Gebruiker ophalen
             var gebruiker = await _userManager.FindByIdAsync(userId);
             if (gebruiker == null)
             {
@@ -81,10 +81,10 @@ namespace TreeMarket_Klas4_Group7.Controllers
                 });
             }
 
-            // 3. Rollen ophalen (JUISTE manier)
+            //Rollen ophalen (JUISTE manier)
             var roles = await _userManager.GetRolesAsync(gebruiker);
 
-            // 4. Autorisatie check
+            //Autorisatie check
             if (!roles.Contains("Veilingsmeester") && !roles.Contains("Admin"))
             {
                 return Forbid("Alleen Veilingsmeester of Admin mag een veiling aanmaken.");
@@ -92,7 +92,7 @@ namespace TreeMarket_Klas4_Group7.Controllers
 
             try
             {
-                // 5. Business logic
+                //Business logic
                 var veiling = await _service.CreateVeilingAsync(dto, userId);
 
                 return Ok(new
@@ -142,7 +142,7 @@ namespace TreeMarket_Klas4_Group7.Controllers
             }
         }
 
-        // ================= VEILING OPHALEN =================
+        
 
         [HttpGet("GetVeilingen")]
         public async Task<ActionResult<List<VeilingResponseDto>>> GetVeilingen()

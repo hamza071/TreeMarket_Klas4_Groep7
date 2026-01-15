@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import '../assets/css/DashboardPage.css';
 import { API_URL } from '../DeployLocal';
-
-const AUTO_REMOVE_DELAY = 4000; // 4 seconden na afloop verwijderen
+//
+const AUTO_REMOVE_DELAY = 4000; // Tijd voordat een afgelopen veiling uit beeld verdwijnt
 
 function DashboardPage() {
     const [lotsState, setLotsState] = useState([]);
@@ -80,7 +80,7 @@ function DashboardPage() {
 
                 setLotsState(lots);
 
-                // Fetch missing descriptions from Product endpoint
+                // Fetch missing descriptions
                 const missing = lots.filter(l => !getDescription(l) && l.productID);
                 if (missing.length > 0) {
                     const token = localStorage.getItem('token');
@@ -108,10 +108,8 @@ function DashboardPage() {
         fetchVeilingen();
     }, []);
 
-    // ⏱ Timer update & auto-delete zero-quantity veilingen
+    // ⏱ Timer update & visueel verbergen (GEEN DELETE)
     useEffect(() => {
-        const deletedVeilingen = new Set();
-
         const interval = setInterval(() => {
             const now = Date.now();
 
@@ -135,26 +133,14 @@ function DashboardPage() {
                         };
                     })
                     .filter(lot => {
-                        const shouldDelete = (lot.hoeveelheid ?? 0) <= 0 || (lot.removeAt && now >= lot.removeAt);
+                        // VISUEEL VERBERGEN:
+                        // 1. Als hoeveelheid 0 is -> verberg direct
+                        // 2. Als de tijd om is + de delay van 4 sec -> verberg
+                        const isSoldOut = (lot.hoeveelheid ?? 0) <= 0;
+                        const isExpired = lot.removeAt && now >= lot.removeAt;
 
-                        if (shouldDelete) {
-                            if (!deletedVeilingen.has(lot.veilingID)) {
-                                deletedVeilingen.add(lot.veilingID);
-
-                                const token = localStorage.getItem('token');
-                                const headers = token ? { Authorization: `Bearer ${token}` } : {};
-
-                                fetch(`${API_URL}/api/Veiling/DeleteVeiling/${lot.veilingID}`, { method: 'DELETE', headers })
-                                    .then(res => {
-                                        if (!res.ok) return res.text().then(t => Promise.reject(new Error(t || res.statusText)));
-                                        console.log(`Veiling ${lot.veilingID} verwijderd (auto).`);
-                                    })
-                                    .catch(err => console.error(`Fout bij verwijderen veiling ${lot.veilingID}:`, err));
-                            }
-                            return false;
-                        }
-
-                        return true;
+                        // Alleen teruggeven als het NIET verkocht is en NIET verlopen
+                        return !isSoldOut && !isExpired;
                     })
             );
         }, 1000);
@@ -162,11 +148,10 @@ function DashboardPage() {
         return () => clearInterval(interval);
     }, []);
 
-    // Derived lists (minimal change): running (started & active) and upcoming (planned)
+    // Afgeleide lijsten
     const runningLots = lotsState.filter(l => l.startTimestamp <= Date.now() && l.closing > 0);
     const upcomingLots = lotsState.filter(l => l.startTimestamp > Date.now() && l.status !== 'afgesloten');
 
-    // Keep featuredIndex in range when runningLots length changes
     useEffect(() => {
         if (runningLots.length === 0) {
             setFeaturedIndex(0);
@@ -177,23 +162,15 @@ function DashboardPage() {
         }
     }, [runningLots.length, featuredIndex]);
 
-    // IMPORTANT: only show featuredLot when there are running (started) auctions
     const featuredLot = runningLots.length > 0 ? runningLots[featuredIndex] : null;
     const featuredTime = featuredLot?.closing ?? 0;
 
-    // NAV buttons for featured carousel (minimal UI additions)
     const goPrev = () => setFeaturedIndex(i => Math.max(0, i - 1));
     const goNext = () => setFeaturedIndex(i => Math.min(runningLots.length - 1, i + 1));
 
-    // ==========================================================
-    // LOGICA VOOR DE POP-UP (MODAL)
-    // ==========================================================
-
-    // Stap 1: Open Modal en zet de gegevens klaar
     const handleInitialClick = async () => {
         if (!featuredLot) return;
 
-        // Reset
         setTransactionData({
             veilingId    : featuredLot.veilingID,
             productNaam   : featuredLot.productNaam,
@@ -207,16 +184,12 @@ function DashboardPage() {
         setShowModal(true);
 
         try {
-            // PROBEER DE LEVERANCIERNAAM TE VINDEN
             const levNaam = featuredLot.leverancierNaam
                 || featuredLot.product?.leverancier?.bedrijf
                 || featuredLot.product?.leverancier?.naam
                 || "Onbekend";
 
             const prodNaam = featuredLot.productNaam;
-
-            console.log("Ophalen historie voor:", prodNaam, "van", levNaam);
-
             const url = `${API_URL}/api/Claim/GetHistory?productNaam=${encodeURIComponent(prodNaam)}&leverancierNaam=${encodeURIComponent(levNaam)}`;
 
             const response = await fetch(url, {
@@ -230,15 +203,12 @@ function DashboardPage() {
             if(response.ok) {
                 const histData = await response.json();
                 setTransactionData(prev => ({ ...prev, history: histData }));
-            } else {
-                console.warn("Historie ophalen mislukt:", response.status);
             }
         } catch (e) {
             console.error("Fout bij ophalen historie:", e);
         }
     };
 
-    // Stap 2: Update functie voor het invulveld IN de modal
     const handleModalQuantityChange = (e) => {
         const inputValue = e.target.value;
         const max = transactionData.maxAantal;
@@ -260,7 +230,6 @@ function DashboardPage() {
         }));
     };
 
-    // Stap 3: Bevestigen en versturen naar backend
     const handleConfirmPurchase = async () => {
         if (!transactionData || !transactionData.aantal) return;
 
@@ -279,9 +248,6 @@ function DashboardPage() {
             });
 
             if (response.ok) {
-                console.log("Gekocht:", transactionData);
-
-                // UPDATE STATE: Verminder aantal én verwijder als het 0 is
                 setLotsState(currentLots => {
                     return currentLots.map(lot => {
                         if (lot.veilingID === transactionData.veilingId) {
@@ -291,8 +257,8 @@ function DashboardPage() {
                             };
                         }
                         return lot;
-                    })
-                        .filter(lot => lot.hoeveelheid > 0);
+                    });
+                    // Filter gebeurt automatisch in de timer useEffect
                 });
 
                 alert(`Gefeliciteerd! Je hebt ${transactionData.aantal}x ${transactionData.productNaam} gekocht.`);
@@ -302,7 +268,6 @@ function DashboardPage() {
             }
         } catch (error) {
             console.error("Fout bij aankoop:", error);
-            alert("Er ging iets mis met de verbinding.");
         }
         setShowModal(false);
     };
@@ -332,15 +297,11 @@ function DashboardPage() {
                 <div className="hero-copy">
                     <span className="eyebrow">TREE MARKET</span>
                     <h1>De toekomst van bloemen en plantenveilingen</h1>
-                    <p>
-                        Digitale Veilingklok 2025 brengt kopers en kwekers samen in een moderne, efficiënte online veilingomgeving.
-                    </p>
+                    <p>Digitale Veilingklok 2025 brengt kopers en kwekers samen.</p>
                 </div>
 
-                {/* Keep the same featured layout but add minimal prev/next controls */}
                 {featuredLot && (
                     <div style={{ position: 'relative' }}>
-                        {/* prev/next buttons - small and unobtrusive */}
                         {runningLots.length > 1 && (
                             <>
                                 <button onClick={goPrev} disabled={featuredIndex === 0} style={{ position: 'absolute', left: '-40px', top: '40%', zIndex: 5 }}>◀</button>
@@ -365,7 +326,7 @@ function DashboardPage() {
                                 }}
                             />
                             <div className="featured-body">
-                                <div className="featured-meta" aria-live="polite">
+                                <div className="featured-meta">
                                     <span className="badge badge-live">
                                         {featuredTime > 0 ? `${featuredTime}s` : 'Afgesloten'}
                                     </span>
@@ -376,7 +337,6 @@ function DashboardPage() {
                                 <p className="featured-quantity">Beschikbaar: {featuredLot.hoeveelheid ?? 1} stuks</p>
 
                                 <div className="featured-footer" style={{display: 'flex', flexDirection: 'column', gap: '10px'}}>
-
                                     <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', marginBottom: '5px'}}>
                                         <span style={{fontSize: '1.1rem', fontWeight: 'bold', color: '#333'}}>Huidige prijs:</span>
                                         <span className="featured-price">€{featuredLot.currentPrice?.toFixed(2)}</span>
@@ -400,109 +360,81 @@ function DashboardPage() {
 
             <section className="dashboard-table">
                 <h3>Komende veilingen</h3>
-                <div className="table-wrapper" role="region" aria-live="polite">
+                <div className="table-wrapper">
                     <table className="data-table">
                         <thead>
-                            <tr>
-                                <th>Veiling</th>
-                                <th>Naam</th>
-                                <th>Aantal</th>
-                                <th>Omschrijving</th>
-                                <th>Huidige prijs (€)</th>
-                                <th>Startdatum</th>
-                                <th>Veiling start over</th> {/* kolomnaam aangepast */}
-                                <th>Sluitingstijd</th>
-                            </tr>
+                        <tr>
+                            <th>Veiling</th>
+                            <th>Naam</th>
+                            <th>Aantal</th>
+                            <th>Omschrijving</th>
+                            <th>Huidige prijs (€)</th>
+                            <th>Startdatum</th>
+                            <th>Veiling start over</th>
+                            <th>Sluitingstijd</th>
+                        </tr>
                         </thead>
                         <tbody>
-                            {upcomingLots.map(lot => {
-                                const now = Date.now();
-                                const timeUntilStart = Math.max(0, Math.ceil((lot.startTimestamp - now) / 1000));
-                                const startDateDisplay = lot.startTimestamp ? new Date(lot.startTimestamp).toLocaleString('nl-NL') : '-';
-
-                                return (
-                                    <tr key={lot.veilingID}>
-                                        <td>{lot.veilingID}</td>
-                                        <td>{lot.productNaam}</td>
-                                        <td>{lot.hoeveelheid ?? 1}</td>
-                                        <td>{renderDescription(lot) || '-'}</td>
-                                        <td>€{lot.currentPrice?.toFixed(2)}</td>
-                                        <td>{startDateDisplay}</td>
-                                        <td>{timeUntilStart}s</td> {/* aftel timer tot start */}
-                                        <td>{lot.closing > 0 ? `${lot.closing}s` : 'Afgesloten'}</td>
-                                    </tr>
-                                );
-                            })}
+                        {upcomingLots.map(lot => {
+                            const now = Date.now();
+                            const timeUntilStart = Math.max(0, Math.ceil((lot.startTimestamp - now) / 1000));
+                            return (
+                                <tr key={lot.veilingID}>
+                                    <td>{lot.veilingID}</td>
+                                    <td>{lot.productNaam}</td>
+                                    <td>{lot.hoeveelheid ?? 1}</td>
+                                    <td>{renderDescription(lot) || '-'}</td>
+                                    <td>€{lot.currentPrice?.toFixed(2)}</td>
+                                    <td>{lot.startTimestamp ? new Date(lot.startTimestamp).toLocaleString('nl-NL') : '-'}</td>
+                                    <td>{timeUntilStart}s</td>
+                                    <td>{lot.closing > 0 ? `${lot.closing}s` : 'Afgesloten'}</td>
+                                </tr>
+                            );
+                        })}
                         </tbody>
                     </table>
                 </div>
             </section>
 
-            {/* ========================================================== */}
-            {/* POP-UP MODAL (Met input en totaalprijs)                    */}
-            {/* ========================================================== */}
+            {/* POP-UP MODAL MET HISTORIE EN MARKT-HISTORIE */}
             {showModal && transactionData && (
                 <div className="dashboard-overlay">
                     <div className="dashboard-modal">
                         <h2>Bevestig Aankoop</h2>
-
                         <div className="dashboard-summary">
                             <p><strong>Product:</strong> {transactionData.productNaam}</p>
                             <p><strong>Prijs per stuk:</strong> €{transactionData.prijsPerStuk.toFixed(2)}</p>
+                            <p style={{fontSize: '0.9rem', color: '#666'}}><em>(Maximaal: {transactionData.maxAantal})</em></p>
 
-                            <p style={{fontSize: '0.9rem', color: '#666'}}>
-                                <em>(Maximaal beschikbaar: {transactionData.maxAantal})</em>
-                            </p>
-
-                            {/* Input veld in de modal */}
                             <div style={{margin: '15px 0'}}>
                                 <label style={{marginRight: '10px', fontWeight: 'bold'}}>Aantal:</label>
                                 <input
                                     type="number"
                                     value={transactionData.aantal}
                                     onChange={handleModalQuantityChange}
-                                    style={{
-                                        padding: '8px', borderRadius: '5px',
-                                        border: '1px solid #333', width: '80px',
-                                        textAlign: 'center', fontSize: '1rem'
-                                    }}
+                                    style={{ padding: '8px', borderRadius: '5px', border: '1px solid #333', width: '80px', textAlign: 'center' }}
                                 />
                             </div>
 
-                            <hr style={{margin: '15px 0'}}/>
+                            <p style={{fontSize: '1.4rem', color: '#2ecc71'}}><strong>Totaal: €{(transactionData.totaalPrijs || 0).toFixed(2)}</strong></p>
 
-                            {/* Dynamische Totaalprijs */}
-                            <p style={{fontSize: '1.4rem', color: '#2ecc71'}}>
-                                <strong>Totaal: €{(transactionData.totaalPrijs || 0).toFixed(2)}</strong>
-                            </p>
+                            {transactionData.history && (
+                                <div style={{textAlign: 'left', marginTop: '15px', borderTop: '1px solid #ddd', paddingTop: '10px', maxHeight: '250px', overflowY: 'auto'}}>
+                                    <small><strong>Historie (Laatste 10)</strong></small>
 
-                                                {/* --- HISTORISCHE DATA VISUALISATIE --- */}
-                                                {transactionData.history && (
-                                                    <div style={{textAlign: 'left', marginTop: '15px', borderTop: '1px solid #ddd', paddingTop: '10px', maxHeight: '250px', overflowY: 'auto'}}>
-                                                        <small><strong>Historie (Laatste 10)</strong></small>
-                    
-                                                        {/* Eigen Historie */}
-                                                        <div style={{marginBottom: '10px'}}>
-                                                            <span style={{fontSize: '0.8rem', color: '#555'}}>
-                                                                Deze aanbieder: <strong>{featuredLot?.leverancierNaam || "Onbekend"}</strong>
-                                                            </span>
-                                                            <table style={styles.historyTable}>
-                                                                <tbody>
-                                                                {transactionData.history.eigenHistorie.map((h, i) => (
-                                                                    <tr key={i}>
-                                                                        <td>{h.datum}</td>
-                                                                        <td align="right">€{h.prijs.toFixed(2)}</td>
-                                                                    </tr>
-                                                                ))}
-                                                                {transactionData.history.eigenHistorie.length === 0 && (
-                                                                    <tr><td colSpan="2" style={{fontStyle:'italic'}}>Geen data</td></tr>
-                                                                )}
-                                                                </tbody>
-                                                            </table>
-                                                            <div style={{fontSize: '0.75rem', fontWeight: 'bold'}}>
-                                                                Gemiddeld: €{transactionData.history.gemiddeldeEigen.toFixed(2)}
-                                                            </div>
-                                                        </div>
+                                    {/* Eigen Historie */}
+                                    <div style={{marginBottom: '10px'}}>
+                                        <span style={{fontSize: '0.8rem', color: '#555'}}>Deze aanbieder: <strong>{featuredLot?.leverancierNaam || "Onbekend"}</strong></span>
+                                        <table style={styles.historyTable}>
+                                            <tbody>
+                                            {transactionData.history.eigenHistorie.map((h, i) => (
+                                                <tr key={i}><td>{h.datum}</td><td align="right">€{h.prijs.toFixed(2)}</td></tr>
+                                            ))}
+                                            {transactionData.history.eigenHistorie.length === 0 && <tr><td colSpan="2" style={{fontStyle:'italic'}}>Geen data</td></tr>}
+                                            </tbody>
+                                        </table>
+                                        <div style={{fontSize: '0.75rem', fontWeight: 'bold'}}>Gemiddeld: €{transactionData.history.gemiddeldeEigen.toFixed(2)}</div>
+                                    </div>
 
                                     {/* Markt Historie */}
                                     <div>
@@ -510,27 +442,16 @@ function DashboardPage() {
                                         <table className="dashboard-historyTable">
                                             <tbody>
                                             {transactionData.history.marktHistorie.map((h, i) => (
-                                                <tr key={i}>
-                                                    <td>{h.aanbieder}</td>
-                                                    <td>{h.datum}</td>
-                                                    <td align="right">€{h.prijs.toFixed(2)}</td>
-                                                </tr>
+                                                <tr key={i}><td>{h.aanbieder}</td><td>{h.datum}</td><td align="right">€{h.prijs.toFixed(2)}</td></tr>
                                             ))}
-                                            {transactionData.history.marktHistorie.length === 0 && (
-                                                <tr><td colSpan="3" style={{fontStyle:'italic'}}>Geen data</td></tr>
-                                            )}
+                                            {transactionData.history.marktHistorie.length === 0 && <tr><td colSpan="3" style={{fontStyle:'italic'}}>Geen data</td></tr>}
                                             </tbody>
                                         </table>
-                                        <div style={{fontSize: '0.75rem', fontWeight: 'bold'}}>
-                                            Markt Gemiddeld: €{transactionData.history.gemiddeldeMarkt.toFixed(2)}
-                                        </div>
+                                        <div style={{fontSize: '0.75rem', fontWeight: 'bold'}}>Markt Gemiddeld: €{transactionData.history.gemiddeldeMarkt.toFixed(2)}</div>
                                     </div>
                                 </div>
                             )}
-                            {/* -------------------------------------- */}
-
                         </div>
-
                         <div className="dashboard-buttons">
                             <button onClick={() => setShowModal(false)} className="dashboard-cancelBtn">Annuleren</button>
                             <button onClick={handleConfirmPurchase} className="dashboard-confirmBtn">Bevestigen</button>

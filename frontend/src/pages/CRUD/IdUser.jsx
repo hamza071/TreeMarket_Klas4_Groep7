@@ -15,15 +15,15 @@ function IdUser() {
         setError("");
 
         try {
-            // === AANPASSING ===
+           
 
-            // 1. Roep authFetch aan. 
+            // Roep authFetch aan. 
             // Die doet de fetch, checkt errors en doet de .json() conversie.
             const data = await authFetch(`/Gebruiker/${id}`, {
                 method: "GET",
             });
 
-            // 2. We hebben direct de data, dus we kunnen het opslaan.
+            // We hebben direct de data, dus we kunnen het opslaan.
             // (De regels met 'if (!response.ok)' en 'await response.json()' zijn WEG)
             setUser(data);
 

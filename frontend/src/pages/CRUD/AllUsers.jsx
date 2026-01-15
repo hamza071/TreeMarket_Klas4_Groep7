@@ -17,7 +17,7 @@ function AllUsers() {
                 setUsers(data);
             } catch (err) {
                 console.error("Fout:", err);
-                setError(err.message); // Bijv: "Niet geautoriseerd"
+                setError(err.message); 
             }
         };
 

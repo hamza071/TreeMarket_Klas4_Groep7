@@ -18,9 +18,8 @@ function AuctionPage() {
         return { text: words.slice(0, maxWords).join(' '), truncated: true };
     };
 
-    // ------------------------------
     // Fetch kavels bij mount
-    // ------------------------------
+   
     useEffect(() => {
         const fetchLots = async () => {
             try {
@@ -49,9 +48,7 @@ function AuctionPage() {
         fetchLots();
     }, []);
 
-    // ----------------------------------------------------------------------
-    // DE DELETE FUNCTIE IS HIER VERWIJDERD OM DE 500 ERRORS TE STOPPEN
-    // ----------------------------------------------------------------------
+    
 
     if (loading) return <p>Kavels worden geladen…</p>;
     if (error) return <p style={{ color: "red" }}>{error}</p>;

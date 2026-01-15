@@ -10,6 +10,6 @@
         public decimal MinimumPrijs { get; set; }
         public string? Foto { get; set; }           
         public string? Status { get; set; }
-        public string? LeverancierNaam { get; set; } // Bedrijfsnaam
+        public string? LeverancierNaam { get; set; } 
     }
 }
