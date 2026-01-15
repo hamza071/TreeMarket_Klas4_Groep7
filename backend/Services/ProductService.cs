@@ -15,8 +15,6 @@ namespace backend.Services
             _context = context;
         }
 
-        // GET: api/Product/vandaag
-        [HttpGet("vandaag")]
         public async Task<List<ProductMetVeilingmeesterDto>> GetVandaag()
         {
             var today = DateTime.UtcNow.Date;
@@ -39,10 +37,6 @@ namespace backend.Services
                 .ToListAsync();
         }
 
-
-
-        // GET: api/Product/leverancier
-        [HttpGet("leverancier")]
         public async Task<List<ProductMetVeilingmeesterDto>> GetMetLeverancier()
         {
             return await _context.Product
@@ -68,13 +62,31 @@ namespace backend.Services
                 .Include(p => p.Leverancier)
                 .FirstOrDefaultAsync(p => p.ProductId == id);
 
-        // POST: api/Product/CreateProduct
-        [HttpPost("CreateProduct")]
-        [Authorize]
-        public async Task<ProductMetVeilingmeesterDto> PostProduct(ProductUploadDto productDto, string userId, bool isAdmin)
+            if (product == null)
+                return null;
+
+            return new ProductMetVeilingmeesterDto
+            {
+                ProductId = product.ProductId,
+                Naam = product.ProductNaam,
+                Varieteit = product.Varieteit,
+                Omschrijving = product.Omschrijving,
+                Hoeveelheid = product.Hoeveelheid,
+                MinimumPrijs = product.MinimumPrijs,
+                Foto = product.Foto,
+                Status = "pending",
+                LeverancierNaam = product.Leverancier?.Bedrijf
+            };
+        }
+
+        public async Task<ProductMetVeilingmeesterDto> CreateProduct(
+            ProductUploadDto productDto,
+            string userId,
+            bool isAdmin
+        )
         {
-            // Foto uploaden
-            string fotoUrl;
+            string fotoUrl = "/images/default.png";
+
             if (productDto.Foto != null)
             {
                 var uploadsFolder = Path.Combine(
@@ -116,32 +128,6 @@ namespace backend.Services
             _context.Product.Add(product);
             await _context.SaveChangesAsync();
 
-            // Return DTO
-            return new ProductMetVeilingmeesterDto
-            {
-                ProductId = product.ProductId,
-                Naam = product.ProductNaam,
-                Varieteit = product.Varieteit,
-                Omschrijving = product.Omschrijving,
-                Hoeveelheid = product.Hoeveelheid,
-                MinimumPrijs = product.MinimumPrijs,
-                Foto = product.Foto,
-                Status = "pending",
-                LeverancierNaam = leverancier?.Bedrijf ?? (isAdmin ? "Admin" : null)
-            };
-        }
-
-        // GET: api/Product/{id}
-        [HttpGet("{id}")]
-        public async Task<ProductMetVeilingmeesterDto?> GetProductById(int id)
-        {
-            var product = await _context.Product
-                .Include(p => p.Leverancier)
-                .FirstOrDefaultAsync(p => p.ProductId == id);
-
-            if (product == null)
-                return null; // Controller can handle NotFound
-
             return new ProductMetVeilingmeesterDto
             {
                 ProductId = product.ProductId,
@@ -156,9 +142,7 @@ namespace backend.Services
             };
         }
 
-        // DELETE: api/Product/vandaag
-        [HttpDelete("vandaag")]
-        public async Task<int> DeleteVandaag()
+        public async Task<int> DeleteTodayProducts()
         {
             var today = DateTime.UtcNow.Date;
 
@@ -173,7 +157,6 @@ namespace backend.Services
             return await _context.SaveChangesAsync();
         }
 
-        // Delete single product by id
         public async Task<bool> DeleteProduct(int id)
         {
             var product = await _context.Product.FindAsync(id);
