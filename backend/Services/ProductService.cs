@@ -113,6 +113,7 @@ namespace backend.Services
             var product = new Product
             {
                 ProductNaam = productDto.ProductNaam ?? "",
+                Varieteit = productDto.Varieteit ?? "",
                 Omschrijving = productDto.Omschrijving ?? "",
                 Hoeveelheid = productDto.Hoeveelheid,
                 MinimumPrijs = productDto.MinimumPrijs,
@@ -135,6 +136,12 @@ namespace backend.Services
                 Status = "pending",
                 LeverancierNaam = leverancier?.Bedrijf ?? "Admin"
             };
+        }
+
+        // Backwards-compatible method used by older callers/tests
+        public Task<ProductMetVeilingmeesterDto> PostProduct(ProductUploadDto productDto, string userId, bool isAdmin)
+        {
+            return CreateProduct(productDto, userId, isAdmin);
         }
 
         public async Task<int> DeleteTodayProducts()
