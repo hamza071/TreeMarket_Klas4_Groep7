@@ -34,15 +34,9 @@ function AuctionPage() {
                 const data = await response.json();
                 const list = Array.isArray(data) ? data : [data];
 
-                // 1️⃣ Filter eerst lokaal producten met hoeveelheid > 0
-                const activeLots = list.filter(l => (l.hoeveelheid ?? 0) > 0);
-                setLots(activeLots);
-
-                // 2️⃣ Automatisch verwijderen van zero-quantity producten (async, geen rerender)
-                const zeroLots = list.filter(l => (l.hoeveelheid ?? 0) <= 0);
-                if (zeroLots.length > 0) {
-                    removeZeroQuantityProducts(zeroLots); // ⚡ draait op de achtergrond
-                }
+                // De backend stuurt nu alleen producten met hoeveelheid > 0
+                // We zetten ze direct in de state zonder ze te proberen te verwijderen.
+                setLots(list);
 
             } catch (err) {
                 console.error("Error fetching lots:", err);
@@ -55,48 +49,10 @@ function AuctionPage() {
         fetchLots();
     }, []);
 
-    // ------------------------------
-    // DELETE functie voor zero-quantity producten
-    // ------------------------------
-    const removeZeroQuantityProducts = async (productList) => {
-        if (!Array.isArray(productList) || productList.length === 0) return;
+    // ----------------------------------------------------------------------
+    // DE DELETE FUNCTIE IS HIER VERWIJDERD OM DE 500 ERRORS TE STOPPEN
+    // ----------------------------------------------------------------------
 
-        const token = localStorage.getItem('token');
-
-        const deletions = productList.map(async p => {
-            try {
-                const headers = token ? { Authorization: `Bearer ${token}` } : {};
-                const resp = await fetch(`${API_URL}/api/Product/${p.productId}`, {
-                    method: 'DELETE',
-                    headers
-                });
-
-                if (!resp.ok) {
-                    const text = await resp.text();
-                    console.warn(`Kon product ${p.productId} niet verwijderen:`, resp.status, text);
-                    return { id: p.productId, ok: false };
-                }
-
-                console.log(`Product ${p.productId} verwijderd (hoeveelheid 0).`);
-                return { id: p.productId, ok: true };
-            } catch (err) {
-                console.error(`Fout bij verwijderen product ${p.productId}:`, err);
-                return { id: p.productId, ok: false };
-            }
-        });
-
-        // Wacht tot alle DELETE requests klaar zijn, zonder UI te blokkeren
-        const results = await Promise.allSettled(deletions);
-        const succeededIds = results
-            .filter(r => r.status === 'fulfilled' && r.value?.ok)
-            .map(r => r.value.id);
-
-        if (succeededIds.length > 0) console.log('Verwijderde producten:', succeededIds);
-    };
-
-    // ------------------------------
-    // UI
-    // ------------------------------
     if (loading) return <p>Kavels worden geladen…</p>;
     if (error) return <p style={{ color: "red" }}>{error}</p>;
 
@@ -138,8 +94,7 @@ function AuctionPage() {
                                     </button>
                                 )}
                             </p>
-                            <p>{lot.hoeveelheid || 0} stuks</p>
-                            {lot.varieteit && <p>Variëteit: {lot.varieteit}</p>}
+                            <p><strong>Voorraad:</strong> {lot.hoeveelheid || 0} stuks</p>
 
                             <img
                                 src={
