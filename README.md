@@ -7,4 +7,4 @@ Frontend
 https://tree-market-klas4-groep7.vercel.app/
 
 Backend
-https://treemarketbackend-baghcdeyc3acgca8.francecentral-01.azurewebsites.net/swagger/index.html
+treemarket2.azurewebsites.net/swagger
