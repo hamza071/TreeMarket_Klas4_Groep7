@@ -46,3 +46,5 @@ export const authFetch = async (endpoint, options = {}) => {
         throw new Error("Kan de API op poort 7054 niet bereiken. Staat je backend aan?");
     }
 };
+
+            //test 
