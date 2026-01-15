@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import '../assets/css/DashboardPage.css';
 import { API_URL } from '../DeployLocal';
 
@@ -7,6 +7,8 @@ const AUTO_REMOVE_DELAY = 4000; // 4 seconden na afloop verwijderen
 function DashboardPage() {
     const [lotsState, setLotsState] = useState([]);
     const [expandedDescriptions, setExpandedDescriptions] = useState({});
+
+    const deletedVeilingen = useRef(new Set());
 
     const toggleExpanded = (id) => {
         setExpandedDescriptions(prev => ({ ...prev, [id]: !prev[id] }));
@@ -40,83 +42,79 @@ function DashboardPage() {
     const [transactionData, setTransactionData] = useState(null);
 
     // 🚀 Fetch veilingen bij mount
-    useEffect(() => {
-        const fetchVeilingen = async () => {
-            try {
-                const response = await fetch(`${API_URL}/api/Veiling/GetVeilingen`, {
-                    headers: {
-                        Authorization: `Bearer ${localStorage.getItem('token')}`,
-                        'Content-Type': 'application/json',
-                    },
-                });
-                const data = await response.json();
-                const now = Date.now();
+    import { useEffect, useState, useRef } from 'react';
+    import '../assets/css/DashboardPage.css';
+    import { API_URL } from '../DeployLocal';
 
-                const lots = data
-                    .filter(lot => lot.status === true)
-                    .map(lot => {
-                        const startTimestamp = new Date(lot.startTimestamp.split('.')[0] + 'Z').getTime();
-                        const timerInSeconden = Number(lot.timerInSeconden);
-                        const startPrice = Number(lot.startPrijs ?? 0);
-                        const minPrice = Number(lot.minPrijs ?? startPrice);
+    const AUTO_REMOVE_DELAY = 4000; // 4 seconden na afloop verwijderen
 
-                        const elapsed = Math.max(0, (now - startTimestamp) / 1000);
-                        const remainingTime = Math.max(0, timerInSeconden - elapsed);
+    function DashboardPage() {
+        const [lotsState, setLotsState] = useState([]);
+        const [expandedDescriptions, setExpandedDescriptions] = useState({});
 
-                        const progress = Math.min(elapsed / timerInSeconden, 1);
-                        const currentPrice =
-                            remainingTime > 0
-                                ? startPrice - (startPrice - minPrice) * progress
-                                : minPrice;
+        // ✅ hier binnen de component aanmaken
+        const deletedVeilingen = useRef(new Set());
 
-                        const removeAt = remainingTime > 0 ? null : now + AUTO_REMOVE_DELAY;
-
-                        return {
-                            ...lot,
-                            startTimestamp,
-                            timerInSeconden,
-                            startPrice,
-                            minPrice,
-                            closing: Math.ceil(remainingTime),
-                            currentPrice,
-                            // Mark planned auctions correctly so they appear in the upcoming table
-                            status: startTimestamp > now ? 'gepland' : (remainingTime > 0 ? 'actief' : 'afgesloten'),
-                            removeAt,
-                        };
-                    })
-                    .sort((a, b) => b.veilingID - a.veilingID);
-
-                setLotsState(lots);
-
-                // Fetch missing descriptions from Product endpoint when not provided by the veiling DTO
-                const missing = lots.filter(l => !getDescription(l) && l.productID);
-                if (missing.length > 0) {
-                    const token = localStorage.getItem('token');
-                    await Promise.all(missing.map(async m => {
-                        try {
-                            const resp = await fetch(`${API_URL}/api/Product/${m.productID}`, {
-                                headers: { Accept: 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) }
-                            });
-                            if (!resp.ok) return;
-                            const prod = await resp.json();
-                            const oms = prod.omschrijving || prod.Omschrijving || prod.Omschrijving || prod.Omschrijving || prod.Omschrijving || prod.Omschrijving || prod.Omschrijving || prod.omschrijving || prod.Omschrijving || prod.Omschrijving || prod.Omschrijving || prod.Omschrijving || prod.Omschrijving || prod.Omschrijving || prod.Omschrijving || prod.omschrijving || prod.Omschrijving || prod.Omschrijving || prod.Omschrijving || prod.Omschrijving || prod.Omschrijving || prod.omschrijving || prod.Omschrijving || prod.Omschrijving || prod.Omschrijving || prod.Omschrijving || prod.Omschrijving || prod.Omschrijving || prod.omschrijving || prod.Omschrijving || prod.Omschrijving || prod.Omschrijving || prod.Omschrijving || prod.Omschrijving || prod.Omschrijving || prod.Omschrijving || prod.Omschrijving || prod.Omschrijving || prod.Omschrijving || prod.Omschrijving || prod.Omschrijving || prod.Omschrijving || '';
-                            if (oms) {
-                                setLotsState(prev => prev.map(x => x.productID === m.productID ? { ...x, omschrijving: oms } : x));
-                            }
-                        } catch (e) {
-                            console.warn('Kon product omschrijving niet ophalen voor', m.productID, e);
-                        }
-                    }));
-                }
-            } catch (err) {
-                console.error('Fout bij ophalen van veilingen:', err);
-            }
+        const toggleExpanded = (id) => {
+            setExpandedDescriptions(prev => ({ ...prev, [id]: !prev[id] }));
         };
 
-        fetchVeilingen();
-    }, []);
+        // ... rest van je code
 
-    // ⏱ Timer update & auto-delete
+        // Interval met veilige auto-delete
+        useEffect(() => {
+            const interval = setInterval(() => {
+                const now = Date.now();
+
+                setLotsState(prevLots =>
+                    prevLots
+                        .map(lot => {
+                            if (!lot.startTimestamp || !lot.timerInSeconden) return lot;
+
+                            const elapsed = Math.max(0, (now - lot.startTimestamp) / 1000);
+                            const remainingTime = Math.max(0, lot.timerInSeconden - elapsed);
+
+                            const currentPrice = remainingTime > 0
+                                ? lot.startPrice - (lot.startPrice - lot.minPrice) * (elapsed / lot.timerInSeconden)
+                                : lot.minPrice;
+
+                            return {
+                                ...lot,
+                                closing: Math.ceil(remainingTime),
+                                currentPrice,
+                                status: lot.startTimestamp > now ? 'gepland' : (remainingTime > 0 ? 'actief' : 'afgesloten'),
+                                removeAt: remainingTime > 0 ? null : lot.removeAt ?? now + AUTO_REMOVE_DELAY,
+                            };
+                        })
+                        .filter(lot => {
+                            const shouldDelete = (lot.hoeveelheid ?? 0) <= 0 || (lot.removeAt && now >= lot.removeAt);
+
+                            if (shouldDelete) {
+                                if (!deletedVeilingen.current.has(lot.veilingID)) {
+                                    deletedVeilingen.current.add(lot.veilingID);
+
+                                    const token = localStorage.getItem('token');
+                                    const headers = token ? { Authorization: `Bearer ${token}` } : {};
+
+                                    fetch(`${API_URL}/api/Veiling/DeleteVeiling/${lot.veilingID}`, { method: 'DELETE', headers })
+                                        .then(res => {
+                                            if (!res.ok) return res.text().then(t => Promise.reject(new Error(t || res.statusText)));
+                                            console.log(`Veiling ${lot.veilingID} verwijderd (auto).`);
+                                        })
+                                        .catch(err => console.error(`Fout bij verwijderen veiling ${lot.veilingID}:`, err));
+                                }
+                                return false;
+                            }
+
+                            return true;
+                        })
+                );
+            }, 1000);
+
+            return () => clearInterval(interval);
+        }, []);
+
+    // ⏱ Timer update & auto-delete (veiligere versie)
     useEffect(() => {
         const interval = setInterval(() => {
             const now = Date.now();
@@ -129,53 +127,39 @@ function DashboardPage() {
                         const elapsed = Math.max(0, (now - lot.startTimestamp) / 1000);
                         const remainingTime = Math.max(0, lot.timerInSeconden - elapsed);
 
-                        const progress = Math.min(elapsed / lot.timerInSeconden, 1);
-                        const currentPrice =
-                            remainingTime > 0
-                                ? lot.startPrice - (lot.startPrice - lot.minPrice) * progress
-                                : lot.minPrice;
-
-                        const removeAt = remainingTime > 0 ? null : lot.removeAt ?? now + AUTO_REMOVE_DELAY;
+                        const currentPrice = remainingTime > 0
+                            ? lot.startPrice - (lot.startPrice - lot.minPrice) * (elapsed / lot.timerInSeconden)
+                            : lot.minPrice;
 
                         return {
                             ...lot,
                             closing: Math.ceil(remainingTime),
                             currentPrice,
-                            // keep planned status when startTimestamp is in the future
                             status: lot.startTimestamp > now ? 'gepland' : (remainingTime > 0 ? 'actief' : 'afgesloten'),
-                            removeAt,
+                            removeAt: remainingTime > 0 ? null : lot.removeAt ?? now + AUTO_REMOVE_DELAY,
                         };
                     })
                     .filter(lot => {
-                        // If quantity reached 0 or less, attempt to delete the veiling and remove from UI
-                        if ((lot.hoeveelheid ?? 0) <= 0) {
-                            const token = localStorage.getItem('token');
-                            const headers = token ? { Authorization: `Bearer ${token}` } : {};
+                        const shouldDelete = (lot.hoeveelheid ?? 0) <= 0 || (lot.removeAt && now >= lot.removeAt);
 
-                            fetch(`${API_URL}/api/Veiling/DeleteVeiling/${lot.veilingID}`, {
-                                method: 'DELETE',
-                                headers
-                            })
-                                .then(res => {
-                                    if (!res.ok) return res.text().then(t => Promise.reject(new Error(t || res.statusText)));
-                                    console.log(`Veiling ${lot.veilingID} verwijderd omdat hoeveelheid 0 is.`);
-                                })
-                                .catch(err => console.error(`Fout bij verwijderen veiling ${lot.veilingID}:`, err));
+                        if (shouldDelete) {
+                            if (!deletedVeilingen.current.has(lot.veilingID)) {
+                                deletedVeilingen.current.add(lot.veilingID); // ✅ markeer als al geprobeerd
 
-                            return false;
+                                const token = localStorage.getItem('token');
+                                const headers = token ? { Authorization: `Bearer ${token}` } : {};
+
+                                fetch(`${API_URL}/api/Veiling/DeleteVeiling/${lot.veilingID}`, { method: 'DELETE', headers })
+                                    .then(res => {
+                                        if (!res.ok) return res.text().then(t => Promise.reject(new Error(t || res.statusText)));
+                                        console.log(`Veiling ${lot.veilingID} verwijderd (auto).`);
+                                    })
+                                    .catch(err => console.error(`Fout bij verwijderen veiling ${lot.veilingID}:`, err));
+                            }
+                            return false; // haal uit state
                         }
 
-                        if (lot.removeAt && now >= lot.removeAt) {
-                            fetch(`${API_URL}/api/Veiling/DeleteVeiling/${lot.veilingID}`, {
-                                method: 'DELETE',
-                                headers: {
-                                    Authorization: `Bearer ${localStorage.getItem('token')}`,
-                                },
-                            }).catch(err => console.error('Fout bij verwijderen veiling:', err));
-
-                            return false;
-                        }
-                        return true;
+                        return true; // houd actieve veilingen
                     })
             );
         }, 1000);

@@ -20,7 +20,7 @@ function AuctionDetailPage() {
     const location = useLocation();
 
     const [lot, setLot] = useState(null);
-    const [startPrice, setStartPrice] = useState('0.00'); // string met 2 decimalen
+    const [startPrice, setStartPrice] = useState('0.00'); // string voor decimalen
     const [minPrice, setMinPrice] = useState(0);
     const [closingTime, setClosingTime] = useState(10);
 
@@ -40,7 +40,7 @@ function AuctionDetailPage() {
                 setLot(data);
                 const min = Number(data.minimumPrijs ?? 0);
                 setMinPrice(min);
-                setStartPrice((min + 1).toFixed(2)); // altijd 2 decimalen
+                setStartPrice((min + 1).toFixed(2));
                 setClosingTime(10);
             } catch (err) {
                 alert(err.message);
@@ -52,7 +52,7 @@ function AuctionDetailPage() {
             const min = Number(location.state.lot.minimumPrijs ?? 0);
             setLot(location.state.lot);
             setMinPrice(min);
-            setStartPrice((min + 1).toFixed(2)); // string met 2 decimalen
+            setStartPrice((min + 1).toFixed(2));
             return;
         }
 
@@ -61,10 +61,17 @@ function AuctionDetailPage() {
 
     if (!lot) return <p>Laden van kavel…</p>;
 
+    // Nieuw: veilige decimal input
+    const handleStartPriceChange = (e) => {
+        const value = e.target.value;
+        if (/^\d*\.?\d*$/.test(value)) { // alleen cijfers en maximaal 1 punt
+            setStartPrice(value);
+        }
+    };
+
     const handlePublish = async () => {
         if (!startPrice || !closingTime) return alert('Vul alle velden in!');
 
-        // Parse decimalen correct
         const startPriceNumber = parseFloat(startPrice);
         const minPriceNumber = parseFloat(minPrice);
         const closingTimeNumber = Number(closingTime);
@@ -75,14 +82,12 @@ function AuctionDetailPage() {
         if (isNaN(closingTimeNumber) || closingTimeNumber < 1)
             return alert('Sluitingstijd moet minimaal 1 seconde zijn');
 
-        // Bereken prijsstap: 10% van startprijs, minimaal 0.01
         const prijsStap = Math.max(0.01, parseFloat((startPriceNumber * 0.1).toFixed(2)));
 
         const veilingsmeesterID = localStorage.getItem("veilingsmeesterId") || "29685004-81a1-44b6-b7f3-973dd5f60fc0";
         const token = localStorage.getItem("token");
         if (!token) return alert("Je bent niet ingelogd.");
 
-        // Starttijd berekenen
         const now = new Date();
         let startTimestamp;
 
@@ -100,9 +105,9 @@ function AuctionDetailPage() {
 
         const payload = {
             productID: lot.productId,
-            startPrijs: startPriceNumber,   // Decimalen blijven intact
+            startPrijs: startPriceNumber,
             minPrijs: minPriceNumber,
-            prijsStap,                      // Decimalen correct
+            prijsStap,
             timerInSeconden: closingTimeNumber,
             startTimestamp: startTimestamp.toISOString(),
             veilingsmeesterID
@@ -151,11 +156,9 @@ function AuctionDetailPage() {
                     <label className="form-field">
                         <span className="form-label">Beginprijs (€)</span>
                         <input
-                            type="number"
-                            step="0.01"
-                            min={minPrice + 0.01}
+                            type="text"
                             value={startPrice}
-                            onChange={e => setStartPrice(e.target.value)}
+                            onChange={handleStartPriceChange}
                             placeholder={`> ${minPrice.toFixed(2)}`}
                         />
                         <small>Minimale prijs: €{minPrice.toFixed(2)}</small>
