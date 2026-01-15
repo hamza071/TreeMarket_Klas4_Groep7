@@ -26,7 +26,6 @@ namespace backend.Services
                 {
                     ProductId = p.ProductId,
                     Naam = p.ProductNaam,
-                    Varieteit = p.Varieteit,
                     Omschrijving = p.Omschrijving,
                     Hoeveelheid = p.Hoeveelheid,
                     MinimumPrijs = p.MinimumPrijs,
@@ -45,7 +44,6 @@ namespace backend.Services
                 {
                     ProductId = p.ProductId,
                     Naam = p.ProductNaam,
-                    Varieteit = p.Varieteit,
                     Omschrijving = p.Omschrijving,
                     Hoeveelheid = p.Hoeveelheid,
                     MinimumPrijs = p.MinimumPrijs,
@@ -69,7 +67,6 @@ namespace backend.Services
             {
                 ProductId = product.ProductId,
                 Naam = product.ProductNaam,
-                Varieteit = product.Varieteit,
                 Omschrijving = product.Omschrijving,
                 Hoeveelheid = product.Hoeveelheid,
                 MinimumPrijs = product.MinimumPrijs,
@@ -116,7 +113,6 @@ namespace backend.Services
             var product = new Product
             {
                 ProductNaam = productDto.ProductNaam ?? "",
-                Varieteit = productDto.Varieteit ?? "",
                 Omschrijving = productDto.Omschrijving ?? "",
                 Hoeveelheid = productDto.Hoeveelheid,
                 MinimumPrijs = productDto.MinimumPrijs,
@@ -132,7 +128,6 @@ namespace backend.Services
             {
                 ProductId = product.ProductId,
                 Naam = product.ProductNaam,
-                Varieteit = product.Varieteit,
                 Omschrijving = product.Omschrijving,
                 Hoeveelheid = product.Hoeveelheid,
                 MinimumPrijs = product.MinimumPrijs,

@@ -30,9 +30,6 @@ namespace backend.Models
         public Leverancier? Leverancier { get; set; }
 
         [Required]
-        public string Varieteit { get; set; }
-
-        [Required]
         public string Omschrijving { get; set; }
 
         public ICollection<Veiling> Veilingen { get; set; } = new List<Veiling>();
