@@ -25,18 +25,18 @@ export const authFetch = async (endpoint, options = {}) => {
             headers: headers,
         });
 
-        //  Check op 401 Unauthorized
+        // Check op 401 Unauthorized
         if (response.status === 401) {
             throw new Error("Je hebt geen rechten of je sessie is verlopen.");
         }
 
-        //  Foutafhandeling voor andere statuscodes
+        // Foutafhandeling voor andere statuscodes
         if (!response.ok) {
             const errorData = await response.json().catch(() => null);
             throw new Error(errorData?.message || `Server fout: ${response.status}`);
         }
 
-        //  Geef JSON terug tenzij de response leeg is
+        // Geef JSON terug tenzij de response leeg is
         if (response.status !== 204) {
             return await response.json();
         }
@@ -47,4 +47,4 @@ export const authFetch = async (endpoint, options = {}) => {
     }
 };
 
-            /
+//test 
