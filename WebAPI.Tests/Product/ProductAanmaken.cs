@@ -36,11 +36,12 @@ namespace WebAPI.Tests.TProduct
             };
 
             mockService
-                .Setup(s => s.PostProduct(
-                    It.IsAny<ProductUploadDto>(),
-                    "leverancier-123",
-                    false))
-                .ReturnsAsync(expectedDto);
+              .Setup(s => s.CreateProduct(
+                  It.IsAny<ProductUploadDto>(),
+                  "leverancier-123",
+                  false))
+              .ReturnsAsync(expectedDto);
+
 
             var controller = new ProductController(mockService.Object);
 
@@ -49,6 +50,8 @@ namespace WebAPI.Tests.TProduct
 
             var dto = new ProductUploadDto
             {
+                ProductNaam = "Test product",
+                Varieteit = "Appel",
                 Hoeveelheid = 5,
                 MinimumPrijs = 10,
                 Foto = null

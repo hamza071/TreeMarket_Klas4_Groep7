@@ -31,7 +31,9 @@ namespace WebAPI.Tests.TProduct
             {
                 HttpContext = new DefaultHttpContext
                 {
-                    User = new ClaimsPrincipal() 
+                    User = new ClaimsPrincipal(
+                         new ClaimsIdentity() 
+                    )
                 }
             };
 
@@ -46,8 +48,7 @@ namespace WebAPI.Tests.TProduct
             var result = await controller.CreateProduct(dto);
 
             //Assert
-            var unauthorized = Assert.IsType<UnauthorizedObjectResult>(result);
-            Assert.Equal("Je bent niet ingelogd.", unauthorized.Value);
+            Assert.IsType<UnauthorizedResult>(result);
         }
 
 
