@@ -9,7 +9,7 @@ using System.Globalization;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Dit wordt alleen gebruikt binnen de functie CreateProduct van Service en Controller😂
+// Dit wordt alleen gebruikt binnen de functie CreateProduct van Service en Controller
 // Reden: omdat in de Nederlandse een punt geen komma is, maar binnen EN-US is een , en . beide komma's
 //Bijvoorbeeld voor NL 10,50 = 10.50, maar niet als het 10.50 = 105 is. Maar voor en-US 10.50 = 10.50 en ook met 10,50 = 10.50
 var culture = new CultureInfo("en-US");
