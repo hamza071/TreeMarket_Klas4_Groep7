@@ -6,13 +6,9 @@ export default function AboutPage() {
 
             <main className="container" style={{ maxWidth: '960px', margin: '0 auto', padding: '1rem' }}>
                 <article className="main-article">
-                    <h1>About Tree Market</h1>
-                    <p className="subheading">
-
-                    </p>
+                    <h1>Over Tree Market</h1>
 
                     <figure className="hero-image" style={{ textAlign: 'center' }}>
-                        {/* */}
                         <img
                             src={heroImage}
                             alt="Roze kersenbloesems in volle bloei aan takken tegen een heldere lucht."
@@ -21,9 +17,9 @@ export default function AboutPage() {
                     </figure>
 
                     <div className="article-text">
-                        <p>Welcome to Tree Market, a preview of the new space for both Nature and people, where growers, suppliers, and buyers connect in real time. At Tree Market, we believe that every stem tells a story, and we are committed to creating a platform that makes procurement efficient, transparent, and fair.</p>
-                        <p>Our mission is simple: to bring efficiency, transparency, and excitement to the flower trade. We provide a dynamic auction system that allows buyers to source fresh flowers directly from trusted growers, ensuring better prices and higher quality for everyone involved. Whether you are a florist looking for seasonal varieties, a wholesaler needing large quantities, or a grower seeking to reach new markets, Tree Market offers the tools you need to succeed.</p>
-                        <p>What sets Tree Market apart is our focus on speed, trust, and sustainability. Our platform is designed to streamline transactions, minimize waste, and create fair opportunities for buyers and sellers alike. While the world is shifting around payments, and downstream logistics, we make the flower trade an accent on data-driven insights. Our commitment extends beyond the marketplace; we are dedicated to supporting our growers by ensuring diversity is great design, and helping the industry thrive in a digital era. Our team works tirelessly to ensure a seamless experience, from the first bid to the final delivery. Join Tree Market today and be part of a blooming revolution. Let's grow together, one flower at a time.</p>
+                                               <p>Welkom bij Tree Market, een voorproefje van de nieuwe ruimte voor zowel de natuur als mensen, waar telers, leveranciers en kopers in real time met elkaar verbonden zijn. Bij Tree Market geloven we dat elke steel een verhaal vertelt, en we zetten ons in om een platform te creeren dat inkoop efficient, transparant en eerlijk maakt.</p>
+                        <p>Onze missie is eenvoudig: efficientie, transparantie en enthousiasme brengen in de bloemenhandel. We bieden een dynamisch veilingplatform waarmee kopers verse bloemen rechtstreeks bij betrouwbare telers kunnen inkopen, waardoor betere prijzen en hogere kwaliteit voor iedereen worden gegarandeerd. Of je nu een bloemist bent op zoek naar seizoensgebonden varieteiten, een groothandel die grote hoeveelheden nodig heeft, of een teler die nieuwe markten wil bereiken, Tree Market biedt de tools die je nodig hebt om succesvol te zijn.</p>
+                        <p>Wat Tree Market onderscheidt, is onze focus op snelheid, vertrouwen en duurzaamheid. Ons platform is ontworpen om transacties te stroomlijnen, verspilling te minimaliseren en eerlijke kansen te creeren voor zowel kopers als verkopers. Terwijl de wereld verandert op het gebied van betalingen en logistiek downstream, zetten wij de bloemenhandel centraal met datagedreven inzichten. Onze inzet gaat verder dan alleen de marktplaats; we ondersteunen onze telers door diversiteit te waarborgen als goed ontwerp en helpen de sector te floreren in een digitaal tijdperk. Ons team werkt onvermoeibaar om een naadloze ervaring te garanderen, van het eerste bod tot de uiteindelijke levering. Word vandaag nog lid van Tree Market en maak deel uit van een bloeiende revolutie. Laten we samen groeien, een bloem tegelijk.</p>
                     </div>
                 </article>
             </main>

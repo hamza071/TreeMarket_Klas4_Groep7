@@ -21,7 +21,9 @@ namespace WebAPI.Tests.Helpers
         //Deze functie voorkomt ook DRY (Don't Repeat Yourself)
         public static ControllerContext CreateContext(string userId, string role)
         {
-            //Twee rollen zodat de test zowel de id en rol kunt gebruiken voor een gebruiker
+            //Twee variabelen zodat de test zowel de id en rol kunt gebruiken voor een gebruiker/
+            //Dit voorkomt de 401 error aka de authenticatie error checker
+            //403 is de autorisatie error checker.
             var user = new security.ClaimsPrincipal(new security.ClaimsIdentity(new[]
             {
                 new security.Claim(security.ClaimTypes.NameIdentifier, userId),

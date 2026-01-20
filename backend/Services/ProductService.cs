@@ -19,6 +19,7 @@ namespace backend.Services
         {
             var today = DateTime.UtcNow.Date;
 
+            //LINQ (Language Integrated Query) is toegepast
             return await _context.Product
                 // Filter aangepast: Alleen producten van vandaag die nog voorraad hebben
                 .Where(p => p.Dagdatum.Date == today && p.Hoeveelheid > 0)
@@ -37,6 +38,7 @@ namespace backend.Services
                 .ToListAsync();
         }
 
+        //De product van de Leverancier wordt getoond
         public async Task<List<ProductMetVeilingmeesterDto>> GetMetLeverancier()
         {
             return await _context.Product
@@ -55,6 +57,7 @@ namespace backend.Services
                 .ToListAsync();
         }
 
+        //De product wordt opgehaald met behulp van de productID
         public async Task<ProductMetVeilingmeesterDto?> GetProductById(int id)
         {
             var product = await _context.Product
@@ -144,6 +147,7 @@ namespace backend.Services
             return CreateProduct(productDto, userId, isAdmin);
         }
 
+        //De producten van vandaag wordt verwijderd. Dat wordt toegepast
         public async Task<int> DeleteTodayProducts()
         {
             var today = DateTime.UtcNow.Date;

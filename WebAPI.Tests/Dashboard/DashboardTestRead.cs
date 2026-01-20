@@ -26,6 +26,7 @@ namespace WebAPI.Tests.TDashboard
             // Arrange
             var dashboards = new List<Dashboard>
             {
+                //De dashboard bevat maar 1 product
                 new Dashboard
                 {
                     DashboardID = 1,
@@ -42,7 +43,8 @@ namespace WebAPI.Tests.TDashboard
 
             var controller = new DashboardsController(mockService.Object);
 
-            controller.ControllerContext = TestAuthHelper.CreateContext("admin-123", "Admin");
+            //kijken of een veilingsmeester binnen de dashboard kan komen om de
+            controller.ControllerContext = TestAuthHelper.CreateContext("veilingsmeester-123", "Veilingsmeester");
 
             // Act
             var result = await controller.GetAll();
@@ -57,11 +59,11 @@ namespace WebAPI.Tests.TDashboard
 
         // Welke rollen geen toegang tot de dashboard heeft
         [Fact]
-        public async Task GetKlant_ReturnsForbid_For_UnauthorizedRole()
+        public async Task GetAnomous_ReturnsForbid_For_UnauthorizedRole()
         {
             var controller = new DashboardsController(Mock.Of<IDashboardService>());
 
-            controller.ControllerContext = TestAuthHelper.CreateContext("klant-123", "Klant");
+            controller.ControllerContext = TestAuthHelper.CreateContext("user-123", "");
 
             var result = await controller.GetAll();
 

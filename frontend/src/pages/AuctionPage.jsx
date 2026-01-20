@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import "../assets/css/AuctionPage.css";
 import { API_URL } from '../DeployLocal';
 
+// De pagina waar Veilingsmeester de product (kavels) kunt uploaden
 function AuctionPage() {
     const [lots, setLots] = useState([]);
     const [loading, setLoading] = useState(true);

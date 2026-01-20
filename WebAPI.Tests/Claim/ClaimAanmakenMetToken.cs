@@ -19,15 +19,15 @@ namespace WebAPI.Tests.TClaim
  {
      public class ClaimAanmakenMetToken
      {
-       //Claim kan alleen aangemaakt worden wanneer het een token heeft 
+       //Claim kan alleen aangemaakt worden wanneer de gebruiker een token heeft 
         [Fact]
         public async Task PlaceClaim_Gebruikt_UserId_Uit_Token()
         {
             // Arrange
             var mockService = new Mock<IClaimService>();
 
-            ClaimDto? receivedDto = null;
-            string? receivedUserId = null;
+            ClaimDto receivedDto = null;
+            string receivedUserId = null;
 
             mockService
                 .Setup(s => s.VerwerkAankoopAsync(It.IsAny<ClaimDto>(), It.IsAny<string>()))

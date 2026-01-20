@@ -18,6 +18,7 @@ namespace WebAPI.Tests.TProduct
 {
     public class ProductAanmaken
     {
+        //Controleren of de product aangemaakt kunt worden door een leverancier
         [Fact]
         public async Task ProductKanAangemaaktWorden_Succes()
         {
@@ -35,10 +36,11 @@ namespace WebAPI.Tests.TProduct
                 LeverancierNaam = "Test Leverancier"
             };
 
+            //Gebruik de gebruikersnaam 'Pikachu-123' om te kijken of de rol wel echt goed werkt.
             mockService
               .Setup(s => s.CreateProduct(
                   It.IsAny<ProductUploadDto>(),
-                  "leverancier-123",
+                  "Pikachu-123",
                   false))
               .ReturnsAsync(expectedDto);
 
@@ -46,7 +48,7 @@ namespace WebAPI.Tests.TProduct
             var controller = new ProductController(mockService.Object);
 
             // Mock user (Leverancier)
-            controller.ControllerContext = TestAuthHelper.CreateContext("leverancier-123", "Leverancier");
+            controller.ControllerContext = TestAuthHelper.CreateContext("Pikachu-123", "Leverancier");
 
             var dto = new ProductUploadDto
             {
@@ -79,5 +81,61 @@ namespace WebAPI.Tests.TProduct
             Assert.Equal("pending", product.Status);
         }
 
+        //=============Autorisatie test==================
+        //Natuurlijk mag de klant en veilingsmeester dat weer niet. 
+
+        //Klant
+        [Fact]
+        public async Task ProductKanNietAangemaaktWorden_DoorKlant()
+        {
+            // Arrange
+            var mockService = new Mock<IProductService>();
+            var controller = new ProductController(mockService.Object);
+
+            // Mock user (Klant)
+            controller.ControllerContext = TestAuthHelper.CreateContext("Ash-456", "Klant");
+
+            var dto = new ProductUploadDto
+            {
+                ProductNaam = "Peashooter",
+                Varieteit = "Zonnebloempit",
+                Hoeveelheid = 5,
+                MinimumPrijs = 10,
+                Foto = null
+            };
+
+            // Act
+            var result = await controller.CreateProduct(dto);
+
+            // Assert
+            var unauthorized = Assert.IsType<ForbidResult>(result);
+        }
+
+        //Veilingsmeester
+        [Fact]
+        public async Task ProductKanNietAangemaaktWorden_DoorVeilingsmeester()
+        {
+            // Arrange
+            var mockService = new Mock<IProductService>();
+            var controller = new ProductController(mockService.Object);
+
+            // Mock user (Veilingsmeester)
+            controller.ControllerContext = TestAuthHelper.CreateContext("Dedenne-456", "Veilingsmeester");
+
+            var dto = new ProductUploadDto
+            {
+                ProductNaam = "Wallnut",
+                Varieteit = "Zonnebloempit",
+                Hoeveelheid = 5,
+                MinimumPrijs = 100,
+                Foto = null
+            };
+
+            // Act
+            var result = await controller.CreateProduct(dto);
+
+            // Assert
+            var unauthorized = Assert.IsType<ForbidResult>(result);
+        }
     }
 }

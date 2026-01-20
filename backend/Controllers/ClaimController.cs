@@ -33,8 +33,8 @@ namespace backend.Controllers
                 return StatusCode(500, new { message = "Databasefout.", error = ex.Message });
             }
         }
-
-        // === HIER WAS HET STUKJE DAT ONTBRAK ===
+        
+        //====De history stukje om de gekochte claimgeschiedenis te zien=========
         // GET: api/Claim/GetHistory
         [HttpGet("GetHistory")]
         public async Task<IActionResult> GetHistory(string productNaam, string leverancierNaam)

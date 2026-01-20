@@ -23,10 +23,11 @@ namespace backend.Services
             return await _context.Claim
                 .Include(c => c.klant)
                 .Include(c => c.Veiling)
-                    .ThenInclude(v => v.Product)
+                .ThenInclude(v => v.Product)
                 .ToListAsync();
         }
 
+        //Hier wordt een claim aangemaakt zodra een klant een product van een veiling met de gekozen aantal stukken geclaimed heeft.
         public async Task<bool> VerwerkAankoopAsync(ClaimDto dto, string userId)
         {
             var veiling = await _context.Veiling.Include(v => v.Product).FirstOrDefaultAsync(v => v.VeilingID == dto.VeilingId);
@@ -71,7 +72,7 @@ namespace backend.Services
                 SELECT TOP 10 c.Prijs, v.StartTimestamp, l.Bedrijf
                 FROM Claim c
                 JOIN Veiling v ON c.VeilingId = v.VeilingID
-                JOIN Product p ON v.ProductID = p.ProductId   -- <--- HIER ZAT DE FOUT (Was ProductProductId)
+                JOIN Product p ON v.ProductID = p.ProductId   
                 JOIN Leverancier l ON p.LeverancierID = l.Id
                 WHERE p.ProductNaam = @Naam
                 ORDER BY v.StartTimestamp DESC";
@@ -100,7 +101,7 @@ namespace backend.Services
                 SELECT TOP 10 c.Prijs, v.StartTimestamp, l.Bedrijf
                 FROM Claim c
                 JOIN Veiling v ON c.VeilingId = v.VeilingID
-                JOIN Product p ON v.ProductID = p.ProductId   -- <--- OOK HIER AANGEPAST
+                JOIN Product p ON v.ProductID = p.ProductId   
                 JOIN Leverancier l ON p.LeverancierID = l.Id
                 WHERE p.ProductNaam = @Naam AND l.Bedrijf = @LevNaam
                 ORDER BY v.StartTimestamp DESC";
@@ -124,6 +125,7 @@ namespace backend.Services
                 }
             }
 
+            //Hier wordt de geschiedenis van de claims getoond. Dit wordt
             return new ProductHistoryResponse
             {
                 MarktHistorie = marktLijst.Take(10).ToList(),
