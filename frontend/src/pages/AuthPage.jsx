@@ -68,7 +68,7 @@ function AuthPage() {
        
         if (isRegister) {
             let endpoint = "";
-            // Let op: Hier gebruiken we nu API_URL in plaats van BASE_URL
+            
             switch (formData.rol) {
                 case "klant": endpoint = `${API_URL}/api/Gebruiker/Klant`; break;
                 case "leverancier": endpoint = `${API_URL}/api/Gebruiker/Leverancier`; break;

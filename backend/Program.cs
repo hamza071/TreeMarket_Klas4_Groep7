@@ -26,9 +26,8 @@ builder.Services.AddDbContext<ApiContext>(options =>
     options.UseSqlServer(connectionString, sql => sql.EnableRetryOnFailure())
 );
 
-// ==========================
-// 2) IDENTITY + AUTH
-// ==========================
+
+// IDENTITY + AUTH
 builder.Services.AddIdentity<Gebruiker, IdentityRole>()
     .AddEntityFrameworkStores<ApiContext>()
     .AddDefaultTokenProviders();
@@ -48,9 +47,9 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorization();
 
-// ==========================
-// 3) DI: SERVICES
-// ==========================
+
+// DI: SERVICES
+// 
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IGebruikerService, GebruikerService>();
 builder.Services.AddScoped<IVeilingService, VeilingService>();
@@ -100,19 +99,18 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// ==========================
+
 // 4) SEEDING: ROLLEN + ADMIN + TEST USER
-// ==========================
 using (var scope = app.Services.CreateScope())
 {
-    //// 1. HAAL EERST DE DATABASE CONTEXT OP
+    //HAAL EERST DE DATABASE CONTEXT OP
     //var context = scope.ServiceProvider.GetRequiredService<ApiContext>();
 
-    //// 2. VOER DE MIGRATIES UIT (MAAK TABELLEN AAN IN AZURE)
-    //// Dit commando zorgt dat de database tabellen worden aangemaakt als ze nog niet bestaan.
+    //VOER DE MIGRATIES UIT (MAAK TABELLEN AAN IN AZURE)
+    //Dit commando zorgt dat de database tabellen worden aangemaakt als ze nog niet bestaan.
     //context.Database.Migrate();
 
-    //// ---------------------------------------------------------
+    
 
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
     var userManager = scope.ServiceProvider.GetRequiredService<UserManager<Gebruiker>>();
@@ -127,13 +125,13 @@ using (var scope = app.Services.CreateScope())
         }
     }
 
-    // -------- Admin seeden (robust) --------
+    // Admin seeden (robust) 
     var adminEmail = "admin@treemarket.nl";
     var adminPassword = "AppelKruimel1234!";
 
     var adminUser = await userManager.FindByEmailAsync(adminEmail);
 
-    // 1) Admin maken als hij niet bestaat
+    // Admin maken als hij niet bestaat
     if (adminUser == null)
     {
         adminUser = new Gebruiker
@@ -153,7 +151,7 @@ using (var scope = app.Services.CreateScope())
         }
     }
 
-    // -------- Test Veilingsmeester --------
+    // Test Veilingsmeester 
     var testEmail = "test@treemarket.nl";
     var testPassword = "Veiling123!";
     var testUser = await userManager.FindByEmailAsync(testEmail);
@@ -190,9 +188,9 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
-// ==========================
+
 // 5) MIDDLEWARE PIPELINE
-// ==========================
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
