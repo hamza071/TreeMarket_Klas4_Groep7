@@ -218,7 +218,7 @@ function AuthPage() {
                                         </label>
                                         <label className="form-field">
                                             <span>KvK Nummer</span>
-                                            <input name="KvKNummer" type="text" value={formData.KvKNummer} onChange={handleChange} placeholder="KvK nummer" />
+                                            <input name="KvKNummer" type="text" value={formData.KvKNummer} onChange={handleChange} placeholder="KvK nummer 8 Cijfers" />
                                             {errors.KvKNummer && <small className="error-text">{errors.KvKNummer}</small>}
                                         </label>
                                         <label className="form-field">

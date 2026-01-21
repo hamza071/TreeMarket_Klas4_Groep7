@@ -46,6 +46,7 @@ const NAVIGATION_ITEMS_VEILINGSMEESTER = [
 const NAVIGATION_ITEMS_ANONYMOUS = [
     { id: "home", label: "Home" },
     { id: "about", label: "About" },
+    { id: "dashboard", label: "Dashboard" },
 ];
 
 // ADMIN (Kan niet aangemaakt worden) 
