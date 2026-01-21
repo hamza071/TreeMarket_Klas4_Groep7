@@ -262,7 +262,7 @@ function AuthPage() {
                     <img
                         src={isRegister
                             ? "https://images.unsplash.com/photo-1545243424-0ce743321e11?auto=format&fit=crop&w=800&q=80"
-                            : "https://images.unsplash.com/photo-1517427294546-5aaefec2b2bb?auto=format&fit=crop&w=800&q=80"}
+                            : "https://images.unsplash.com/photo-1545243424-0ce743321e11?auto=format&fit=crop&w=800&q=80"}
                         alt={isRegister ? "Registreren" : "Inloggen"}
                     />
                 </div>
