@@ -116,7 +116,11 @@ function AuthPage() {
                 const data = await response.json().catch(() => null);
 
                 if (!response.ok) {
-                    setServerError(data?.detail || "Inloggen mislukt. Controleer uw gegevens.");
+                    if (response.status === 401) {
+                        setServerError("E-mailadres of wachtwoord is onjuist.");
+                    } else {
+                        setServerError(data?.detail || "Inloggen mislukt. Controleer uw gegevens.");
+                    }
                     return;
                 }
 
